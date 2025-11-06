@@ -13,11 +13,16 @@ kotlinxDatetime = "0.6.2"
 kotlinxSerializationJSON = "1.8.1"
 kotlinxCoroutines = "1.10.2"
 
+# see: https://github.com/ajalt/clikt/releases
+clikt = "5.0.3"
+
 [libraries]
 kotlinGradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlinxDatetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
 kotlinxSerialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJSON" }
 kotlinxCoroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
+
+clikt = { module = "com.github.ajalt.clikt:clikt", version.ref = "clikt" }
 
 # Libraries can be bundled together for easier import
 [bundles]
