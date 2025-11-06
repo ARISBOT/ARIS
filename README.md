@@ -6,7 +6,7 @@ SPDX-License-Identifier: EUPL-1.2
 
 [![EUPL](https://img.shields.io/badge/licence-EUPL-blue.svg)](https://eupl.eu/)
 
-# Katastima - TEMPLATE
+# Katastima - APK Scanner
 
 <!-- ADD DESCRIPTION HERE -->
 
