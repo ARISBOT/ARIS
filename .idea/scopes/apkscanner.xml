@@ -1,0 +1,3 @@
+<component name="DependencyValidationManager">
+  <scope name="apkscanner" pattern="file[apkscanner*]:*//*&amp;&amp;!file[apkscanner]:.idea//*&amp;&amp;!file[apkscanner]:gradle//*&amp;&amp;!file[apkscanner]:LICENSES//*" />
+</component>

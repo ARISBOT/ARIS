@@ -6,3 +6,28 @@ path = [
 ]
 SPDX-FileCopyrightText = "NONE"
 SPDX-License-Identifier = "EUPL-1.2"
+
+[[annotations]]
+path = [
+    "gradlew",
+    "gradlew.bat",
+]
+SPDX-FileCopyrightText = "Copyright 2015 the original author or authors."
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = [
+    "gradle/wrapper/*",
+]
+SPDX-FileCopyrightText = "NONE"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = [
+    ".gitignore",
+    ".idea/*",
+    ".idea/*/*",
+    ".run/*",
+]
+SPDX-FileCopyrightText = "NONE"
+SPDX-License-Identifier = "EUPL-1.2"
