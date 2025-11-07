@@ -8,6 +8,9 @@ package eu.katastima.apkscanner.scanapk
 import brut.androlib.ApkDecoder
 import brut.androlib.Config
 import brut.directory.ExtFile
+import eu.katastima.apkscanner.config.ApkScannerConfig
+import eu.katastima.apkscanner.database.DatabaseUtil
+import eu.katastima.apkscanner.models.LibraryInformation
 import eu.katastima.apkscanner.utils.Randomizer
 import java.io.Closeable
 import java.io.File
@@ -48,6 +51,11 @@ class ScanAPK : Closeable {
         val outputDir = File("${workingDirectory.absolutePath}/${apkFile.name}_${randomString}/")
         apkDecoder.decode(outputDir)
 
+        val database = DatabaseUtil.getDatabase()
+        val databaseConfig = ApkScannerConfig.getConfig().databaseConfig
+
+        val libraryInformationList = mutableListOf<LibraryInformation>()
+
         outputDir
             // Filter by directories, where the name equals "smali".
             .listFiles { it.isDirectory && it.name.lowercase() == "smali" }
@@ -55,14 +63,25 @@ class ScanAPK : Closeable {
                 println("Processing smali directory (${smaliDirectory.absolutePath})")
 
                 // Walk through all the directories within the smali directory
-                smaliDirectory.walkTopDown()
+                smaliDirectory
+                    .walkTopDown()
                     .filter { it.isDirectory }
-                    .forEach {
-                        if (it != smaliDirectory) {
-                            // TODO: compare the output with the definition list.
-                            println(it.absolutePath.replace("${smaliDirectory.absolutePath}${File.separator}", ""))
+                    .forEach { directory ->
+                        if (directory != smaliDirectory) {
+                            var libraryId = directory.absolutePath.replace("${smaliDirectory.absolutePath}${File.separator}", "")
+                            libraryId = "${File.separator}${libraryId}"
+
+                            val libraryInformation = DatabaseUtil.getLibraryInformationFromLibraryPath(database, databaseConfig, libraryId)
+                            libraryInformationList.addAll(libraryInformation)
                         }
                     }
+            }
+
+        libraryInformationList
+            .sortedBy { it.name.lowercase() }
+            .forEach {
+                // TODO: finish this!
+                println(it)
             }
 
         // Delete the generated output directory recursively to clean up.

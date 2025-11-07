@@ -9,9 +9,13 @@ import eu.katastima.apkscanner.config.ApkScannerConfig
 import eu.katastima.apkscanner.config.DatabaseConfig
 import eu.katastima.apkscanner.config.DatabaseMode
 import eu.katastima.apkscanner.config.DatabaseType
-import eu.katastima.apkscanner.database.dao.LibraryTable
+import eu.katastima.apkscanner.database.dao.LibraryEntry
+import eu.katastima.apkscanner.database.dao.LibraryInformationEntry
 import eu.katastima.apkscanner.database.dao.LibraryInformationTable
+import eu.katastima.apkscanner.database.dao.LibraryTable
+import eu.katastima.apkscanner.models.LibraryInformation
 import org.jetbrains.exposed.v1.core.StdOutSqlLogger
+import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -62,5 +66,46 @@ object DatabaseUtil {
             SchemaUtils.create(LibraryInformationTable)
             SchemaUtils.create(LibraryTable)
         }
+    }
+
+    fun getLibraryInformationFromLibraryPath(database: Database, databaseConfig: DatabaseConfig, libraryPath: String): Set<LibraryInformation> {
+        val libraryInformationSet = mutableSetOf<LibraryInformation>()
+
+        transaction(database) {
+            if (databaseConfig.debug) {
+                addLogger(StdOutSqlLogger)
+            }
+
+            val informationMap = mutableMapOf<String, LibraryInformationEntry>()
+            LibraryEntry
+                .find { LibraryTable.path eq libraryPath }
+                .forEach { libraryEntry ->
+                    if (informationMap[libraryEntry.libraryId] == null) {
+                        LibraryInformationEntry
+                            .find { LibraryInformationTable.libraryId eq libraryEntry.libraryId }
+                            .forEach { libraryInformationEntry ->
+                                informationMap[libraryEntry.libraryId] = libraryInformationEntry
+                            }
+                    }
+                }
+
+            informationMap.values.forEach { informationEntry ->
+                val libraryInformation = LibraryInformation(
+                    libraryId = informationEntry.libraryId,
+                    name = informationEntry.name,
+                    details = informationEntry.details,
+                    type = informationEntry.type,
+                    permissions = informationEntry.permissions.toTypedArray(),
+                    url = informationEntry.url,
+                    modWarningId = informationEntry.modWarningId,
+                    antiFeatures = informationEntry.antiFeatures.toTypedArray(),
+                    license = informationEntry.license,
+                    emphasize = informationEntry.emphasize,
+                )
+                libraryInformationSet.add(libraryInformation)
+            }
+        }
+
+        return libraryInformationSet
     }
 }
