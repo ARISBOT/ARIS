@@ -13,7 +13,8 @@ import java.io.File
 
 @Serializable
 data class ApkScannerConfig(
-    @SerialName("database") val databaseConfig: DatabaseConfig,
+    @SerialName("database") val databaseConfig: DatabaseConfig = DatabaseConfig(),
+    @SerialName("legacy") val legacyConfig: LegacyConfig = LegacyConfig(),
 ) {
 
     override fun toString(): String {
@@ -29,9 +30,14 @@ data class ApkScannerConfig(
         fun getConfig(): ApkScannerConfig {
             if (apkScannerConfig == null) {
                 apkScannerConfig = if (doesConfigExist()) {
-                    Yaml.default.decodeFromSource(serializer(), getConfigFile().source())
+                    try {
+                        Yaml.default.decodeFromSource(serializer(), getConfigFile().source())
+                    } catch (exc: Exception) {
+                        exc.printStackTrace()
+                        ApkScannerConfig()
+                    }
                 } else {
-                    ApkScannerConfig(DatabaseConfig())
+                    ApkScannerConfig()
                 }
             }
             return apkScannerConfig!!

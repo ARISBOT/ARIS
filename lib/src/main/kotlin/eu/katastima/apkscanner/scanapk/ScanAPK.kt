@@ -8,6 +8,7 @@ package eu.katastima.apkscanner.scanapk
 import brut.androlib.ApkDecoder
 import brut.androlib.Config
 import brut.directory.ExtFile
+import eu.katastima.apkscanner.config.ApkScannerConfig
 import eu.katastima.apkscanner.models.LegacyLibraryDefinition
 import eu.katastima.apkscanner.models.LegacyLibraryInformation
 import eu.katastima.apkscanner.utils.Randomizer
@@ -35,9 +36,10 @@ class ScanAPK : Closeable {
      *
      * Other projects are also making use of these files, so we cannot get rid of them right now.
      */
-    constructor(libraryDefinitionsFile: File, libraryInformationFile: File, workingDirectory: File? = null) {
-        this.libraryDefinitionsFile = libraryDefinitionsFile
-        this.libraryInformationFile = libraryInformationFile
+    constructor(workingDirectory: File? = null) {
+        val legacyConfig = ApkScannerConfig.getConfig().legacyConfig
+        this.libraryDefinitionsFile = File(legacyConfig.libraryDefinitionPath)
+        this.libraryInformationFile = File(legacyConfig.libraryInformationPath)
         this.workingDirectory = workingDirectory ?: createTempDirectory().toFile()
     }
 
