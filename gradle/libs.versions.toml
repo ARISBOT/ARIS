@@ -19,6 +19,12 @@ apktool-version = "2.12.1"
 # see: https://github.com/ajalt/clikt/releases
 clikt = "5.0.3"
 
+# see - https://github.com/charleskorn/kaml/releases
+kaml = "0.102.0"
+
+# okio - https://square.github.io/okio/changelog/
+okio = "3.16.2"
+
 [libraries]
 kotlinGradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlinxDatetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
@@ -27,6 +33,8 @@ kotlinxCoroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", 
 
 apktool-lib = { module = "org.apktool:apktool-lib", version.ref = "apktool-version" }
 clikt = { module = "com.github.ajalt.clikt:clikt", version.ref = "clikt" }
+kaml = { module = "com.charleskorn.kaml:kaml", version.ref = "kaml" }
+okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 
 # Libraries can be bundled together for easier import
 [bundles]
