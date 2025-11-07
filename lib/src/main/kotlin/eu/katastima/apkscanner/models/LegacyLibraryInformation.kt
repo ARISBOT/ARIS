@@ -13,11 +13,9 @@ data class LegacyLibraryInformation(
     val id: String,
     val emphasize: Int,
     val details: String,
-    @SerialName("mwid")
-    // TODO: check what that means
-    val mwid: String,
-    @SerialName("anti")
-    val antiFeatures: Array<String>,
+    // For more information about mod warning ids, see: https://android.izzysoft.de/help?topic=modwarnings
+    @SerialName("mwid") val modWarningId: String,
+    @SerialName("anti") val antiFeatures: Array<String>,
     // The information jsonl does not contain a license field for all entries.
     val license: String = "",
 ) {
@@ -30,7 +28,7 @@ data class LegacyLibraryInformation(
         if (emphasize != other.emphasize) return false
         if (id != other.id) return false
         if (details != other.details) return false
-        if (mwid != other.mwid) return false
+        if (modWarningId != other.modWarningId) return false
         if (!antiFeatures.contentEquals(other.antiFeatures)) return false
         if (license != other.license) return false
 
@@ -41,7 +39,7 @@ data class LegacyLibraryInformation(
         var result = emphasize
         result = 31 * result + id.hashCode()
         result = 31 * result + details.hashCode()
-        result = 31 * result + mwid.hashCode()
+        result = 31 * result + modWarningId.hashCode()
         result = 31 * result + antiFeatures.contentHashCode()
         result = 31 * result + license.hashCode()
         return result

@@ -53,7 +53,7 @@ object LegacyUtil {
                     type = ""
                     permissions = emptyList()
                     url = ""
-                    mwid = it.mwid
+                    modWarningId = it.modWarningId
                     antiFeatures = it.antiFeatures.asList()
                     license = it.license
                     emphasize = it.emphasize
@@ -104,7 +104,7 @@ object LegacyUtil {
                         id = libraryInformationEntry.libraryId,
                         emphasize = libraryInformationEntry.emphasize,
                         details = libraryInformationEntry.details,
-                        mwid = libraryInformationEntry.mwid,
+                        modWarningId = libraryInformationEntry.modWarningId,
                         antiFeatures = libraryInformationEntry.antiFeatures.toTypedArray(),
                         license = libraryInformationEntry.license,
                     )

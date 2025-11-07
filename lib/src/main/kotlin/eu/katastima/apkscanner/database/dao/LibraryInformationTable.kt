@@ -17,7 +17,7 @@ object LibraryInformationTable : IntIdTable("library_information") {
     val type = varchar("type", 255).default("")
     val permissions = array<String>("permissions")
     val url = varchar("url", 255).default("")
-    val mwid = varchar("mwid", 255).default("")
+    val modWarningId = varchar("mod_warning_id", 255).default("")
     val antiFeatures = array<String>("anti_features")
     val license = varchar("license", 32).default("")
     val emphasize = integer("emphasize").default(0)
@@ -32,7 +32,7 @@ class LibraryInformationEntry(id: EntityID<Int>) : IntEntity(id) {
     var type by LibraryInformationTable.type
     var permissions by LibraryInformationTable.permissions
     var url by LibraryInformationTable.url
-    var mwid by LibraryInformationTable.mwid
+    var modWarningId by LibraryInformationTable.modWarningId
     var antiFeatures by LibraryInformationTable.antiFeatures
     var license by LibraryInformationTable.license
     var emphasize by LibraryInformationTable.emphasize
@@ -46,7 +46,7 @@ class LibraryInformationEntry(id: EntityID<Int>) : IntEntity(id) {
                 "type=$type, " +
                 "permissions=$permissions, " +
                 "url=$url, " +
-                "mwid=$mwid, " +
+                "modWarningId=$modWarningId, " +
                 "antiFeatures=$antiFeatures, " +
                 "license=$license, " +
                 "emphasize=$emphasize" +
