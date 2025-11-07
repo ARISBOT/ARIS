@@ -10,11 +10,21 @@ import com.github.ajalt.clikt.core.subcommands
 import eu.katastima.apkscanner.cli.subcommands.ScanAPKCommand
 import eu.katastima.apkscanner.cli.subcommands.config.ConfigCommand
 import eu.katastima.apkscanner.cli.subcommands.config.ShowConfigCommand
+import eu.katastima.apkscanner.cli.subcommands.database.CreateDatabaseCommand
+import eu.katastima.apkscanner.cli.subcommands.database.DatabaseCommand
+import eu.katastima.apkscanner.cli.subcommands.legacy.ExportLibraryDefinitionsCommand
+import eu.katastima.apkscanner.cli.subcommands.legacy.LegacyCommand
 
 fun main(args: Array<String>) = ApkScanner()
     .subcommands(
         ConfigCommand().subcommands(
-            ShowConfigCommand()
+            ShowConfigCommand(),
+        ),
+        DatabaseCommand().subcommands(
+            CreateDatabaseCommand(),
+        ),
+        LegacyCommand().subcommands(
+            ExportLibraryDefinitionsCommand(),
         ),
         ScanAPKCommand(),
     )

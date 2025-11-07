@@ -44,5 +44,8 @@ bin/
 ### Mac OS ###
 .DS_Store
 
-### Configuration files
+### apkscanner files
+/apkscanner
+/apkscanner.db
+/apkscanner.mv.db
 /apkscanner.yaml

@@ -9,9 +9,10 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class DatabaseConfig(
+    val debug: Boolean = true,
     val type: DatabaseType = DatabaseType.SQLITE,
     val mode: DatabaseMode = DatabaseMode.DEFAULT,
-    val path: String = "apkscanner.db"
+    val path: String = "apkscanner",
 )
 
 @Serializable

@@ -20,5 +20,7 @@ dependencies {
     api(libs.kaml)
     api(libs.okio)
 
+    api(libs.bundles.exposed)
+
     testImplementation(kotlin("test"))
 }
