@@ -34,9 +34,7 @@ class ScanAPK : Closeable {
         this.workingDirectory = workingDirectory ?: createTempDirectory().toFile()
     }
 
-    fun scanSingle(apkFile: File) {
-        println("Scanning: ${apkFile.absolutePath}")
-
+    fun scanSingle(apkFile: File): ApkScanResult {
         // Decode the APK file using apktool, as we need the smali output.
         val apkDecoderFile = ExtFile(apkFile)
         val apkDecoderConfig = Config().apply {
@@ -60,8 +58,6 @@ class ScanAPK : Closeable {
             // Filter by directories, where the name equals "smali".
             .listFiles { it.isDirectory && it.name.lowercase() == "smali" }
             .forEach { smaliDirectory ->
-                println("Processing smali directory (${smaliDirectory.absolutePath})")
-
                 // Walk through all the directories within the smali directory
                 smaliDirectory
                     .walkTopDown()
@@ -77,19 +73,26 @@ class ScanAPK : Closeable {
                     }
             }
 
-        libraryInformationList
-            .sortedBy { it.name.lowercase() }
-            .forEach {
-                // TODO: finish this!
-                println(it)
-            }
+        val apkScanResult = ApkScanResult(
+            detectedLibraries = libraryInformationList.sortedBy { it.name.lowercase() }.toTypedArray()
+        )
 
         // Delete the generated output directory recursively to clean up.
         outputDir.deleteRecursively()
+
+        return apkScanResult
     }
 
-    fun scanMulti(apkFiles: List<File>) {
-        apkFiles.forEach { scanSingle(it) }
+    fun scanMulti(apkFiles: List<File>, scanCallback: ((apkFile: File, scanResult: ApkScanResult) -> Unit)? = null): Map<File, ApkScanResult> {
+        val apkScanResultMap: MutableMap<File, ApkScanResult> = mutableMapOf()
+        apkFiles.forEach { apkFile ->
+            val scanResult = scanSingle(apkFile)
+            apkScanResultMap[apkFile] = scanResult
+
+            // If callback is specified, invoke it.
+            scanCallback?.invoke(apkFile, scanResult)
+        }
+        return apkScanResultMap
     }
 
     override fun close() {

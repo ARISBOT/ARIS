@@ -48,4 +48,5 @@ bin/
 /apkscanner
 /apkscanner.db
 /apkscanner.mv.db
+/apkscanner.trace.db
 /apkscanner.yaml
