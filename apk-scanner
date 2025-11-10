@@ -1,0 +1,9 @@
+#!/bin/bash
+
+#
+# SPDX-FileCopyrightText: Katastima Authors
+# SPDX-License-Identifier: EUPL-1.2
+#
+
+# Generate first with `./gradlew shadowJar`.
+java -jar cli/build/libs/cli-all.jar "$@"
