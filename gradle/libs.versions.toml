@@ -17,6 +17,9 @@ kotlinxSerializationJSON = "1.9.0"
 # see: https://github.com/Kotlin/kotlinx.coroutines/releases
 kotlinxCoroutines = "1.10.2"
 
+# see: https://mvnrepository.com/artifact/com.android.tools.build/apksig
+apksig-version = "8.13.0"
+
 # see: https://github.com/iBotPeaches/Apktool/releases
 apktool = "2.12.1"
 
@@ -50,6 +53,7 @@ kotlinxDatetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.r
 kotlinxSerialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJSON" }
 kotlinxCoroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
 
+apksig = { module = "com.android.tools.build:apksig", version.ref = "apksig-version" }
 apktool-lib = { module = "org.apktool:apktool-lib", version.ref = "apktool" }
 clikt = { module = "com.github.ajalt.clikt:clikt", version.ref = "clikt" }
 exposed-core = { module = "org.jetbrains.exposed:exposed-core", version.ref = "exposed" }

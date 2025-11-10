@@ -6,8 +6,10 @@
 package eu.katastima.apkscanner.scanapk
 
 import eu.katastima.apkscanner.models.LibraryInformation
+import eu.katastima.apkscanner.signing.VerificationResult
 
 data class ApkScanResult(
+    val verificationResult: VerificationResult = VerificationResult(),
     val detectedLibraries: Array<LibraryInformation> = emptyArray(),
 ) {
     override fun equals(other: Any?): Boolean {
@@ -17,11 +19,14 @@ data class ApkScanResult(
         other as ApkScanResult
 
         if (!detectedLibraries.contentEquals(other.detectedLibraries)) return false
+        if (verificationResult != other.verificationResult) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        return detectedLibraries.contentHashCode()
+        var result = detectedLibraries.contentHashCode()
+        result = 31 * result + verificationResult.hashCode()
+        return result
     }
 }

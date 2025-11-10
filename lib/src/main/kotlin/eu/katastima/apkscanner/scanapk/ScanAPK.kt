@@ -11,6 +11,7 @@ import brut.directory.ExtFile
 import eu.katastima.apkscanner.config.ApkScannerConfig
 import eu.katastima.apkscanner.database.DatabaseUtil
 import eu.katastima.apkscanner.models.LibraryInformation
+import eu.katastima.apkscanner.signing.ApkCert
 import eu.katastima.apkscanner.utils.Randomizer
 import java.io.Closeable
 import java.io.File
@@ -38,7 +39,8 @@ class ScanAPK : Closeable {
         val decodedApkDirectory = decodeApk(apkFile)
 
         val apkScanResult = ApkScanResult(
-            detectedLibraries = scanForLibraries(decodedApkDirectory).sortedBy { it.name.lowercase() }.toTypedArray()
+            verificationResult = ApkCert(apkFile).verify(),
+            detectedLibraries = scanForLibraries(decodedApkDirectory).sortedBy { it.name.lowercase() }.toTypedArray(),
         )
 
         // Delete the directory (which contains the decoded apk output) recursively to clean up.
