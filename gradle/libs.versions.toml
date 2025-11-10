@@ -37,6 +37,9 @@ slf4j = "2.0.17"
 # see: https://github.com/xerial/sqlite-jdbc/releases
 sqlite-jdbc = "3.51.0.0"
 
+# see: https://github.com/GradleUp/shadow/releases
+shadow-gradle = "9.2.2"
+
 [libraries]
 kotlinGradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlinxDatetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
@@ -61,3 +64,4 @@ exposed = ["exposed-core", "exposed-dao", "exposed-jdbc", "h2", "sqlite-jdbc"]
 
 [plugins]
 kotlinPluginSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+shadowGradlePlugin = { id = "com.gradleup.shadow", version.ref = "shadow-gradle" }
