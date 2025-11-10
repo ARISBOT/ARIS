@@ -31,14 +31,14 @@ object LegacyUtil {
         libraryDefinitionsFile.readLines().forEach {
             libraryDefinitions.add(json.decodeFromString<LegacyLibraryDefinition>(it))
         }
-        println("Loaded ${libraryDefinitions.size} library definitions")
+        println("Imported ${libraryDefinitions.size} library definitions from: ${libraryDefinitionsFile.absolutePath}")
 
         val libraryInformationFile = File(apkScannerConfig.legacyConfig.libraryInformationPath)
         val libraryInformation: MutableList<LegacyLibraryInformation> = mutableListOf()
         libraryInformationFile.readLines().forEach {
             libraryInformation.add(json.decodeFromString<LegacyLibraryInformation>(it))
         }
-        println("Loaded ${libraryInformation.size} library information entries")
+        println("Imported ${libraryInformation.size} library information entries from: ${libraryInformationFile.absolutePath}")
 
         transaction(database) {
             if (apkScannerConfig.databaseConfig.debug) {
@@ -83,7 +83,7 @@ object LegacyUtil {
         }
     }
 
-    fun exportLibraryDefinitions(database: Database, apkScannerConfig: ApkScannerConfig) {
+    fun exportLibraryDefinitions(database: Database, apkScannerConfig: ApkScannerConfig): Pair<List<LegacyLibraryInformation>, List<LegacyLibraryDefinition>> {
         val libraryDefinitionsFile = File(apkScannerConfig.legacyConfig.libraryDefinitionPath)
         val libraryInformationFile = File(apkScannerConfig.legacyConfig.libraryInformationPath)
 
@@ -146,5 +146,7 @@ object LegacyUtil {
                 bufferedWriter.newLine()
             }
         }
+
+        return Pair(legacyInformationList, legacyDefinitionList)
     }
 }

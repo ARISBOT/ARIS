@@ -68,6 +68,17 @@ object DatabaseUtil {
         }
     }
 
+    fun dropTables(database: Database, databaseConfig: DatabaseConfig) {
+        transaction(database) {
+            if (databaseConfig.debug) {
+                addLogger(StdOutSqlLogger)
+            }
+
+            SchemaUtils.drop(LibraryInformationTable)
+            SchemaUtils.drop(LibraryTable)
+        }
+    }
+
     fun getLibraryInformationFromLibraryPath(database: Database, databaseConfig: DatabaseConfig, libraryPath: String): Set<LibraryInformation> {
         val libraryInformationSet = mutableSetOf<LibraryInformation>()
 

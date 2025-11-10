@@ -25,8 +25,12 @@ class ExportLibraryDefinitionsCommand : CliktCommand("export-library-definitions
         DatabaseUtil.setupDatabase(database, apkScannerConfig.databaseConfig)
 
         val legacyConfig = apkScannerConfig.legacyConfig
-        if (File(legacyConfig.libraryInformationPath).exists() && File(legacyConfig.libraryDefinitionPath).exists()) {
-            LegacyUtil.exportLibraryDefinitions(database, apkScannerConfig)
+        val legacyInformationFile = File(legacyConfig.libraryInformationPath)
+        val legacyDefinitionFile = File(legacyConfig.libraryDefinitionPath)
+        if (legacyInformationFile.exists() && legacyDefinitionFile.exists()) {
+            val exportedData = LegacyUtil.exportLibraryDefinitions(database, apkScannerConfig)
+            echo("Exported ${exportedData.second.size} library definitions to: ${legacyDefinitionFile.absolutePath}.exported")
+            echo("Exported ${exportedData.first.size} library information entries to: ${legacyInformationFile.absolutePath}.exported")
         }
     }
 }
