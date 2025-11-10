@@ -26,6 +26,8 @@ class ScanAPKCommand : CliktCommand() {
         .help("A single or multiple APK files which should get scanned")
         .multiple(true)
 
+    override val printHelpOnEmptyArgs = true
+
     private var hasOffendingLibrary: Boolean = false
 
     init {
