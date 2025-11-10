@@ -5,7 +5,7 @@
 
 package eu.katastima.apkscanner.cli.subcommands
 
-import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.command.SuspendingCliktCommand
 import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.ProgramResult
 import com.github.ajalt.clikt.core.context
@@ -19,7 +19,7 @@ import eu.katastima.apkscanner.scanapk.ApkScanResult
 import eu.katastima.apkscanner.scanapk.ScanAPK
 import java.io.File
 
-class ScanAPKCommand : CliktCommand() {
+class ScanAPKCommand : SuspendingCliktCommand() {
 
     private val apkFiles: List<File> by argument("apk")
         .file(mustExist = true, mustBeReadable = true, canBeDir = false)
@@ -38,7 +38,7 @@ class ScanAPKCommand : CliktCommand() {
 
     override fun help(context: Context): String = "Scan a single apk and list its used libraries, offending libraries and anti features."
 
-    override fun run() {
+    override suspend fun run() {
         ScanAPK().use {
             echo("Scanning ${apkFiles.size} APK(s).\n")
             it.scanMulti(apkFiles, this::printScanResult)

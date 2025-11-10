@@ -5,6 +5,6 @@
 
 package eu.katastima.apkscanner.cli
 
-import com.github.ajalt.clikt.core.NoOpCliktCommand
+import com.github.ajalt.clikt.command.SuspendingNoOpCliktCommand
 
-class ApkScanner : NoOpCliktCommand()
+class ApkScanner : SuspendingNoOpCliktCommand()

@@ -5,10 +5,10 @@
 
 package eu.katastima.apkscanner.cli.subcommands.config
 
+import com.github.ajalt.clikt.command.SuspendingNoOpCliktCommand
 import com.github.ajalt.clikt.core.Context
-import com.github.ajalt.clikt.core.NoOpCliktCommand
 
-class ConfigCommand : NoOpCliktCommand() {
+class ConfigCommand : SuspendingNoOpCliktCommand() {
 
     override fun help(context: Context): String = "Interact with the application configuration."
 }
