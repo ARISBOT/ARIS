@@ -5,6 +5,7 @@
 
 package eu.katastima.apkscanner.cli
 
+import com.github.ajalt.clikt.completion.completionOption
 import com.github.ajalt.clikt.core.main
 import com.github.ajalt.clikt.core.subcommands
 import eu.katastima.apkscanner.cli.subcommands.ScanAPKCommand
@@ -24,6 +25,7 @@ fun main(args: Array<String>) {
     }
 
     return ApkScanner()
+        .completionOption()
         .subcommands(
             ConfigCommand().subcommands(
                 ShowConfigCommand(),
