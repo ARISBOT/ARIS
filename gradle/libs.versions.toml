@@ -31,6 +31,9 @@ kaml = "0.102.0"
 # see: https://square.github.io/okio/changelog/
 okio = "3.16.2"
 
+# see: https://github.com/qos-ch/slf4j/releases
+slf4j = "2.0.17"
+
 # see: https://github.com/xerial/sqlite-jdbc/releases
 sqlite-jdbc = "3.51.0.0"
 
@@ -48,6 +51,7 @@ exposed-jdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "e
 h2 = { module = "com.h2database:h2", version.ref = "h2" }
 kaml = { module = "com.charleskorn.kaml:kaml", version.ref = "kaml" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
+slf4j-nop = { module = "org.slf4j:slf4j-nop", version.ref = "slf4j" }
 sqlite-jdbc = { module = "org.xerial:sqlite-jdbc", version.ref = "sqlite-jdbc" }
 
 # Libraries can be bundled together for easier import

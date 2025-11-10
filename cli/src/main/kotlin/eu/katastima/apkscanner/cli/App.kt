@@ -14,18 +14,27 @@ import eu.katastima.apkscanner.cli.subcommands.database.CreateDatabaseCommand
 import eu.katastima.apkscanner.cli.subcommands.database.DatabaseCommand
 import eu.katastima.apkscanner.cli.subcommands.legacy.ExportLibraryDefinitionsCommand
 import eu.katastima.apkscanner.cli.subcommands.legacy.LegacyCommand
+import java.util.logging.Level
+import java.util.logging.Logger
 
-fun main(args: Array<String>) = ApkScanner()
-    .subcommands(
-        ConfigCommand().subcommands(
-            ShowConfigCommand(),
-        ),
-        DatabaseCommand().subcommands(
-            CreateDatabaseCommand(),
-        ),
-        LegacyCommand().subcommands(
-            ExportLibraryDefinitionsCommand(),
-        ),
-        ScanAPKCommand(),
-    )
-    .main(args)
+fun main(args: Array<String>) {
+    // Disable logging for apktool.
+    Logger.getLogger("brut.androlib").apply {
+        level = Level.WARNING
+    }
+
+    return ApkScanner()
+        .subcommands(
+            ConfigCommand().subcommands(
+                ShowConfigCommand(),
+            ),
+            DatabaseCommand().subcommands(
+                CreateDatabaseCommand(),
+            ),
+            LegacyCommand().subcommands(
+                ExportLibraryDefinitionsCommand(),
+            ),
+            ScanAPKCommand(),
+        )
+        .main(args)
+}
