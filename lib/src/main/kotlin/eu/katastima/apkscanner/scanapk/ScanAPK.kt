@@ -35,6 +35,31 @@ class ScanAPK : Closeable {
     }
 
     fun scanSingle(apkFile: File): ApkScanResult {
+        val decodedApkDirectory = decodeApk(apkFile)
+
+        val apkScanResult = ApkScanResult(
+            detectedLibraries = scanForLibraries(decodedApkDirectory).sortedBy { it.name.lowercase() }.toTypedArray()
+        )
+
+        // Delete the directory (which contains the decoded apk output) recursively to clean up.
+        decodedApkDirectory.deleteRecursively()
+
+        return apkScanResult
+    }
+
+    fun scanMulti(apkFiles: List<File>, scanCallback: ((apkFile: File, scanResult: ApkScanResult) -> Unit)? = null): Map<File, ApkScanResult> {
+        val apkScanResultMap: MutableMap<File, ApkScanResult> = mutableMapOf()
+        apkFiles.forEach { apkFile ->
+            val scanResult = scanSingle(apkFile)
+            apkScanResultMap[apkFile] = scanResult
+
+            // If callback is specified, invoke it.
+            scanCallback?.invoke(apkFile, scanResult)
+        }
+        return apkScanResultMap
+    }
+
+    private fun decodeApk(apkFile: File): File {
         // Decode the APK file using apktool, as we need the smali output.
         val apkDecoderFile = ExtFile(apkFile)
         val apkDecoderConfig = Config().apply {
@@ -49,6 +74,10 @@ class ScanAPK : Closeable {
         val outputDir = File("${workingDirectory.absolutePath}/${apkFile.name}_${randomString}/")
         apkDecoder.decode(outputDir)
 
+        return outputDir
+    }
+
+    private fun scanForLibraries(outputDir: File): List<LibraryInformation> {
         val database = DatabaseUtil.getDatabase()
         val databaseConfig = ApkScannerConfig.getConfig().databaseConfig
 
@@ -73,26 +102,7 @@ class ScanAPK : Closeable {
                     }
             }
 
-        val apkScanResult = ApkScanResult(
-            detectedLibraries = libraryInformationList.sortedBy { it.name.lowercase() }.toTypedArray()
-        )
-
-        // Delete the generated output directory recursively to clean up.
-        outputDir.deleteRecursively()
-
-        return apkScanResult
-    }
-
-    fun scanMulti(apkFiles: List<File>, scanCallback: ((apkFile: File, scanResult: ApkScanResult) -> Unit)? = null): Map<File, ApkScanResult> {
-        val apkScanResultMap: MutableMap<File, ApkScanResult> = mutableMapOf()
-        apkFiles.forEach { apkFile ->
-            val scanResult = scanSingle(apkFile)
-            apkScanResultMap[apkFile] = scanResult
-
-            // If callback is specified, invoke it.
-            scanCallback?.invoke(apkFile, scanResult)
-        }
-        return apkScanResultMap
+        return libraryInformationList
     }
 
     override fun close() {
