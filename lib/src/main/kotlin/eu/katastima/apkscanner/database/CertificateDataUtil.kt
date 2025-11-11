@@ -44,6 +44,7 @@ object CertificateDataUtil {
                     SigningCertificateAllowlistEntity.new {
                         name = it.name
                         description = it.description
+                        dn = it.dn
                         sha256 = it.sha256
                         sha1 = it.sha1
                         md5 = it.md5
@@ -74,6 +75,7 @@ object CertificateDataUtil {
                     SigningCertificateDenylistEntity.new {
                         name = it.name
                         description = it.description
+                        dn = it.dn
                         sha256 = it.sha256
                         sha1 = it.sha1
                         md5 = it.md5
@@ -103,6 +105,7 @@ object CertificateDataUtil {
                     val signingCertificate = SigningCertificate(
                         name = it.name,
                         description = it.description,
+                        dn = it.dn,
                         sha256 = it.sha256,
                         sha1 = it.sha1,
                         md5 = it.md5,
@@ -139,6 +142,7 @@ object CertificateDataUtil {
                     val signingCertificate = SigningCertificate(
                         name = it.name,
                         description = it.description,
+                        dn = it.dn,
                         sha256 = it.sha256,
                         sha1 = it.sha1,
                         md5 = it.md5,

@@ -13,10 +13,11 @@ import org.jetbrains.exposed.v1.dao.IntEntityClass
 
 object SigningCertificateDenylistTable : IntIdTable("signing_certificate_denylist") {
     val name = varchar("name", 255)
-    val description = text("description")
-    val sha256 = varchar("sha256", 64)
-    val sha1 = varchar("sha1", 40)
-    val md5 = varchar("md5", 32)
+    val description = text("description").default("")
+    val dn = text("dn").default("")
+    val sha256 = varchar("sha256", 64).default("")
+    val sha1 = varchar("sha1", 40).default("")
+    val md5 = varchar("md5", 32).default("")
 }
 
 class SigningCertificateDenylistEntity(id: EntityID<Int>) : IntEntity(id) {
@@ -24,6 +25,7 @@ class SigningCertificateDenylistEntity(id: EntityID<Int>) : IntEntity(id) {
 
     var name by SigningCertificateDenylistTable.name
     var description by SigningCertificateDenylistTable.description
+    var dn by SigningCertificateDenylistTable.dn
     var sha256 by SigningCertificateDenylistTable.sha256
     var sha1 by SigningCertificateDenylistTable.sha1
     var md5 by SigningCertificateDenylistTable.md5
@@ -32,6 +34,7 @@ class SigningCertificateDenylistEntity(id: EntityID<Int>) : IntEntity(id) {
         return "SigningCertificateDenylistEntity(" +
                 "name=$name, " +
                 "description=$description, " +
+                "dn=$dn, " +
                 "sha256=$sha256, " +
                 "sha1=$sha1, " +
                 "md5=$md5" +
@@ -41,6 +44,7 @@ class SigningCertificateDenylistEntity(id: EntityID<Int>) : IntEntity(id) {
     fun toSigningCertificate(): SigningCertificate = SigningCertificate(
         name = name,
         description = description,
+        dn = dn,
         sha256 = sha256,
         sha1 = sha1,
         md5 = md5,

@@ -180,6 +180,7 @@ class ScanAPKCommand : SuspendingCliktCommand() {
             if (allowListedPair.first && allowListedPair.second != null) {
                 echo("    * Name:        ${allowListedPair.second!!.name}")
                 echo("    * Description: ${allowListedPair.second!!.description}")
+                echo("    * DN:          ${allowListedPair.second!!.dn}")
                 echo("    * SHA-256:     ${allowListedPair.second!!.sha256}")
                 echo("    * SHA-1:       ${allowListedPair.second!!.sha1}")
                 echo("    * MD5:         ${allowListedPair.second!!.md5}")
@@ -190,6 +191,7 @@ class ScanAPKCommand : SuspendingCliktCommand() {
             if (denyListedPair.first && denyListedPair.second != null) {
                 echo("    * Name:        ${denyListedPair.second!!.name}")
                 echo("    * Description: ${denyListedPair.second!!.description}")
+                echo("    * DN:          ${denyListedPair.second!!.dn}")
                 echo("    * SHA-256:     ${denyListedPair.second!!.sha256}")
                 echo("    * SHA-1:       ${denyListedPair.second!!.sha1}")
                 echo("    * MD5:         ${denyListedPair.second!!.md5}")
