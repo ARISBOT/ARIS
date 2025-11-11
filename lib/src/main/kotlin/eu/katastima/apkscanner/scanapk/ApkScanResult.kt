@@ -7,7 +7,7 @@ package eu.katastima.apkscanner.scanapk
 
 import eu.katastima.apkscanner.extensions.nowAsLocalDate
 import eu.katastima.apkscanner.models.LibraryInformation
-import eu.katastima.apkscanner.models.signing.VerificationResult
+import eu.katastima.apkscanner.models.signing.SigningCheckResult
 import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -18,7 +18,7 @@ data class ApkScanResult(
     val scanDurationMs: Long = 0,
     val apkFilePath: String = "",
     val apkFileSha256: String = "",
-    @SerialName("signingCheckResults") val verificationResult: VerificationResult = VerificationResult(),
+    @SerialName("signingCheckResults") val signingCheckResult: SigningCheckResult = SigningCheckResult(),
     val detectedLibraries: Array<LibraryInformation> = emptyArray(),
 ) {
     override fun equals(other: Any?): Boolean {
@@ -28,14 +28,14 @@ data class ApkScanResult(
         other as ApkScanResult
 
         if (!detectedLibraries.contentEquals(other.detectedLibraries)) return false
-        if (verificationResult != other.verificationResult) return false
+        if (signingCheckResult != other.signingCheckResult) return false
 
         return true
     }
 
     override fun hashCode(): Int {
         var result = detectedLibraries.contentHashCode()
-        result = 31 * result + verificationResult.hashCode()
+        result = 31 * result + signingCheckResult.hashCode()
         return result
     }
 }

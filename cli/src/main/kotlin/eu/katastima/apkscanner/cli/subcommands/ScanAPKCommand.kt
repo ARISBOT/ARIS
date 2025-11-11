@@ -103,7 +103,7 @@ class ScanAPKCommand : SuspendingCliktCommand() {
 
         printLibraryResult(scanResult)
         printSignatureVerificationResult(scanResult)
-        printAndroidSigningBlockResult(scanResult.verificationResult.signingBlockResult)
+        printAndroidSigningBlockResult(scanResult.signingCheckResult.signingBlockResult)
 
         echo("------------------------------------------------------------------------------")
         echo()
@@ -147,8 +147,8 @@ class ScanAPKCommand : SuspendingCliktCommand() {
         echo("Signature verification:")
         echo("-----------------------")
 
-        val verificationResult = scanResult.verificationResult
-        if (verificationResult.isInvalid()) {
+        val signingCheckResult = scanResult.signingCheckResult
+        if (signingCheckResult.isInvalid()) {
             echo("Failed to verify signature, please ensure the APK is properly signed!")
             echo()
             return
@@ -160,7 +160,7 @@ class ScanAPKCommand : SuspendingCliktCommand() {
         // v3: https://source.android.com/docs/security/features/apksigning/v3
         // v3.1: https://source.android.com/docs/security/features/apksigning/v3-1
         // v4: https://source.android.com/docs/security/features/apksigning/v4
-        val apkSigResult = verificationResult.apkSigResult
+        val apkSigResult = signingCheckResult.apkSigResult
         echo("* apksig")
         echo("  * Verified by apksig: ${apkSigResult.verifiedByApkSig.formatValidInvalid()}")
         echo("  * Source Stamp: ${apkSigResult.sourceStampVerified.formatValidInvalid()}")
@@ -169,10 +169,10 @@ class ScanAPKCommand : SuspendingCliktCommand() {
         echo("  * v3: ${apkSigResult.v3.formatValidInvalid()}")
         echo("  * v3.1: ${apkSigResult.v31.formatValidInvalid()}")
         echo("  * v4: ${apkSigResult.v4.formatValidInvalid()}")
-        echo("* Number of certificates: ${verificationResult.certificates.size}")
+        echo("* Number of certificates: ${signingCheckResult.certificates.size}")
 
         var certificateCounter = 1
-        verificationResult.certificateResults.forEach { certificateResult ->
+        signingCheckResult.certificateResults.forEach { certificateResult ->
             echo("* Certificate #${certificateCounter}")
 
             echo("  * Denylisted: ${certificateResult.denylistMatches.isNotEmpty().formatYesNo()}")

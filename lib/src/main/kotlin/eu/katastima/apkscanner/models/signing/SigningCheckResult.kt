@@ -12,7 +12,7 @@ import kotlinx.serialization.Transient
 import java.security.cert.X509Certificate
 
 @Serializable
-data class VerificationResult(
+data class SigningCheckResult(
     @SerialName("signingSchemas") val apkSigResult: ApkSigResult = ApkSigResult(),
     @SerialName("signingCertificates") val certificateResults: List<CertificateResult> = emptyList(),
     @SerialName("signingBlocks") val signingBlockResult: SigningBlockResult = SigningBlockResult(),

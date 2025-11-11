@@ -32,7 +32,7 @@ class ApkProcessor(
             ApkScanResult(
                 apkFilePath = apkFile.absolutePath,
                 apkFileSha256 = apkFile.toSha256(),
-                verificationResult = ApkCert(apkFile).verify(database, apkScannerConfig),
+                signingCheckResult = ApkCert(apkFile).verify(database, apkScannerConfig),
                 detectedLibraries = scanForLibraries(decodedApkDirectory).sortedBy { it.name.lowercase() }.toTypedArray(),
             )
         } finally {

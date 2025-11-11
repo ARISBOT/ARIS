@@ -16,8 +16,8 @@ import java.util.logging.Logger
 
 class ApkCert(private val apkFile: File) {
 
-    fun verify(database: Database, apkScannerConfig: ApkScannerConfig): VerificationResult {
-        var verificationResult = VerificationResult()
+    fun verify(database: Database, apkScannerConfig: ApkScannerConfig): SigningCheckResult {
+        var signingCheckResult = SigningCheckResult()
 
         try {
             val builder = ApkVerifier.Builder(apkFile)
@@ -33,7 +33,7 @@ class ApkCert(private val apkFile: File) {
                 sourceStampVerified = result.isSourceStampVerified,
             )
 
-            verificationResult = verificationResult.copy(
+            signingCheckResult = signingCheckResult.copy(
                 apkSigResult = apkSigResult,
                 certificates = result.signerCertificates,
             )
@@ -42,7 +42,7 @@ class ApkCert(private val apkFile: File) {
         }
 
         val certificateResults = mutableListOf<CertificateResult>()
-        verificationResult.certificates.forEach { certificate ->
+        signingCheckResult.certificates.forEach { certificate ->
             val publicKeyResult = PublicKeyResult(
                 keyAlgorithm = certificate.publicKey.algorithm,
                 keySizeBits = certificate.publicKey.getPublicKeySize(),
@@ -65,7 +65,7 @@ class ApkCert(private val apkFile: File) {
             )
             certificateResults.add(certificateResult)
         }
-        verificationResult = verificationResult.copy(
+        signingCheckResult = signingCheckResult.copy(
             certificateResults = certificateResults,
         )
 
@@ -80,11 +80,11 @@ class ApkCert(private val apkFile: File) {
             unknownBlocks = unknownBlocks,
             unknownBlocksFormatted = unknownBlocks.map { it.formatAsHex() }.sorted(),
         )
-        verificationResult = verificationResult.copy(
+        signingCheckResult = signingCheckResult.copy(
             signingBlockResult = signingBlockResult,
         )
 
-        return verificationResult
+        return signingCheckResult
     }
 
     companion object {
