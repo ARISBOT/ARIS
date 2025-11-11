@@ -6,15 +6,16 @@
 package eu.katastima.apkscanner.models.signing
 
 import kotlinx.datetime.LocalDateTime
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import java.security.cert.X509Certificate
 
 @Serializable
 data class VerificationResult(
-    val apkSigResult: ApkSigResult = ApkSigResult(),
-    val certificateResults: List<CertificateResult> = emptyList(),
-    val signingBlockResult: SigningBlockResult = SigningBlockResult(),
+    @SerialName("signingSchemas") val apkSigResult: ApkSigResult = ApkSigResult(),
+    @SerialName("signingCertificates") val certificateResults: List<CertificateResult> = emptyList(),
+    @SerialName("signingBlocks") val signingBlockResult: SigningBlockResult = SigningBlockResult(),
     /** The certificates of the signer. */
     @Transient val certificates: List<X509Certificate> = emptyList(),
 ) {
