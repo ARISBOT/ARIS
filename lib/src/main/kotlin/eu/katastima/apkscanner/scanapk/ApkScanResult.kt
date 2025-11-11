@@ -14,6 +14,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class ApkScanResult(
     val scanDateUTC: LocalDateTime = nowAsLocalDate(),
+    val scanDurationMs: Long = 0,
     val apkFilePath: String = "",
     val apkFileSha256: String = "",
     val verificationResult: VerificationResult = VerificationResult(),

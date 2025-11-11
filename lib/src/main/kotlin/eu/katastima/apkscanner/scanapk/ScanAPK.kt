@@ -17,6 +17,7 @@ import eu.katastima.apkscanner.utils.Randomizer
 import java.io.Closeable
 import java.io.File
 import kotlin.io.path.createTempDirectory
+import kotlin.time.measureTimedValue
 
 class ScanAPK : Closeable {
 
@@ -42,17 +43,21 @@ class ScanAPK : Closeable {
         val database = DatabaseUtil.getDatabase()
         val apkScannerConfig = ApkScannerConfig.getConfig()
 
-        val apkScanResult = ApkScanResult(
-            apkFilePath = apkFile.absolutePath,
-            apkFileSha256 = apkFile.toSha256(),
-            verificationResult = ApkCert(apkFile).verify(database, apkScannerConfig),
-            detectedLibraries = scanForLibraries(decodedApkDirectory).sortedBy { it.name.lowercase() }.toTypedArray(),
-        )
+        val (apkScanResult, timeTaken) = measureTimedValue {
+            ApkScanResult(
+                apkFilePath = apkFile.absolutePath,
+                apkFileSha256 = apkFile.toSha256(),
+                verificationResult = ApkCert(apkFile).verify(database, apkScannerConfig),
+                detectedLibraries = scanForLibraries(decodedApkDirectory).sortedBy { it.name.lowercase() }.toTypedArray(),
+            )
+        }
 
         // Delete the directory (which contains the decoded apk output) recursively to clean up.
         decodedApkDirectory.deleteRecursively()
 
-        return apkScanResult
+        return apkScanResult.copy(
+            scanDurationMs = timeTaken.inWholeMilliseconds
+        )
     }
 
     fun scanMulti(apkFiles: List<File>, scanCallback: ((apkFile: File, scanResult: ApkScanResult) -> Unit)? = null): Map<File, ApkScanResult> {

@@ -88,6 +88,12 @@ class ScanAPKCommand : SuspendingCliktCommand() {
     private fun printScanResult(apkFile: File, scanResult: ApkScanResult) {
         storeScanResultAsJsonIfWanted(apkFile, scanResult)
 
+        echo("Scan has completed:")
+        echo("-------------------")
+        echo("* Date (UTC): ${scanResult.scanDateUTC}")
+        echo("* Duration: ${scanResult.scanDurationMs} ms")
+        echo()
+
         echo("Scanned APK:")
         echo("------------")
 
