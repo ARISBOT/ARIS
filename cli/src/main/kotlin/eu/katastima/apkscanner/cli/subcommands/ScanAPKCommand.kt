@@ -175,15 +175,14 @@ class ScanAPKCommand : SuspendingCliktCommand() {
         verificationResult.certificateResults.forEach { certificateResult ->
             echo("* Certificate #${certificateCounter}")
 
-            val denyListedPair = certificateResult.denyListed
-            echo("  * Denylisted: ${denyListedPair.first}")
-            if (denyListedPair.first && denyListedPair.second != null) {
-                echo("    * Name:        ${denyListedPair.second!!.name}")
-                echo("    * Description: ${denyListedPair.second!!.description}")
-                echo("    * DN:          ${denyListedPair.second!!.dn}")
-                echo("    * SHA-256:     ${denyListedPair.second!!.sha256}")
-                echo("    * SHA-1:       ${denyListedPair.second!!.sha1}")
-                echo("    * MD5:         ${denyListedPair.second!!.md5}")
+            echo("  * Denylisted: ${certificateResult.denylistMatches.isNotEmpty().formatYesNo()}")
+            certificateResult.denylistMatches.forEach { denyListMatch ->
+                echo("    * Name: ${denyListMatch.name}")
+                echo("      * Description: ${denyListMatch.description.ifEmpty { "-" }}")
+                echo("      * DN:          ${denyListMatch.dn.ifEmpty { "-" }}")
+                echo("      * SHA-256:     ${denyListMatch.sha256.ifEmpty { "-" }}")
+                echo("      * SHA-1:       ${denyListMatch.sha1.ifEmpty { "-" }}")
+                echo("      * MD5:         ${denyListMatch.md5.ifEmpty { "-" }}")
             }
 
             echo("  * Key Algorithm Name: ${certificateResult.sigAlgorithmName}")

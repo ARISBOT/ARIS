@@ -19,29 +19,28 @@ import java.security.interfaces.DSAKey
 import java.security.interfaces.ECKey
 import java.security.interfaces.RSAKey
 
-fun X509Certificate.isDenyListed(database: Database, apkScannerConfig: ApkScannerConfig): Pair<Boolean, SigningCertificate?> {
-    return transaction(database) {
+fun X509Certificate.isDenyListed(database: Database, apkScannerConfig: ApkScannerConfig): Set<SigningCertificate> {
+    val denylistMatches: MutableSet<SigningCertificate> = mutableSetOf()
+
+    transaction(database) {
         if (apkScannerConfig.databaseConfig.debug) {
             addLogger(StdOutSqlLogger)
         }
 
-        val sha256Iterator = SigningCertificateDenylistEntity.find { SigningCertificateDenylistTable.sha256 eq encoded.toSha256() }
-        if (!sha256Iterator.empty()) {
-            return@transaction Pair(true, sha256Iterator.first().toSigningCertificate())
-        }
+        // TODO: check DN
 
-        val sha1Iterator = SigningCertificateDenylistEntity.find { SigningCertificateDenylistTable.sha1 eq encoded.toSha1() }
-        if (!sha1Iterator.empty()) {
-            return@transaction Pair(true, sha1Iterator.first().toSigningCertificate())
+        SigningCertificateDenylistEntity.find { SigningCertificateDenylistTable.sha256 eq encoded.toSha256() }.forEach {
+            denylistMatches.add(it.toSigningCertificate())
         }
-
-        val md5Iterator = SigningCertificateDenylistEntity.find { SigningCertificateDenylistTable.md5 eq encoded.toMd5() }
-        if (!md5Iterator.empty()) {
-            return@transaction Pair(true, md5Iterator.first().toSigningCertificate())
+        SigningCertificateDenylistEntity.find { SigningCertificateDenylistTable.sha1 eq encoded.toSha1() }.forEach {
+            denylistMatches.add(it.toSigningCertificate())
         }
-
-        return@transaction Pair(false, null)
+        SigningCertificateDenylistEntity.find { SigningCertificateDenylistTable.md5 eq encoded.toMd5() }.forEach {
+            denylistMatches.add(it.toSigningCertificate())
+        }
     }
+
+    return denylistMatches
 }
 
 fun PublicKey.getPublicKeySize(): Int = when (this) {

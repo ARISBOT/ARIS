@@ -55,7 +55,7 @@ data class ApkSigResult(
 
 @Serializable
 data class CertificateResult(
-    val denyListed: Pair<Boolean, SigningCertificate?> = Pair(false, null),
+    val denylistMatches: Set<SigningCertificate> = emptySet(),
     val sigAlgorithmName: String = "",
     val sigAlgorithmOID: String = "",
     val issuerPrincipal: String = "",

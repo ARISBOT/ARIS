@@ -51,7 +51,7 @@ class ApkCert(private val apkFile: File) {
                 md5 = certificate.publicKey.encoded.toMd5(),
             )
             val certificateResult = CertificateResult(
-                denyListed = certificate.isDenyListed(database, apkScannerConfig),
+                denylistMatches = certificate.isDenyListed(database, apkScannerConfig),
                 sigAlgorithmName = certificate.sigAlgName,
                 sigAlgorithmOID = certificate.sigAlgOID,
                 issuerPrincipal = certificate.issuerX500Principal.toString(),
