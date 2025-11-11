@@ -5,6 +5,9 @@
 
 package eu.katastima.apkscanner.models
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class LibraryInformation(
     val libraryId: String,
     val name: String = "",

@@ -15,9 +15,13 @@ import org.jetbrains.exposed.v1.core.StdOutSqlLogger
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import java.security.PublicKey
 import java.security.cert.X509Certificate
+import java.security.interfaces.DSAKey
+import java.security.interfaces.ECKey
+import java.security.interfaces.RSAKey
 
-fun X509Certificate.isAllowListed(database: Database, apkScannerConfig: ApkScannerConfig): Pair<Boolean, SigningCertificate> {
+fun X509Certificate.isAllowListed(database: Database, apkScannerConfig: ApkScannerConfig): Pair<Boolean, SigningCertificate?> {
     return transaction(database) {
         if (apkScannerConfig.databaseConfig.debug) {
             addLogger(StdOutSqlLogger)
@@ -38,11 +42,11 @@ fun X509Certificate.isAllowListed(database: Database, apkScannerConfig: ApkScann
             return@transaction Pair(true, md5Iterator.first().toSigningCertificate())
         }
 
-        return@transaction Pair(false, SigningCertificate())
+        return@transaction Pair(false, null)
     }
 }
 
-fun X509Certificate.isDenyListed(database: Database, apkScannerConfig: ApkScannerConfig): Pair<Boolean, SigningCertificate> {
+fun X509Certificate.isDenyListed(database: Database, apkScannerConfig: ApkScannerConfig): Pair<Boolean, SigningCertificate?> {
     return transaction(database) {
         if (apkScannerConfig.databaseConfig.debug) {
             addLogger(StdOutSqlLogger)
@@ -63,6 +67,26 @@ fun X509Certificate.isDenyListed(database: Database, apkScannerConfig: ApkScanne
             return@transaction Pair(true, md5Iterator.first().toSigningCertificate())
         }
 
-        return@transaction Pair(false, SigningCertificate())
+        return@transaction Pair(false, null)
+    }
+}
+
+fun PublicKey.getPublicKeySize(): Int = when (this) {
+    is RSAKey -> {
+        (this as RSAKey).modulus.bitLength()
+    }
+
+    is ECKey -> {
+        (this as ECKey).params.order.bitLength()
+    }
+
+    is DSAKey -> {
+        // DSA parameters may be inherited from the certificate. We
+        // don't handle this case at the moment.
+        (this as DSAKey).params?.p?.bitLength() ?: -1
+    }
+
+    else -> {
+        -1
     }
 }

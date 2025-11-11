@@ -13,19 +13,26 @@ import com.github.ajalt.clikt.output.MordantHelpFormatter
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.help
 import com.github.ajalt.clikt.parameters.arguments.multiple
+import com.github.ajalt.clikt.parameters.options.default
+import com.github.ajalt.clikt.parameters.options.help
+import com.github.ajalt.clikt.parameters.options.option
+import com.github.ajalt.clikt.parameters.types.choice
 import com.github.ajalt.clikt.parameters.types.file
-import eu.katastima.apkscanner.config.ApkScannerConfig
-import eu.katastima.apkscanner.database.DatabaseUtil
-import eu.katastima.apkscanner.extensions.*
+import eu.katastima.apkscanner.extensions.formatAsHex
+import eu.katastima.apkscanner.extensions.formatValidInvalid
+import eu.katastima.apkscanner.extensions.formatYesNo
+import eu.katastima.apkscanner.extensions.nowAsLocalDate
 import eu.katastima.apkscanner.models.LibraryInformation
+import eu.katastima.apkscanner.models.signing.SigningBlockResult
 import eu.katastima.apkscanner.scanapk.ApkScanResult
 import eu.katastima.apkscanner.scanapk.ScanAPK
 import eu.katastima.apkscanner.signing.AndroidSigningBlock
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.format
+import kotlinx.datetime.format.char
+import kotlinx.serialization.json.Json
 import java.io.File
-import java.security.PublicKey
-import java.security.interfaces.DSAKey
-import java.security.interfaces.ECKey
-import java.security.interfaces.RSAKey
 
 
 class ScanAPKCommand : SuspendingCliktCommand() {
@@ -35,7 +42,26 @@ class ScanAPKCommand : SuspendingCliktCommand() {
         .help("A single or multiple APK files which should get scanned")
         .multiple(true)
 
+    private val storeAsJson: Int by option("--json", "-j")
+        .choice(Pair("no", 0), Pair("yes", 1), Pair("pretty", 2))
+        .default(0, "no")
+        .help("Store the scan result as json file")
+
+    private val resultJsonOutputDirectory: File by option("--output", "-o")
+        .file(canBeFile = false)
+        .default(File("output").absoluteFile)
+        .help("A directory where scan output should be stored. The directory will be created, if it does not already exist.")
+
     override val printHelpOnEmptyArgs = true
+
+    private val scanStartedAt: LocalDateTime = nowAsLocalDate()
+    private val localDateTimeFormatter = LocalDateTime.Format {
+        date(LocalDate.Formats.ISO_BASIC)
+        char('_')
+        hour(); minute(); second()
+        char('_')
+        secondFraction(fixedLength = 3)
+    }
 
     private var hasOffendingLibrary: Boolean = false
 
@@ -60,16 +86,18 @@ class ScanAPKCommand : SuspendingCliktCommand() {
     }
 
     private fun printScanResult(apkFile: File, scanResult: ApkScanResult) {
+        storeScanResultAsJsonIfWanted(apkFile, scanResult)
+
         echo("Scanned APK:")
         echo("------------")
 
-        echo("* File: ${apkFile.absolutePath}")
-        echo("* SHA-256: ${apkFile.toSha256()}")
+        echo("* File: ${scanResult.apkFilePath}")
+        echo("* SHA-256: ${scanResult.apkFileSha256}")
         echo()
 
         printLibraryResult(scanResult)
         printSignatureVerificationResult(scanResult)
-        printAndroidSigningBlockResult(apkFile)
+        printAndroidSigningBlockResult(scanResult.verificationResult.signingBlockResult)
 
         echo("------------------------------------------------------------------------------")
         echo()
@@ -114,15 +142,11 @@ class ScanAPKCommand : SuspendingCliktCommand() {
         echo("-----------------------")
 
         val verificationResult = scanResult.verificationResult
-
         if (verificationResult.isInvalid()) {
             echo("Failed to verify signature, please ensure the APK is properly signed!")
             echo()
             return
         }
-
-        val database = DatabaseUtil.getDatabase()
-        val apkScannerConfig = ApkScannerConfig.getConfig()
 
         // Print whether signature versions v1, v2 or v3 are valid.
         // v1: https://source.android.com/docs/security/features/apksigning#v1
@@ -130,81 +154,78 @@ class ScanAPKCommand : SuspendingCliktCommand() {
         // v3: https://source.android.com/docs/security/features/apksigning/v3
         // v3.1: https://source.android.com/docs/security/features/apksigning/v3-1
         // v4: https://source.android.com/docs/security/features/apksigning/v4
+        val apkSigResult = verificationResult.apkSigResult
         echo("* apksig")
-        echo("  * Verified by apksig: ${verificationResult.verifiedByApkSig.formatValidInvalid()}")
-        echo("  * Source Stamp: ${verificationResult.sourceStampVerified.formatValidInvalid()}")
-        echo("  * v1: ${verificationResult.v1.formatValidInvalid()}")
-        echo("  * v2: ${verificationResult.v2.formatValidInvalid()}")
-        echo("  * v3: ${verificationResult.v3.formatValidInvalid()}")
-        echo("  * v3.1: ${verificationResult.v31.formatValidInvalid()}")
-        echo("  * v4: ${verificationResult.v4.formatValidInvalid()}")
+        echo("  * Verified by apksig: ${apkSigResult.verifiedByApkSig.formatValidInvalid()}")
+        echo("  * Source Stamp: ${apkSigResult.sourceStampVerified.formatValidInvalid()}")
+        echo("  * v1: ${apkSigResult.v1.formatValidInvalid()}")
+        echo("  * v2: ${apkSigResult.v2.formatValidInvalid()}")
+        echo("  * v3: ${apkSigResult.v3.formatValidInvalid()}")
+        echo("  * v3.1: ${apkSigResult.v31.formatValidInvalid()}")
+        echo("  * v4: ${apkSigResult.v4.formatValidInvalid()}")
         echo("* Number of certificates: ${verificationResult.certificates.size}")
 
         var certificateCounter = 1
-        verificationResult.certificates.forEach { certificate ->
+        verificationResult.certificateResults.forEach { certificateResult ->
             echo("* Certificate #${certificateCounter}")
 
-            val allowListedPair = certificate.isAllowListed(database, apkScannerConfig)
+            val allowListedPair = certificateResult.allowListed
             echo("  * Allowlisted: ${allowListedPair.first}")
-            if (allowListedPair.first) {
-                echo("    * Name:        ${allowListedPair.second.name}")
-                echo("    * Description: ${allowListedPair.second.description}")
-                echo("    * SHA-256:     ${allowListedPair.second.sha256}")
-                echo("    * SHA-1:       ${allowListedPair.second.sha1}")
-                echo("    * MD5:         ${allowListedPair.second.md5}")
+            if (allowListedPair.first && allowListedPair.second != null) {
+                echo("    * Name:        ${allowListedPair.second!!.name}")
+                echo("    * Description: ${allowListedPair.second!!.description}")
+                echo("    * SHA-256:     ${allowListedPair.second!!.sha256}")
+                echo("    * SHA-1:       ${allowListedPair.second!!.sha1}")
+                echo("    * MD5:         ${allowListedPair.second!!.md5}")
             }
 
-            val denyListedPair = certificate.isDenyListed(database, apkScannerConfig)
+            val denyListedPair = certificateResult.denyListed
             echo("  * Denylisted: ${denyListedPair.first}")
-            if (denyListedPair.first) {
-                echo("    * Name:        ${denyListedPair.second.name}")
-                echo("    * Description: ${denyListedPair.second.description}")
-                echo("    * SHA-256:     ${denyListedPair.second.sha256}")
-                echo("    * SHA-1:       ${denyListedPair.second.sha1}")
-                echo("    * MD5:         ${denyListedPair.second.md5}")
+            if (denyListedPair.first && denyListedPair.second != null) {
+                echo("    * Name:        ${denyListedPair.second!!.name}")
+                echo("    * Description: ${denyListedPair.second!!.description}")
+                echo("    * SHA-256:     ${denyListedPair.second!!.sha256}")
+                echo("    * SHA-1:       ${denyListedPair.second!!.sha1}")
+                echo("    * MD5:         ${denyListedPair.second!!.md5}")
             }
 
-            echo("  * Key Algorithm Name: ${certificate.sigAlgName}")
-            echo("  * Key Algorithm OID:  ${certificate.sigAlgOID}")
-            echo("  * Issuer Principal:  ${certificate.issuerX500Principal}")
-            echo("  * Subject Principal: ${certificate.subjectX500Principal}")
-            echo("  * Not Before: ${certificate.notBefore}")
-            echo("  * Not After:  ${certificate.notAfter}")
-            echo("  * SHA-256: ${certificate.encoded.toSha256()}")
-            echo("  * SHA-1:   ${certificate.encoded.toSha1()}")
-            echo("  * MD5:     ${certificate.encoded.toMd5()}")
+            echo("  * Key Algorithm Name: ${certificateResult.sigAlgorithmName}")
+            echo("  * Key Algorithm OID:  ${certificateResult.sigAlgorithmOID}")
+            echo("  * Issuer Principal:  ${certificateResult.issuerPrincipal}")
+            echo("  * Subject Principal: ${certificateResult.subjectPrincipal}")
+            echo("  * Not Before: ${certificateResult.notBefore}")
+            echo("  * Not After:  ${certificateResult.notAfter}")
+            echo("  * SHA-256: ${certificateResult.sha256}")
+            echo("  * SHA-1:   ${certificateResult.sha1}")
+            echo("  * MD5:     ${certificateResult.md5}")
             echo("  * Public Key")
-            echo("    * Key Algorithm: ${certificate.publicKey.algorithm}")
-            echo("    * Key Size (bits): ${getPublicKeySize(certificate.publicKey)}")
-            echo("    * SHA-256: ${certificate.publicKey.encoded.toSha256()}")
-            echo("    * SHA-1:   ${certificate.publicKey.encoded.toSha1()}")
-            echo("    * MD5:     ${certificate.publicKey.encoded.toMd5()}")
-            certificate.publicKey
+            echo("    * Key Algorithm: ${certificateResult.publicKeyResult.keyAlgorithm}")
+            echo("    * Key Size (bits): ${certificateResult.publicKeyResult.keySizeBits}")
+            echo("    * SHA-256: ${certificateResult.publicKeyResult.sha256}")
+            echo("    * SHA-1:   ${certificateResult.publicKeyResult.sha1}")
+            echo("    * MD5:     ${certificateResult.publicKeyResult.md5}")
             certificateCounter++
         }
 
         echo()
     }
 
-    private fun printAndroidSigningBlockResult(apkFile: File) {
+    private fun printAndroidSigningBlockResult(signingBlockResult: SigningBlockResult) {
         echo("Android Signing Block verification:")
         echo("-----------------------------------")
 
-        val androidSigningBlock = AndroidSigningBlock(apkFile)
         mapOf(
-            "OK" to androidSigningBlock.getOkBlocks(),
-            "Google" to androidSigningBlock.getGoogleBlocks(),
-            "Payload" to androidSigningBlock.getPayloadBlocks(),
+            "OK" to AndroidSigningBlock.getOkBlocks(),
+            "Google" to AndroidSigningBlock.getGoogleBlocks(),
+            "Payload" to AndroidSigningBlock.getPayloadBlocks(),
         ).forEach {
-            formatSigningBlockGroup(androidSigningBlock, it.key, it.value)
+            formatSigningBlockGroup(signingBlockResult.blocks, it.key, it.value)
                 .trim()
                 .split("\n")
                 .forEach { message -> echo(message) }
         }
 
-        val unknownBlocks = androidSigningBlock.getUnknownBlockSet()
-            .map { it.formatAsHex() }
-            .sorted()
+        val unknownBlocks = signingBlockResult.unknownBlocksFormatted
         echo("* Unknown blocks:")
         if (unknownBlocks.isEmpty()) {
             echo("  * No unknown blocks")
@@ -215,30 +236,10 @@ class ScanAPKCommand : SuspendingCliktCommand() {
         echo()
     }
 
-    private fun getPublicKeySize(publicKey: PublicKey): Int = when (publicKey) {
-        is RSAKey -> {
-            (publicKey as RSAKey).modulus.bitLength()
-        }
-
-        is ECKey -> {
-            (publicKey as ECKey).params.order.bitLength()
-        }
-
-        is DSAKey -> {
-            // DSA parameters may be inherited from the certificate. We
-            // don't handle this case at the moment.
-            (publicKey as DSAKey).params?.p?.bitLength() ?: -1
-        }
-
-        else -> {
-            -1
-        }
-    }
-
-    private fun formatSigningBlockGroup(androidSigningBlock: AndroidSigningBlock, blockType: String, blockMap: Map<Int, String>): String = buildString {
+    private fun formatSigningBlockGroup(blocks: Set<Int>, blockType: String, blockMap: Map<Int, String>): String = buildString {
         append("* $blockType blocks:\n")
         blockMap.forEach {
-            val hasBlock = androidSigningBlock.hasBlock(it.key)
+            val hasBlock = blocks.contains(it.key)
             append("  * Has \"${it.value}\" block (${it.key.formatAsHex()}): ${hasBlock.formatYesNo()}\n")
         }
     }
@@ -255,5 +256,32 @@ class ScanAPKCommand : SuspendingCliktCommand() {
         }
         // TODO: configurable console output formatting.
         append("\u001B[0m")
+    }
+
+    private fun storeScanResultAsJsonIfWanted(apkFile: File, scanResult: ApkScanResult) {
+        val scanResultJsonString = when (storeAsJson) {
+            1 -> {
+                Json { encodeDefaults = true }.encodeToString(scanResult)
+            }
+
+            2 -> {
+                Json {
+                    encodeDefaults = true
+                    prettyPrint = true
+                }.encodeToString(scanResult)
+            }
+
+            else -> {
+                // Do nothing
+                ""
+            }
+        }
+        if (scanResultJsonString.isNotEmpty()) {
+            val resultOutputDirectory = File(resultJsonOutputDirectory, scanStartedAt.format(localDateTimeFormatter))
+            resultOutputDirectory.mkdirs()
+
+            val resultOutputFile = File(resultOutputDirectory, "apk-scanner_scan-apk_${apkFile.name}.json")
+            resultOutputFile.writeText(scanResultJsonString)
+        }
     }
 }

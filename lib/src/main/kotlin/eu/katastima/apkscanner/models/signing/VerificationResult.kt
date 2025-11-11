@@ -5,9 +5,25 @@
 
 package eu.katastima.apkscanner.models.signing
 
+import kotlinx.datetime.LocalDateTime
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import java.security.cert.X509Certificate
 
+@Serializable
 data class VerificationResult(
+    val apkSigResult: ApkSigResult = ApkSigResult(),
+    val certificateResults: List<CertificateResult> = emptyList(),
+    val signingBlockResult: SigningBlockResult = SigningBlockResult(),
+    /** The certificates of the signer. */
+    @Transient val certificates: List<X509Certificate> = emptyList(),
+) {
+
+    fun isInvalid(): Boolean = apkSigResult.isInvalid() || certificates.isEmpty()
+}
+
+@Serializable
+data class ApkSigResult(
     /** Whether [apksig](https://android.googlesource.com/platform/tools/apksig/) thinks the signature is verified. */
     val verifiedByApkSig: Boolean = false,
     /** [Link](https://source.android.com/docs/security/features/apksigning#v1) */
@@ -32,9 +48,31 @@ data class VerificationResult(
      * [Link](https://android.googlesource.com/platform/frameworks/base/+/5fae7f3900a42fc91affdd951978b6099a13c3f4/core/java/android/util/apk/SourceStampVerifier.java)
      */
     val sourceStampVerified: Boolean = false,
-    /** The certificates of the signer. */
-    val certificates: List<X509Certificate> = emptyList(),
 ) {
-
-    fun isInvalid(): Boolean = (!v1 && !v2 && !v3) || certificates.isEmpty()
+    fun isInvalid(): Boolean = (!v1 && !v2 && !v3 && !v31)
 }
+
+@Serializable
+data class CertificateResult(
+    val allowListed: Pair<Boolean, SigningCertificate?> = Pair(false, null),
+    val denyListed: Pair<Boolean, SigningCertificate?> = Pair(false, null),
+    val sigAlgorithmName: String = "",
+    val sigAlgorithmOID: String = "",
+    val issuerPrincipal: String = "",
+    val subjectPrincipal: String = "",
+    val notBefore: LocalDateTime = LocalDateTime(1970, 1, 1, 0, 0, 0, 0),
+    val notAfter: LocalDateTime = LocalDateTime(1970, 1, 1, 0, 0, 0, 0),
+    val sha256: String = "",
+    val sha1: String = "",
+    val md5: String = "",
+    val publicKeyResult: PublicKeyResult = PublicKeyResult(),
+)
+
+@Serializable
+data class PublicKeyResult(
+    val keyAlgorithm: String = "",
+    val keySizeBits: Int = 0,
+    val sha256: String = "",
+    val sha1: String = "",
+    val md5: String = "",
+)

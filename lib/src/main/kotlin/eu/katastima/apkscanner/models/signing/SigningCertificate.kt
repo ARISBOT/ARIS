@@ -10,7 +10,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class SigningCertificate(
     /** The (unique) name of a certificate, used by humans to identify it */
-    val name: String = "INVALID",
+    val name: String,
     /** (optional) The description of a certificate, used by humans to identify it */
     val description: String = "",
     /** (optional) The SHA256 of a certificate. Note: any of the has options must be set to actually be able to identify it! */
@@ -19,7 +19,4 @@ data class SigningCertificate(
     val sha1: String = "",
     /** (optional) The MD5 of a certificate. Note: any of the has options must be set to actually be able to identify it! */
     val md5: String = "",
-) {
-
-    fun isInvalid(): Boolean = name == "INVALID"
-}
+)

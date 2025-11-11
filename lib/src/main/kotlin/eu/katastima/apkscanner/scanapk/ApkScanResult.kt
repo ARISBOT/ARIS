@@ -5,10 +5,17 @@
 
 package eu.katastima.apkscanner.scanapk
 
+import eu.katastima.apkscanner.extensions.nowAsLocalDate
 import eu.katastima.apkscanner.models.LibraryInformation
 import eu.katastima.apkscanner.models.signing.VerificationResult
+import kotlinx.datetime.LocalDateTime
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class ApkScanResult(
+    val scanDateUTC: LocalDateTime = nowAsLocalDate(),
+    val apkFilePath: String = "",
+    val apkFileSha256: String = "",
     val verificationResult: VerificationResult = VerificationResult(),
     val detectedLibraries: Array<LibraryInformation> = emptyArray(),
 ) {

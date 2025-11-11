@@ -10,6 +10,7 @@ import brut.androlib.Config
 import brut.directory.ExtFile
 import eu.katastima.apkscanner.config.ApkScannerConfig
 import eu.katastima.apkscanner.database.DatabaseUtil
+import eu.katastima.apkscanner.extensions.toSha256
 import eu.katastima.apkscanner.models.LibraryInformation
 import eu.katastima.apkscanner.signing.ApkCert
 import eu.katastima.apkscanner.utils.Randomizer
@@ -38,8 +39,13 @@ class ScanAPK : Closeable {
     fun scanSingle(apkFile: File): ApkScanResult {
         val decodedApkDirectory = decodeApk(apkFile)
 
+        val database = DatabaseUtil.getDatabase()
+        val apkScannerConfig = ApkScannerConfig.getConfig()
+
         val apkScanResult = ApkScanResult(
-            verificationResult = ApkCert(apkFile).verify(),
+            apkFilePath = apkFile.absolutePath,
+            apkFileSha256 = apkFile.toSha256(),
+            verificationResult = ApkCert(apkFile).verify(database, apkScannerConfig),
             detectedLibraries = scanForLibraries(decodedApkDirectory).sortedBy { it.name.lowercase() }.toTypedArray(),
         )
 

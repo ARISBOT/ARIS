@@ -1,5 +1,3 @@
-import org.gradle.kotlin.dsl.mavenCentral
-
 /*
  * SPDX-FileCopyrightText: Katastima Authors
  * SPDX-License-Identifier: EUPL-1.2

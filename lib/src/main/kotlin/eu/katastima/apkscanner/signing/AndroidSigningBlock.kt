@@ -24,7 +24,7 @@ class AndroidSigningBlock(private val apkFile: File) {
             randomAccessFile.channel.use { fileChannel ->
                 try {
                     val androidSigningBlockPair = AndroidSigningBlockUtil.findApkSigningBlock(fileChannel)
-                    val idValueMap = AndroidSigningBlockUtil.getIdValuePairs(androidSigningBlockPair.first)
+                    val idValueMap = AndroidSigningBlockUtil.getIdValuePairs(androidSigningBlockPair.first).toMap()
                     signingBlockValueIdMap.putAll(idValueMap)
                 } catch (exc: Exception) {
                     LOGGER.log(Level.SEVERE, "Could not read APK signing block", exc)
@@ -40,15 +40,21 @@ class AndroidSigningBlock(private val apkFile: File) {
 
     fun hasBlock(blockId: Int): Boolean = getBlockById(blockId) != null
 
-    fun getAllBlocks(): Map<Int, String> = getOkBlocks() + getGoogleBlocks() + getPayloadBlocks()
+    fun getBlockSet(): Set<Int> {
+        readAndroidSigningBlock()
 
-    fun getOkBlocks(): Map<Int, String> = AndroidSigningBlockIds.OK_BLOCKS
+        val blockSet: MutableSet<Int> = mutableSetOf()
 
-    fun getGoogleBlocks(): Map<Int, String> = AndroidSigningBlockIds.GOOGLE_BLOCKS
+        signingBlockValueIdMap.forEach { entry ->
+            blockSet.add(entry.key)
+        }
 
-    fun getPayloadBlocks(): Map<Int, String> = AndroidSigningBlockIds.PAYLOAD_BLOCKS
+        return blockSet
+    }
 
     fun getUnknownBlockSet(): Set<Int> {
+        readAndroidSigningBlock()
+
         val unknownBlockSet: MutableSet<Int> = mutableSetOf()
 
         val allBlocks = getAllBlocks()
@@ -63,5 +69,13 @@ class AndroidSigningBlock(private val apkFile: File) {
 
     companion object {
         private val LOGGER = Logger.getLogger(AndroidSigningBlock::class.simpleName)
+
+        fun getAllBlocks(): Map<Int, String> = getOkBlocks() + getGoogleBlocks() + getPayloadBlocks()
+
+        fun getOkBlocks(): Map<Int, String> = AndroidSigningBlockIds.OK_BLOCKS
+
+        fun getGoogleBlocks(): Map<Int, String> = AndroidSigningBlockIds.GOOGLE_BLOCKS
+
+        fun getPayloadBlocks(): Map<Int, String> = AndroidSigningBlockIds.PAYLOAD_BLOCKS
     }
 }

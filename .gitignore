@@ -50,4 +50,5 @@ bin/
 /apkscanner.mv.db
 /apkscanner.trace.db
 /apkscanner.yaml
+/output
 /sampledata/*.exported
