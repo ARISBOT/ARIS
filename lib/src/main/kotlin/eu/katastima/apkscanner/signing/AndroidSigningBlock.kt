@@ -40,11 +40,26 @@ class AndroidSigningBlock(private val apkFile: File) {
 
     fun hasBlock(blockId: Int): Boolean = getBlockById(blockId) != null
 
+    fun getAllBlocks(): Map<Int, String> = getOkBlocks() + getGoogleBlocks() + getPayloadBlocks()
+
     fun getOkBlocks(): Map<Int, String> = AndroidSigningBlockIds.OK_BLOCKS
 
     fun getGoogleBlocks(): Map<Int, String> = AndroidSigningBlockIds.GOOGLE_BLOCKS
 
     fun getPayloadBlocks(): Map<Int, String> = AndroidSigningBlockIds.PAYLOAD_BLOCKS
+
+    fun getUnknownBlockSet(): Set<Int> {
+        val unknownBlockSet: MutableSet<Int> = mutableSetOf()
+
+        val allBlocks = getAllBlocks()
+        signingBlockValueIdMap.forEach { entry ->
+            if (!allBlocks.contains(entry.key)) {
+                unknownBlockSet.add(entry.key)
+            }
+        }
+
+        return unknownBlockSet
+    }
 
     companion object {
         private val LOGGER = Logger.getLogger(AndroidSigningBlock::class.simpleName)

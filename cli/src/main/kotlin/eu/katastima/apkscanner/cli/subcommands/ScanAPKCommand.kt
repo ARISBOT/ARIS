@@ -176,6 +176,16 @@ class ScanAPKCommand : SuspendingCliktCommand() {
                 .forEach { message -> echo(message) }
         }
 
+        val unknownBlocks = androidSigningBlock.getUnknownBlockSet()
+            .map { it.formatAsHex() }
+            .sorted()
+        echo("* Unknown blocks:")
+        if (unknownBlocks.isEmpty()) {
+            echo("  * No unknown blocks")
+        } else {
+            unknownBlocks.forEach { echo("  * $it") }
+        }
+
         echo()
     }
 
