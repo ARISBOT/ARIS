@@ -13,7 +13,9 @@ data class SigningCertificate(
     val name: String,
     /** (optional) The description of a certificate, used by humans to identify it */
     val description: String = "",
-    /** (optional) The distinguished name of the certificate. Different entities are separated by ",". For example: C=US, O=Android, CN=Android Debug */
+    /** (optional) An URL for additional documentation purposes, e.g.: where the certificate was documented to be leaked. */
+    val sourceUrl: String = "",
+    /** (optional) The distinguished name of the certificate. Different entities are separated by "/". For example: /C=US/O=Android/CN=Android Debug */
     val dn: String = "",
     /** (optional) The SHA256 of a certificate. Note: any of the has options must be set to actually be able to identify it! */
     val sha256: String = "",

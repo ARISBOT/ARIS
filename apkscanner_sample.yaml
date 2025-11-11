@@ -4,7 +4,7 @@
 #
 
 data:
-  certificate_denylist_path: "sampledata/certificate_denylist.jsonl"
+  certificate_denylist_path: "sampledata/certificate_denylist.json"
   library_definition_path: "sampledata/libsmali.jsonl"
   library_information_path: "sampledata/libinfo.jsonl"
 database:

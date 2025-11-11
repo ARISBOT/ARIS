@@ -10,6 +10,8 @@ import eu.katastima.apkscanner.database.dao.SigningCertificateDenylistEntity
 import eu.katastima.apkscanner.database.dao.SigningCertificateDenylistTable
 import eu.katastima.apkscanner.models.signing.SigningCertificate
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.jsonArray
 import org.jetbrains.exposed.v1.core.StdOutSqlLogger
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.selectAll
@@ -28,9 +30,8 @@ object CertificateDataUtil {
         val denylistPath = File(apkScannerConfig.dataConfig.certificateDenylistPath)
         if (denylistPath.exists()) {
             val denyList: MutableList<SigningCertificate> = mutableListOf()
-            denylistPath.readLines().forEach {
-                denyList.add(json.decodeFromString<SigningCertificate>(it))
-            }
+            val jsonElement = json.parseToJsonElement(denylistPath.readText())
+            jsonElement.jsonArray.forEach { denyList.add(json.decodeFromJsonElement<SigningCertificate>(it)) }
 
             transaction(database) {
                 if (apkScannerConfig.databaseConfig.debug) {
@@ -41,6 +42,7 @@ object CertificateDataUtil {
                     SigningCertificateDenylistEntity.new {
                         name = it.name
                         description = it.description
+                        sourceUrl = it.sourceUrl
                         dn = it.dn
                         sha256 = it.sha256
                         sha1 = it.sha1
@@ -56,8 +58,9 @@ object CertificateDataUtil {
     }
 
     fun exportCertificateDenylist(database: Database, apkScannerConfig: ApkScannerConfig): List<SigningCertificate> {
-        val denylist: MutableList<SigningCertificate> = mutableListOf()
+        var denylist: MutableList<SigningCertificate> = mutableListOf()
 
+        // Get all deny list entries and store it in the list.
         transaction(database) {
             if (apkScannerConfig.databaseConfig.debug) {
                 addLogger(StdOutSqlLogger)
@@ -71,6 +74,7 @@ object CertificateDataUtil {
                     val signingCertificate = SigningCertificate(
                         name = it.name,
                         description = it.description,
+                        sourceUrl = it.sourceUrl,
                         dn = it.dn,
                         sha256 = it.sha256,
                         sha1 = it.sha1,
@@ -79,14 +83,23 @@ object CertificateDataUtil {
                     denylist.add(signingCertificate)
                 }
         }
+        // Sort the deny entry list by name, ignoring case.
+        denylist = denylist.sortedBy { it.name.lowercase() }.toMutableList()
+
+        // If there is a template item, move it to the bottom of the list.
+        val templateItem = denylist.find { it.name == "none" && it.dn == "none" && it.sha256 == "123" }
+        if (templateItem != null) {
+            denylist.remove(templateItem)
+            denylist.addLast(templateItem)
+        }
 
         val denylistPath = File(apkScannerConfig.dataConfig.certificateDenylistPath)
         File("${denylistPath.absolutePath}.exported").outputStream().bufferedWriter().use { bufferedWriter ->
-            val json = Json { encodeDefaults = true }
-            denylist.forEach { entry ->
-                bufferedWriter.write(json.encodeToString(entry))
-                bufferedWriter.newLine()
+            val json = Json {
+                encodeDefaults = true
+                prettyPrint = true
             }
+            bufferedWriter.write(json.encodeToString(denylist))
         }
 
         return denylist
