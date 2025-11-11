@@ -11,5 +11,15 @@ fun Boolean.formatYesNo(): String =
 fun Boolean.formatValidInvalid(): String =
     if (this) "Valid" else "Invalid"
 
-fun Int.formatAsHex(upperCase: Boolean = true): String =
-    "0x${this.toHexString(if (upperCase) HexFormat.UpperCase else HexFormat.Default)}"
+fun getHexFormat(useUpperCase: Boolean = true): HexFormat = HexFormat {
+    upperCase = useUpperCase
+    number {
+        prefix = "0x"
+        minLength = 4
+        removeLeadingZeros = true
+    }
+}
+
+fun Int.formatAsHex(useUpperCase: Boolean = true): String = this.toHexString(getHexFormat(useUpperCase))
+
+fun Long.formatAsHex(useUpperCase: Boolean = true): String = this.toHexString(getHexFormat(useUpperCase))

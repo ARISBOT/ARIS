@@ -165,15 +165,16 @@ class ScanAPKCommand : SuspendingCliktCommand() {
         echo("-----------------------------------")
 
         val androidSigningBlock = AndroidSigningBlock(apkFile)
-
-        formatSigningBlockGroup(androidSigningBlock, "Google", androidSigningBlock.getGoogleBlocks())
-            .trim()
-            .split("\n")
-            .forEach { echo(it) }
-        formatSigningBlockGroup(androidSigningBlock, "Payload", androidSigningBlock.getPayloadBlocks())
-            .trim()
-            .split("\n")
-            .forEach { echo(it) }
+        mapOf(
+            "OK" to androidSigningBlock.getOkBlocks(),
+            "Google" to androidSigningBlock.getGoogleBlocks(),
+            "Payload" to androidSigningBlock.getPayloadBlocks(),
+        ).forEach {
+            formatSigningBlockGroup(androidSigningBlock, it.key, it.value)
+                .trim()
+                .split("\n")
+                .forEach { message -> echo(message) }
+        }
 
         echo()
     }
