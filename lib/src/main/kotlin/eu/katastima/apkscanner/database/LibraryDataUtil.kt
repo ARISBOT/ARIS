@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: EUPL-1.2
  */
 
-package eu.katastima.apkscanner.utils
+package eu.katastima.apkscanner.database
 
 import eu.katastima.apkscanner.config.ApkScannerConfig
 import eu.katastima.apkscanner.database.dao.LibraryEntry
@@ -20,25 +20,28 @@ import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import java.io.File
 
-object LegacyUtil {
+object LibraryDataUtil {
 
-    fun importLegacyData(database: Database, apkScannerConfig: ApkScannerConfig) {
-        // TODO: ensure the jsonl is fixed upstream.
+    fun importLibraryData(database: Database, apkScannerConfig: ApkScannerConfig) {
+        val dataConfig = apkScannerConfig.dataConfig
+        if (!File(dataConfig.libraryInformationPath).exists() || !File(dataConfig.libraryDefinitionPath).exists()) {
+            println("Can only import data, if both library information and library definition paths are specified and exist.")
+            return
+        }
+
         val json = Json { ignoreUnknownKeys = true }
 
-        val libraryDefinitionsFile = File(apkScannerConfig.legacyConfig.libraryDefinitionPath)
-        val libraryDefinitions: MutableList<LegacyLibraryDefinition> = mutableListOf()
-        libraryDefinitionsFile.readLines().forEach {
-            libraryDefinitions.add(json.decodeFromString<LegacyLibraryDefinition>(it))
-        }
-        println("Imported ${libraryDefinitions.size} library definitions from: ${libraryDefinitionsFile.absolutePath}")
+        // Important: information needs to be imported before definitions
+        importLibraryInformation(json, database, apkScannerConfig)
+        importLibraryDefinitions(json, database, apkScannerConfig)
+    }
 
-        val libraryInformationFile = File(apkScannerConfig.legacyConfig.libraryInformationPath)
+    private fun importLibraryInformation(json: Json, database: Database, apkScannerConfig: ApkScannerConfig) {
+        val libraryInformationFile = File(apkScannerConfig.dataConfig.libraryInformationPath)
         val libraryInformation: MutableList<LegacyLibraryInformation> = mutableListOf()
         libraryInformationFile.readLines().forEach {
             libraryInformation.add(json.decodeFromString<LegacyLibraryInformation>(it))
         }
-        println("Imported ${libraryInformation.size} library information entries from: ${libraryInformationFile.absolutePath}")
 
         transaction(database) {
             if (apkScannerConfig.databaseConfig.debug) {
@@ -58,6 +61,21 @@ object LegacyUtil {
                     license = it.license
                     emphasize = it.emphasize
                 }
+            }
+        }
+        println("Imported ${libraryInformation.size} library information entries from: ${libraryInformationFile.absolutePath}")
+    }
+
+    private fun importLibraryDefinitions(json: Json, database: Database, apkScannerConfig: ApkScannerConfig) {
+        val libraryDefinitionsFile = File(apkScannerConfig.dataConfig.libraryDefinitionPath)
+        val libraryDefinitions: MutableList<LegacyLibraryDefinition> = mutableListOf()
+        libraryDefinitionsFile.readLines().forEach {
+            libraryDefinitions.add(json.decodeFromString<LegacyLibraryDefinition>(it))
+        }
+
+        transaction(database) {
+            if (apkScannerConfig.databaseConfig.debug) {
+                addLogger(StdOutSqlLogger)
             }
 
             libraryDefinitions.sortedBy { it.id }.forEach {
@@ -81,11 +99,12 @@ object LegacyUtil {
                 }
             }
         }
+        println("Imported ${libraryDefinitions.size} library definitions from: ${libraryDefinitionsFile.absolutePath}")
     }
 
     fun exportLibraryDefinitions(database: Database, apkScannerConfig: ApkScannerConfig): Pair<List<LegacyLibraryInformation>, List<LegacyLibraryDefinition>> {
-        val libraryDefinitionsFile = File(apkScannerConfig.legacyConfig.libraryDefinitionPath)
-        val libraryInformationFile = File(apkScannerConfig.legacyConfig.libraryInformationPath)
+        val libraryDefinitionsFile = File(apkScannerConfig.dataConfig.libraryDefinitionPath)
+        val libraryInformationFile = File(apkScannerConfig.dataConfig.libraryInformationPath)
 
         val legacyInformationList: MutableList<LegacyLibraryInformation> = mutableListOf()
         val legacyDefinitionList: MutableList<LegacyLibraryDefinition> = mutableListOf()

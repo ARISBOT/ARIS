@@ -13,8 +13,8 @@ import java.io.File
 
 @Serializable
 data class ApkScannerConfig(
+    @SerialName("data") val dataConfig: DataConfig = DataConfig(),
     @SerialName("database") val databaseConfig: DatabaseConfig = DatabaseConfig(),
-    @SerialName("legacy") val legacyConfig: LegacyConfig = LegacyConfig(),
 ) {
 
     override fun toString(): String {

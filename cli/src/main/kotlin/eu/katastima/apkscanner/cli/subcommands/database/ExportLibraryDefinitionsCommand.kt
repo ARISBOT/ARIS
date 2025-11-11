@@ -3,13 +3,13 @@
  * SPDX-License-Identifier: EUPL-1.2
  */
 
-package eu.katastima.apkscanner.cli.subcommands.legacy
+package eu.katastima.apkscanner.cli.subcommands.database
 
 import com.github.ajalt.clikt.command.SuspendingCliktCommand
 import com.github.ajalt.clikt.core.Context
 import eu.katastima.apkscanner.config.ApkScannerConfig
 import eu.katastima.apkscanner.database.DatabaseUtil
-import eu.katastima.apkscanner.utils.LegacyUtil
+import eu.katastima.apkscanner.database.LibraryDataUtil
 import java.io.File
 
 class ExportLibraryDefinitionsCommand : SuspendingCliktCommand("export-library-definitions") {
@@ -24,13 +24,13 @@ class ExportLibraryDefinitionsCommand : SuspendingCliktCommand("export-library-d
         val database = DatabaseUtil.getDatabase()
         DatabaseUtil.setupDatabase(database, apkScannerConfig.databaseConfig)
 
-        val legacyConfig = apkScannerConfig.legacyConfig
-        val legacyInformationFile = File(legacyConfig.libraryInformationPath)
-        val legacyDefinitionFile = File(legacyConfig.libraryDefinitionPath)
-        if (legacyInformationFile.exists() && legacyDefinitionFile.exists()) {
-            val exportedData = LegacyUtil.exportLibraryDefinitions(database, apkScannerConfig)
-            echo("Exported ${exportedData.second.size} library definitions to: ${legacyDefinitionFile.absolutePath}.exported")
-            echo("Exported ${exportedData.first.size} library information entries to: ${legacyInformationFile.absolutePath}.exported")
+        val dataConfig = apkScannerConfig.dataConfig
+        val informationFile = File(dataConfig.libraryInformationPath)
+        val definitionFile = File(dataConfig.libraryDefinitionPath)
+        if (informationFile.exists() && definitionFile.exists()) {
+            val exportedData = LibraryDataUtil.exportLibraryDefinitions(database, apkScannerConfig)
+            echo("Exported ${exportedData.second.size} library definitions to: ${informationFile.absolutePath}.exported")
+            echo("Exported ${exportedData.first.size} library information entries to: ${definitionFile.absolutePath}.exported")
         }
     }
 }

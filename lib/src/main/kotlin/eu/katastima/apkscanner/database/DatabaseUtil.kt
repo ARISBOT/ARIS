@@ -9,10 +9,7 @@ import eu.katastima.apkscanner.config.ApkScannerConfig
 import eu.katastima.apkscanner.config.DatabaseConfig
 import eu.katastima.apkscanner.config.DatabaseMode
 import eu.katastima.apkscanner.config.DatabaseType
-import eu.katastima.apkscanner.database.dao.LibraryEntry
-import eu.katastima.apkscanner.database.dao.LibraryInformationEntry
-import eu.katastima.apkscanner.database.dao.LibraryInformationTable
-import eu.katastima.apkscanner.database.dao.LibraryTable
+import eu.katastima.apkscanner.database.dao.*
 import eu.katastima.apkscanner.models.LibraryInformation
 import org.jetbrains.exposed.v1.core.StdOutSqlLogger
 import org.jetbrains.exposed.v1.core.eq
@@ -65,6 +62,9 @@ object DatabaseUtil {
 
             SchemaUtils.create(LibraryInformationTable)
             SchemaUtils.create(LibraryTable)
+
+            SchemaUtils.create(SigningCertificateAllowlistTable)
+            SchemaUtils.create(SigningCertificateDenylistTable)
         }
     }
 
@@ -76,6 +76,9 @@ object DatabaseUtil {
 
             SchemaUtils.drop(LibraryInformationTable)
             SchemaUtils.drop(LibraryTable)
+
+            SchemaUtils.drop(SigningCertificateAllowlistTable)
+            SchemaUtils.drop(SigningCertificateDenylistTable)
         }
     }
 

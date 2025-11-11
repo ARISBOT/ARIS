@@ -11,13 +11,13 @@ import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.help
 import com.github.ajalt.clikt.parameters.options.option
 import eu.katastima.apkscanner.config.ApkScannerConfig
+import eu.katastima.apkscanner.database.CertificateDataUtil
 import eu.katastima.apkscanner.database.DatabaseUtil
-import eu.katastima.apkscanner.utils.LegacyUtil
+import eu.katastima.apkscanner.database.LibraryDataUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
-import java.io.File
 
 class CreateDatabaseCommand : SuspendingCliktCommand("setup") {
 
@@ -58,9 +58,10 @@ class CreateDatabaseCommand : SuspendingCliktCommand("setup") {
         DatabaseUtil.dropTables(database, apkScannerConfig.databaseConfig)
         DatabaseUtil.setupDatabase(database, apkScannerConfig.databaseConfig)
 
-        val legacyConfig = apkScannerConfig.legacyConfig
-        if (File(legacyConfig.libraryInformationPath).exists() && File(legacyConfig.libraryDefinitionPath).exists()) {
-            LegacyUtil.importLegacyData(database, apkScannerConfig)
-        }
+        // Import legacy data
+        LibraryDataUtil.importLibraryData(database, apkScannerConfig)
+
+        // Import certificates data
+        CertificateDataUtil.importCertificateData(database, apkScannerConfig)
     }
 }

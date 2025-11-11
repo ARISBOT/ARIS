@@ -6,7 +6,7 @@
 package eu.katastima.apkscanner.scanapk
 
 import eu.katastima.apkscanner.models.LibraryInformation
-import eu.katastima.apkscanner.signing.VerificationResult
+import eu.katastima.apkscanner.models.signing.VerificationResult
 
 data class ApkScanResult(
     val verificationResult: VerificationResult = VerificationResult(),

@@ -31,3 +31,10 @@ path = [
 ]
 SPDX-FileCopyrightText = "NONE"
 SPDX-License-Identifier = "EUPL-1.2"
+
+[[annotations]]
+path = [
+    "sampledata/*",
+]
+SPDX-FileCopyrightText = "Katastima Authors"
+SPDX-License-Identifier = "EUPL-1.2"
