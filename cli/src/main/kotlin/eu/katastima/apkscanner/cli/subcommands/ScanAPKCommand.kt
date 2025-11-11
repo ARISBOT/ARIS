@@ -69,7 +69,7 @@ class ScanAPKCommand : SuspendingCliktCommand() {
         printSignatureVerificationResult(scanResult)
         printAndroidSigningBlockResult(apkFile)
 
-        echo("==============================================================================")
+        echo("------------------------------------------------------------------------------")
         echo()
     }
 
@@ -125,14 +125,14 @@ class ScanAPKCommand : SuspendingCliktCommand() {
         // v3: https://source.android.com/docs/security/features/apksigning/v3
         // v3.1: https://source.android.com/docs/security/features/apksigning/v3-1
         // v4: https://source.android.com/docs/security/features/apksigning/v4
-        echo("* apksig thinks this certificate is: ${verificationResult.verifiedByApkSig.formatValidInvalid()}")
-        echo("* Source Stamp: ${verificationResult.sourceStampVerified.formatValidInvalid()}")
-        echo("* v1: ${verificationResult.v1.formatValidInvalid()}")
-        echo("* v2: ${verificationResult.v2.formatValidInvalid()}")
-        echo("* v3: ${verificationResult.v3.formatValidInvalid()}")
-        echo("* v3.1: ${verificationResult.v31.formatValidInvalid()}")
-        echo("* v4: ${verificationResult.v4.formatValidInvalid()}")
-        echo("  ------------------------------------------")
+        echo("* apksig")
+        echo("  * Verified by apksig: ${verificationResult.verifiedByApkSig.formatValidInvalid()}")
+        echo("  * Source Stamp: ${verificationResult.sourceStampVerified.formatValidInvalid()}")
+        echo("  * v1: ${verificationResult.v1.formatValidInvalid()}")
+        echo("  * v2: ${verificationResult.v2.formatValidInvalid()}")
+        echo("  * v3: ${verificationResult.v3.formatValidInvalid()}")
+        echo("  * v3.1: ${verificationResult.v31.formatValidInvalid()}")
+        echo("  * v4: ${verificationResult.v4.formatValidInvalid()}")
         echo("* Number of certificates: ${verificationResult.certificates.size}")
 
         var certificateCounter = 1
@@ -147,12 +147,12 @@ class ScanAPKCommand : SuspendingCliktCommand() {
             echo("  * SHA-256: ${certificate.encoded.toSha256()}")
             echo("  * SHA-1:   ${certificate.encoded.toSha1()}")
             echo("  * MD5:     ${certificate.encoded.toMd5()}")
-            echo("    --------------------------------------------------------------------------")
-            echo("  * Public Key - Algorithm: ${certificate.publicKey.algorithm}")
-            echo("  * Public Key - Key Size (bits): ${getPublicKeySize(certificate.publicKey)}")
-            echo("  * SHA-256: ${certificate.publicKey.encoded.toSha256()}")
-            echo("  * SHA-1:   ${certificate.publicKey.encoded.toSha1()}")
-            echo("  * MD5:     ${certificate.publicKey.encoded.toMd5()}")
+            echo("  * Public Key")
+            echo("    * Key Algorithm: ${certificate.publicKey.algorithm}")
+            echo("    * Key Size (bits): ${getPublicKeySize(certificate.publicKey)}")
+            echo("    * SHA-256: ${certificate.publicKey.encoded.toSha256()}")
+            echo("    * SHA-1:   ${certificate.publicKey.encoded.toSha1()}")
+            echo("    * MD5:     ${certificate.publicKey.encoded.toMd5()}")
             certificate.publicKey
             certificateCounter++
         }
