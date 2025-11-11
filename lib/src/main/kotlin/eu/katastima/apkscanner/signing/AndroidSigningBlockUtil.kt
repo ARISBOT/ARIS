@@ -38,6 +38,11 @@ object AndroidSigningBlockUtil {
      */
     const val DEPENDENCY_INFO_BLOCK_ID = 0x504b4453
 
+    /**
+     * https://bi-zone.medium.com/easter-egg-in-apk-files-what-is-frosting-f356aa9f4d1
+     */
+    const val GOOGLE_PLAY_FROSTING_BLOCK_ID = 0x2146444e
+
     @Throws(IllegalArgumentException::class, RuntimeException::class)
     fun getIdValuePairs(apkSigningBlockBuffer: ByteBuffer): MutableMap<Int, ByteBuffer> {
         require(apkSigningBlockBuffer.order() == ByteOrder.LITTLE_ENDIAN) { "ensure apk signing block buffer is little endian" }

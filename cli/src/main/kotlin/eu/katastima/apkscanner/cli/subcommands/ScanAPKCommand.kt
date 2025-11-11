@@ -135,6 +135,7 @@ class ScanAPKCommand : SuspendingCliktCommand() {
         echo("* v4: ${if (verificationResult.v4) "valid" else "invalid"}")
         echo("  ------------------------------------------")
         echo("* Has dependency info block: ${if (signatureBlockVerificationResult.hasDependencyInfoBlock) "Yes" else "No"}")
+        echo("* Has Google Play Frosting block: ${if (signatureBlockVerificationResult.hasGooglePlayFrostingBlock) "Yes" else "No"}")
         echo("  ------------------------------------------")
         echo("* Number of certificates: ${verificationResult.certificates.size}")
 

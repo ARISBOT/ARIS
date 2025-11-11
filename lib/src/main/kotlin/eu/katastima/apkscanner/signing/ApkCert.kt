@@ -66,6 +66,15 @@ class ApkCert(private val apkFile: File) {
             )
         }
 
+        // Check for frosting
+        val googlePlayFrostingBlockBuffer = valueIdMap[AndroidSigningBlockUtil.GOOGLE_PLAY_FROSTING_BLOCK_ID]
+        if (googlePlayFrostingBlockBuffer != null) {
+            signatureBlockVerificationResult = signatureBlockVerificationResult.copy(
+                hasGooglePlayFrostingBlock = true,
+                googlePlayFrostingBlockValue = AndroidSigningBlockUtil.getString(googlePlayFrostingBlockBuffer)
+            )
+        }
+
         // TODO: add more checks
 
         return signatureBlockVerificationResult
@@ -94,7 +103,11 @@ class ApkCert(private val apkFile: File) {
 
 data class SignatureBlockVerificationResult(
     val hasDependencyInfoBlock: Boolean = false,
+    // TODO: would Bytes be better?
     val dependencyInfoBlockValue: String = "",
+    val hasGooglePlayFrostingBlock: Boolean = false,
+    // TODO: would Bytes be better?
+    val googlePlayFrostingBlockValue: String = "",
 )
 
 data class VerificationResult(
