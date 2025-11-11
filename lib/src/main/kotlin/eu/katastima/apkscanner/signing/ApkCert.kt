@@ -61,8 +61,8 @@ class ApkCert(private val apkFile: File) {
         val dependencyInfoBlockBuffer = valueIdMap[AndroidSigningBlockUtil.DEPENDENCY_INFO_BLOCK_ID]
         if (dependencyInfoBlockBuffer != null) {
             signatureBlockVerificationResult = signatureBlockVerificationResult.copy(
-                hasDependencyInfoBlock = true,
-                dependencyInfoBlockValue = AndroidSigningBlockUtil.getString(dependencyInfoBlockBuffer)
+                hasDependencyInfo = true,
+                dependencyInfoValue = AndroidSigningBlockUtil.getString(dependencyInfoBlockBuffer)
             )
         }
 
@@ -70,8 +70,8 @@ class ApkCert(private val apkFile: File) {
         val googlePlayFrostingBlockBuffer = valueIdMap[AndroidSigningBlockUtil.GOOGLE_PLAY_FROSTING_BLOCK_ID]
         if (googlePlayFrostingBlockBuffer != null) {
             signatureBlockVerificationResult = signatureBlockVerificationResult.copy(
-                hasGooglePlayFrostingBlock = true,
-                googlePlayFrostingBlockValue = AndroidSigningBlockUtil.getString(googlePlayFrostingBlockBuffer)
+                hasGooglePlayFrosting = true,
+                googlePlayFrostingValue = AndroidSigningBlockUtil.getString(googlePlayFrostingBlockBuffer)
             )
         }
 
@@ -102,12 +102,12 @@ class ApkCert(private val apkFile: File) {
 }
 
 data class SignatureBlockVerificationResult(
-    val hasDependencyInfoBlock: Boolean = false,
+    val hasDependencyInfo: Boolean = false,
     // TODO: would Bytes be better?
-    val dependencyInfoBlockValue: String = "",
-    val hasGooglePlayFrostingBlock: Boolean = false,
+    val dependencyInfoValue: String = "",
+    val hasGooglePlayFrosting: Boolean = false,
     // TODO: would Bytes be better?
-    val googlePlayFrostingBlockValue: String = "",
+    val googlePlayFrostingValue: String = "",
 )
 
 data class VerificationResult(

@@ -14,12 +14,11 @@ import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.help
 import com.github.ajalt.clikt.parameters.arguments.multiple
 import com.github.ajalt.clikt.parameters.types.file
-import eu.katastima.apkscanner.extensions.toMd5
-import eu.katastima.apkscanner.extensions.toSha1
-import eu.katastima.apkscanner.extensions.toSha256
+import eu.katastima.apkscanner.extensions.*
 import eu.katastima.apkscanner.models.LibraryInformation
 import eu.katastima.apkscanner.scanapk.ApkScanResult
 import eu.katastima.apkscanner.scanapk.ScanAPK
+import eu.katastima.apkscanner.signing.AndroidSigningBlockUtil
 import java.io.File
 import java.security.PublicKey
 import java.security.interfaces.DSAKey
@@ -112,7 +111,7 @@ class ScanAPKCommand : SuspendingCliktCommand() {
         echo("-----------------------")
 
         val verificationResult = scanResult.verificationResult
-        val signatureBlockVerificationResult = scanResult.verificationResult.signatureBlockVerificationResult
+        val signatureBlockResult = scanResult.verificationResult.signatureBlockVerificationResult
 
         if (verificationResult.isInvalid()) {
             echo("Failed to verify signature, please ensure the APK is properly signed!")
@@ -126,16 +125,16 @@ class ScanAPKCommand : SuspendingCliktCommand() {
         // v3: https://source.android.com/docs/security/features/apksigning/v3
         // v3.1: https://source.android.com/docs/security/features/apksigning/v3-1
         // v4: https://source.android.com/docs/security/features/apksigning/v4
-        echo("* apksig thinks this certificate is: ${if (verificationResult.verifiedByApkSig) "valid" else "invalid"}")
-        echo("* Source Stamp: ${if (verificationResult.sourceStampVerified) "valid" else "invalid"}")
-        echo("* v1: ${if (verificationResult.v1) "valid" else "invalid"}")
-        echo("* v2: ${if (verificationResult.v2) "valid" else "invalid"}")
-        echo("* v3: ${if (verificationResult.v3) "valid" else "invalid"}")
-        echo("* v3.1: ${if (verificationResult.v31) "valid" else "invalid"}")
-        echo("* v4: ${if (verificationResult.v4) "valid" else "invalid"}")
+        echo("* apksig thinks this certificate is: ${verificationResult.verifiedByApkSig.formatValidInvalid()}")
+        echo("* Source Stamp: ${verificationResult.sourceStampVerified.formatValidInvalid()}")
+        echo("* v1: ${verificationResult.v1.formatValidInvalid()}")
+        echo("* v2: ${verificationResult.v2.formatValidInvalid()}")
+        echo("* v3: ${verificationResult.v3.formatValidInvalid()}")
+        echo("* v3.1: ${verificationResult.v31.formatValidInvalid()}")
+        echo("* v4: ${verificationResult.v4.formatValidInvalid()}")
         echo("  ------------------------------------------")
-        echo("* Has dependency info block: ${if (signatureBlockVerificationResult.hasDependencyInfoBlock) "Yes" else "No"}")
-        echo("* Has Google Play Frosting block: ${if (signatureBlockVerificationResult.hasGooglePlayFrostingBlock) "Yes" else "No"}")
+        echo("* Has dependency info ${formatBlockId(AndroidSigningBlockUtil.DEPENDENCY_INFO_BLOCK_ID, signatureBlockResult.hasDependencyInfo)}")
+        echo("* Has Google Play Frosting ${formatBlockId(AndroidSigningBlockUtil.GOOGLE_PLAY_FROSTING_BLOCK_ID, signatureBlockResult.hasGooglePlayFrosting)}")
         echo("  ------------------------------------------")
         echo("* Number of certificates: ${verificationResult.certificates.size}")
 
@@ -183,6 +182,8 @@ class ScanAPKCommand : SuspendingCliktCommand() {
             -1
         }
     }
+
+    private fun formatBlockId(blockId: Int, hasBlock: Boolean): String = "block (${blockId.formatAsHex()}): ${hasBlock.formatYesNo()}"
 
     private fun formatAntiFeatures(antiFeatures: Array<String>): String = buildString {
         // TODO: configurable console output formatting.
