@@ -68,6 +68,9 @@ class ScanAPKCommand : SuspendingCliktCommand() {
 
         printLibraryResult(scanResult)
         printSignatureVerificationResult(scanResult)
+
+        echo("==============================================================================")
+        echo()
     }
 
     private fun printLibraryResult(scanResult: ApkScanResult) {
@@ -107,7 +110,11 @@ class ScanAPKCommand : SuspendingCliktCommand() {
     private fun printSignatureVerificationResult(scanResult: ApkScanResult) {
         echo("Signature verification:")
         echo("-----------------------")
-        if (scanResult.verificationResult.isInvalid()) {
+
+        val verificationResult = scanResult.verificationResult
+        val signatureBlockVerificationResult = scanResult.verificationResult.signatureBlockVerificationResult
+
+        if (verificationResult.isInvalid()) {
             echo("Failed to verify signature, please ensure the APK is properly signed!")
             echo()
             return
@@ -119,18 +126,20 @@ class ScanAPKCommand : SuspendingCliktCommand() {
         // v3: https://source.android.com/docs/security/features/apksigning/v3
         // v3.1: https://source.android.com/docs/security/features/apksigning/v3-1
         // v4: https://source.android.com/docs/security/features/apksigning/v4
-        echo("* apksig thinks this certificate is: ${if (scanResult.verificationResult.verifiedByApkSig) "valid" else "invalid"}")
-        echo("* Source Stamp: ${if (scanResult.verificationResult.sourceStampVerified) "valid" else "invalid"}")
-        echo("* v1: ${if (scanResult.verificationResult.v1) "valid" else "invalid"}")
-        echo("* v2: ${if (scanResult.verificationResult.v2) "valid" else "invalid"}")
-        echo("* v3: ${if (scanResult.verificationResult.v3) "valid" else "invalid"}")
-        echo("* v3.1: ${if (scanResult.verificationResult.v31) "valid" else "invalid"}")
-        echo("* v4: ${if (scanResult.verificationResult.v4) "valid" else "invalid"}")
+        echo("* apksig thinks this certificate is: ${if (verificationResult.verifiedByApkSig) "valid" else "invalid"}")
+        echo("* Source Stamp: ${if (verificationResult.sourceStampVerified) "valid" else "invalid"}")
+        echo("* v1: ${if (verificationResult.v1) "valid" else "invalid"}")
+        echo("* v2: ${if (verificationResult.v2) "valid" else "invalid"}")
+        echo("* v3: ${if (verificationResult.v3) "valid" else "invalid"}")
+        echo("* v3.1: ${if (verificationResult.v31) "valid" else "invalid"}")
+        echo("* v4: ${if (verificationResult.v4) "valid" else "invalid"}")
         echo("  ------------------------------------------")
-        echo("* Number of certificates: ${scanResult.verificationResult.certificates.size}")
+        echo("* Has dependency info block: ${if (signatureBlockVerificationResult.hasDependencyInfoBlock) "Yes" else "No"}")
+        echo("  ------------------------------------------")
+        echo("* Number of certificates: ${verificationResult.certificates.size}")
 
         var certificateCounter = 1
-        scanResult.verificationResult.certificates.forEach { certificate ->
+        verificationResult.certificates.forEach { certificate ->
             echo("* Certificate #${certificateCounter}")
             echo("  * Key Algorithm Name: ${certificate.sigAlgName}")
             echo("  * Key Algorithm OID:  ${certificate.sigAlgOID}")

@@ -7,18 +7,29 @@ package eu.katastima.apkscanner.signing
 
 import com.android.apksig.ApkVerifier
 import java.io.File
+import java.io.RandomAccessFile
+import java.nio.ByteBuffer
 import java.security.cert.X509Certificate
 import java.util.logging.Level
 import java.util.logging.Logger
 
 class ApkCert(private val apkFile: File) {
 
+    private var signingBlockValueIdMap: MutableMap<Int, ByteBuffer>? = null
+
     fun verify(): VerificationResult {
+        var verificationResult = VerificationResult()
+
+        // Verify signature block
+        verificationResult = verificationResult.copy(
+            signatureBlockVerificationResult = verifySignatureBlock(),
+        )
+
         try {
             val builder = ApkVerifier.Builder(apkFile)
             val result = builder.build().verify()
             if (result.isVerified) {
-                return VerificationResult(
+                return verificationResult.copy(
                     verifiedByApkSig = result.isVerified,
                     v1 = result.isVerifiedUsingV1Scheme,
                     v2 = result.isVerifiedUsingV2Scheme,
@@ -37,13 +48,54 @@ class ApkCert(private val apkFile: File) {
             LOGGER.log(Level.SEVERE, "Could not verify APK (${apkFile})", e)
         }
 
-        return VerificationResult()
+        return verificationResult
+    }
+
+    private fun verifySignatureBlock(): SignatureBlockVerificationResult {
+        var signatureBlockVerificationResult = SignatureBlockVerificationResult()
+        readAndroidSigningBlock()
+
+        val valueIdMap = signingBlockValueIdMap?.toMap() ?: return signatureBlockVerificationResult
+
+        // Check for dependency info block
+        val dependencyInfoBlockBuffer = valueIdMap[AndroidSigningBlockUtil.DEPENDENCY_INFO_BLOCK_ID]
+        if (dependencyInfoBlockBuffer != null) {
+            signatureBlockVerificationResult = signatureBlockVerificationResult.copy(
+                hasDependencyInfoBlock = true,
+                dependencyInfoBlockValue = AndroidSigningBlockUtil.getString(dependencyInfoBlockBuffer)
+            )
+        }
+
+        // TODO: add more checks
+
+        return signatureBlockVerificationResult
+    }
+
+    private fun readAndroidSigningBlock(): MutableMap<Int, ByteBuffer>? {
+        if (signingBlockValueIdMap.isNullOrEmpty()) {
+            RandomAccessFile(apkFile, "r").use { randomAccessFile ->
+                randomAccessFile.channel.use { fileChannel ->
+                    try {
+                        val androidSigningBlockPair = AndroidSigningBlockUtil.findApkSigningBlock(fileChannel)
+                        signingBlockValueIdMap = AndroidSigningBlockUtil.getIdValuePairs(androidSigningBlockPair.first)
+                    } catch (exc: Exception) {
+                        LOGGER.log(Level.SEVERE, "Could not read APK signing block", exc)
+                    }
+                }
+            }
+        }
+        return signingBlockValueIdMap
     }
 
     companion object {
         private val LOGGER = Logger.getLogger(ApkCert::class.simpleName)
     }
 }
+
+data class SignatureBlockVerificationResult(
+    val hasDependencyInfoBlock: Boolean = false,
+    val dependencyInfoBlockValue: String = "",
+)
 
 data class VerificationResult(
     /** Whether [apksig](https://android.googlesource.com/platform/tools/apksig/) thinks the signature is verified. */
@@ -72,6 +124,8 @@ data class VerificationResult(
     val sourceStampVerified: Boolean = false,
     /** The certificates of the signer. */
     val certificates: List<X509Certificate> = emptyList(),
+    /** The result of the signature block verification */
+    val signatureBlockVerificationResult: SignatureBlockVerificationResult = SignatureBlockVerificationResult(),
 ) {
 
     fun isInvalid(): Boolean = (!v1 && !v2 && !v3) || certificates.isEmpty()
