@@ -12,6 +12,8 @@ import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.channels.FileChannel
+import java.util.logging.Level
+import java.util.logging.Logger
 
 /** Adapted from https://android.googlesource.com/platform/frameworks/base/+/main/core/java/android/util/apk/ApkSigningBlockUtils.java */
 
@@ -31,17 +33,7 @@ object AndroidSigningBlockUtil {
     const val MAGIC_APK_SIG_BLOCK_LE_HIGH: Long = 0x3234206B636F6C42L
     const val MAGIC_APK_SIG_BLOCK_LE_LOW: Long = 0x20676953204b5041L
 
-    /**
-     * https://developer.android.com/build/dependencies#dependency-info-play
-     * https://developer.android.com/build/dependency-verification
-     * https://android.googlesource.com/platform/tools/base/+/c71ae138365bcec912656fb39b9cf27fd8be567d/signflinger/src/com/android/signflinger/SignedApk.java#56
-     */
-    const val DEPENDENCY_INFO_BLOCK_ID = 0x504b4453
-
-    /**
-     * https://bi-zone.medium.com/easter-egg-in-apk-files-what-is-frosting-f356aa9f4d1
-     */
-    const val GOOGLE_PLAY_FROSTING_BLOCK_ID = 0x2146444e
+    private val LOGGER = Logger.getLogger(AndroidSigningBlockUtil::class.simpleName)
 
     @Throws(IllegalArgumentException::class, RuntimeException::class)
     fun getIdValuePairs(apkSigningBlockBuffer: ByteBuffer): MutableMap<Int, ByteBuffer> {
@@ -141,8 +133,8 @@ object AndroidSigningBlockUtil {
     fun getString(byteBuffer: ByteBuffer): String = try {
         val bytes = getBytes(byteBuffer)
         String(bytes, Charsets.UTF_8)
-    } catch (_: Exception) {
-        // TODO: proper logging
+    } catch (exc: Exception) {
+        LOGGER.log(Level.SEVERE, "Could not get string from bytes", exc)
         ""
     }
 }

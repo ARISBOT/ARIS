@@ -18,7 +18,7 @@ import eu.katastima.apkscanner.extensions.*
 import eu.katastima.apkscanner.models.LibraryInformation
 import eu.katastima.apkscanner.scanapk.ApkScanResult
 import eu.katastima.apkscanner.scanapk.ScanAPK
-import eu.katastima.apkscanner.signing.AndroidSigningBlockUtil
+import eu.katastima.apkscanner.signing.AndroidSigningBlock
 import java.io.File
 import java.security.PublicKey
 import java.security.interfaces.DSAKey
@@ -67,6 +67,7 @@ class ScanAPKCommand : SuspendingCliktCommand() {
 
         printLibraryResult(scanResult)
         printSignatureVerificationResult(scanResult)
+        printAndroidSigningBlockResult(apkFile)
 
         echo("==============================================================================")
         echo()
@@ -111,7 +112,6 @@ class ScanAPKCommand : SuspendingCliktCommand() {
         echo("-----------------------")
 
         val verificationResult = scanResult.verificationResult
-        val signatureBlockResult = scanResult.verificationResult.signatureBlockVerificationResult
 
         if (verificationResult.isInvalid()) {
             echo("Failed to verify signature, please ensure the APK is properly signed!")
@@ -132,9 +132,6 @@ class ScanAPKCommand : SuspendingCliktCommand() {
         echo("* v3: ${verificationResult.v3.formatValidInvalid()}")
         echo("* v3.1: ${verificationResult.v31.formatValidInvalid()}")
         echo("* v4: ${verificationResult.v4.formatValidInvalid()}")
-        echo("  ------------------------------------------")
-        echo("* Has dependency info ${formatBlockId(AndroidSigningBlockUtil.DEPENDENCY_INFO_BLOCK_ID, signatureBlockResult.hasDependencyInfo)}")
-        echo("* Has Google Play Frosting ${formatBlockId(AndroidSigningBlockUtil.GOOGLE_PLAY_FROSTING_BLOCK_ID, signatureBlockResult.hasGooglePlayFrosting)}")
         echo("  ------------------------------------------")
         echo("* Number of certificates: ${verificationResult.certificates.size}")
 
@@ -163,6 +160,24 @@ class ScanAPKCommand : SuspendingCliktCommand() {
         echo()
     }
 
+    private fun printAndroidSigningBlockResult(apkFile: File) {
+        echo("Android Signing Block verification:")
+        echo("-----------------------------------")
+
+        val androidSigningBlock = AndroidSigningBlock(apkFile)
+
+        formatSigningBlockGroup(androidSigningBlock, "Google", androidSigningBlock.getGoogleBlocks())
+            .trim()
+            .split("\n")
+            .forEach { echo(it) }
+        formatSigningBlockGroup(androidSigningBlock, "Payload", androidSigningBlock.getPayloadBlocks())
+            .trim()
+            .split("\n")
+            .forEach { echo(it) }
+
+        echo()
+    }
+
     private fun getPublicKeySize(publicKey: PublicKey): Int = when (publicKey) {
         is RSAKey -> {
             (publicKey as RSAKey).modulus.bitLength()
@@ -183,7 +198,13 @@ class ScanAPKCommand : SuspendingCliktCommand() {
         }
     }
 
-    private fun formatBlockId(blockId: Int, hasBlock: Boolean): String = "block (${blockId.formatAsHex()}): ${hasBlock.formatYesNo()}"
+    private fun formatSigningBlockGroup(androidSigningBlock: AndroidSigningBlock, blockType: String, blockMap: Map<Int, String>): String = buildString {
+        append("* $blockType blocks:\n")
+        blockMap.forEach {
+            val hasBlock = androidSigningBlock.hasBlock(it.key)
+            append("  * Has \"${it.value}\" block (${it.key.formatAsHex()}): ${hasBlock.formatYesNo()}\n")
+        }
+    }
 
     private fun formatAntiFeatures(antiFeatures: Array<String>): String = buildString {
         // TODO: configurable console output formatting.
