@@ -11,6 +11,7 @@ import eu.katastima.apkscanner.database.dao.SigningCertificateDenylistTable
 import eu.katastima.apkscanner.models.signing.SigningCertificate
 import org.jetbrains.exposed.v1.core.StdOutSqlLogger
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.neq
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import java.security.PublicKey
@@ -27,8 +28,6 @@ fun X509Certificate.isDenyListed(database: Database, apkScannerConfig: ApkScanne
             addLogger(StdOutSqlLogger)
         }
 
-        // TODO: check DN
-
         SigningCertificateDenylistEntity.find { SigningCertificateDenylistTable.sha256 eq encoded.toSha256() }.forEach {
             denylistMatches.add(it.toSigningCertificate())
         }
@@ -37,6 +36,16 @@ fun X509Certificate.isDenyListed(database: Database, apkScannerConfig: ApkScanne
         }
         SigningCertificateDenylistEntity.find { SigningCertificateDenylistTable.md5 eq encoded.toMd5() }.forEach {
             denylistMatches.add(it.toSigningCertificate())
+        }
+
+        // e.g.: [C=US, CN=Android Debug, O=Android]
+        val dnSplitList = subjectX500Principal.name.split(",").sorted()
+        SigningCertificateDenylistEntity.find { SigningCertificateDenylistTable.dn neq "" }.forEach { denylistEntity ->
+            // e.g.: [C=US, CN=Android, L=Mountain View, O=Android, OU=Android, ST=California, emailAddress=android@android.com]
+            val entityDnSplitList = denylistEntity.dn.split("/").filter { it.isNotBlank() }.sorted()
+            if (entityDnSplitList == dnSplitList) {
+                denylistMatches.add(denylistEntity.toSigningCertificate())
+            }
         }
     }
 
