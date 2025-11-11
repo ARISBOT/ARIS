@@ -175,17 +175,6 @@ class ScanAPKCommand : SuspendingCliktCommand() {
         verificationResult.certificateResults.forEach { certificateResult ->
             echo("* Certificate #${certificateCounter}")
 
-            val allowListedPair = certificateResult.allowListed
-            echo("  * Allowlisted: ${allowListedPair.first}")
-            if (allowListedPair.first && allowListedPair.second != null) {
-                echo("    * Name:        ${allowListedPair.second!!.name}")
-                echo("    * Description: ${allowListedPair.second!!.description}")
-                echo("    * DN:          ${allowListedPair.second!!.dn}")
-                echo("    * SHA-256:     ${allowListedPair.second!!.sha256}")
-                echo("    * SHA-1:       ${allowListedPair.second!!.sha1}")
-                echo("    * MD5:         ${allowListedPair.second!!.md5}")
-            }
-
             val denyListedPair = certificateResult.denyListed
             echo("  * Denylisted: ${denyListedPair.first}")
             if (denyListedPair.first && denyListedPair.second != null) {

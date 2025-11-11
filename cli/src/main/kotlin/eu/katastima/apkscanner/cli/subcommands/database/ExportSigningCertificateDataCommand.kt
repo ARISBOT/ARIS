@@ -20,16 +20,10 @@ class ExportSigningCertificateDataCommand : SuspendingCliktCommand("export-signi
 
     override suspend fun run() {
         val apkScannerConfig = ApkScannerConfig.getConfig()
+        val dataConfig = apkScannerConfig.dataConfig
 
         val database = DatabaseUtil.getDatabase()
         DatabaseUtil.setupDatabase(database, apkScannerConfig.databaseConfig)
-
-        val dataConfig = apkScannerConfig.dataConfig
-        val allowlistPath = File(dataConfig.certificateAllowlistPath)
-        if (allowlistPath.exists()) {
-            val exportedListData = CertificateDataUtil.exportCertificateAllowlist(database, apkScannerConfig)
-            echo("Exported ${exportedListData.size} allowed signing certificates to: ${allowlistPath.absolutePath}.exported")
-        }
 
         val denylistPath = File(dataConfig.certificateDenylistPath)
         if (denylistPath.exists()) {

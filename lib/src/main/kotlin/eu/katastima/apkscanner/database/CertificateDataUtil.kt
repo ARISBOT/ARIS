@@ -6,8 +6,6 @@
 package eu.katastima.apkscanner.database
 
 import eu.katastima.apkscanner.config.ApkScannerConfig
-import eu.katastima.apkscanner.database.dao.SigningCertificateAllowlistEntity
-import eu.katastima.apkscanner.database.dao.SigningCertificateAllowlistTable
 import eu.katastima.apkscanner.database.dao.SigningCertificateDenylistEntity
 import eu.katastima.apkscanner.database.dao.SigningCertificateDenylistTable
 import eu.katastima.apkscanner.models.signing.SigningCertificate
@@ -23,39 +21,7 @@ object CertificateDataUtil {
     fun importCertificateData(database: Database, apkScannerConfig: ApkScannerConfig) {
         val json = Json { ignoreUnknownKeys = true }
 
-        importAllowlist(json, database, apkScannerConfig)
         importDenylist(json, database, apkScannerConfig)
-    }
-
-    private fun importAllowlist(json: Json, database: Database, apkScannerConfig: ApkScannerConfig) {
-        val allowlistPath = File(apkScannerConfig.dataConfig.certificateAllowlistPath)
-        if (allowlistPath.exists()) {
-            val allowList: MutableList<SigningCertificate> = mutableListOf()
-            allowlistPath.readLines().forEach {
-                allowList.add(json.decodeFromString<SigningCertificate>(it))
-            }
-
-            transaction(database) {
-                if (apkScannerConfig.databaseConfig.debug) {
-                    addLogger(StdOutSqlLogger)
-                }
-
-                allowList.sortedBy { it.name }.forEach {
-                    SigningCertificateAllowlistEntity.new {
-                        name = it.name
-                        description = it.description
-                        dn = it.dn
-                        sha256 = it.sha256
-                        sha1 = it.sha1
-                        md5 = it.md5
-                    }
-                }
-            }
-
-            println("Imported ${allowList.size} allowed certificates from: ${allowlistPath.absolutePath}")
-        } else {
-            println("Certificate allowlist path not specified or does not exist, skipping import")
-        }
     }
 
     private fun importDenylist(json: Json, database: Database, apkScannerConfig: ApkScannerConfig) {
@@ -87,43 +53,6 @@ object CertificateDataUtil {
         } else {
             println("Certificate denylist path not specified or does not exist, skipping import")
         }
-    }
-
-    fun exportCertificateAllowlist(database: Database, apkScannerConfig: ApkScannerConfig): List<SigningCertificate> {
-        val allowlist: MutableList<SigningCertificate> = mutableListOf()
-
-        transaction(database) {
-            if (apkScannerConfig.databaseConfig.debug) {
-                addLogger(StdOutSqlLogger)
-            }
-
-            SigningCertificateAllowlistTable
-                .selectAll()
-                .sortedBy { SigningCertificateAllowlistTable.name }
-                .map { SigningCertificateAllowlistEntity.wrapRow(it) }
-                .forEach {
-                    val signingCertificate = SigningCertificate(
-                        name = it.name,
-                        description = it.description,
-                        dn = it.dn,
-                        sha256 = it.sha256,
-                        sha1 = it.sha1,
-                        md5 = it.md5,
-                    )
-                    allowlist.add(signingCertificate)
-                }
-        }
-
-        val allowlistPath = File(apkScannerConfig.dataConfig.certificateAllowlistPath)
-        File("${allowlistPath.absolutePath}.exported").outputStream().bufferedWriter().use { bufferedWriter ->
-            val json = Json { encodeDefaults = true }
-            allowlist.forEach { entry ->
-                bufferedWriter.write(json.encodeToString(entry))
-                bufferedWriter.newLine()
-            }
-        }
-
-        return allowlist
     }
 
     fun exportCertificateDenylist(database: Database, apkScannerConfig: ApkScannerConfig): List<SigningCertificate> {

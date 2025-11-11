@@ -63,7 +63,6 @@ object DatabaseUtil {
             SchemaUtils.create(LibraryInformationTable)
             SchemaUtils.create(LibraryTable)
 
-            SchemaUtils.create(SigningCertificateAllowlistTable)
             SchemaUtils.create(SigningCertificateDenylistTable)
         }
     }
@@ -77,7 +76,6 @@ object DatabaseUtil {
             SchemaUtils.drop(LibraryInformationTable)
             SchemaUtils.drop(LibraryTable)
 
-            SchemaUtils.drop(SigningCertificateAllowlistTable)
             SchemaUtils.drop(SigningCertificateDenylistTable)
         }
     }
