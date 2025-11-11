@@ -7,11 +7,15 @@ package eu.katastima.apkscanner.scanapk
 
 import brut.androlib.ApkDecoder
 import brut.androlib.Config
+import brut.androlib.meta.ApkInfo
 import brut.directory.ExtFile
 import eu.katastima.apkscanner.config.ApkScannerConfig
 import eu.katastima.apkscanner.database.DatabaseUtil
 import eu.katastima.apkscanner.extensions.toSha256
+import eu.katastima.apkscanner.manifest.AndroidManifestUtil
 import eu.katastima.apkscanner.models.LibraryInformation
+import eu.katastima.apkscanner.models.manifest.Manifest
+import eu.katastima.apkscanner.models.manifest.ManifestCheckResult
 import eu.katastima.apkscanner.signing.ApkCert
 import eu.katastima.apkscanner.utils.Randomizer
 import okio.Closeable
@@ -26,13 +30,14 @@ class ApkProcessor(
 ) : Closeable {
 
     fun processApk(apkFile: File): ApkScanResult {
-        val decodedApkDirectory = decodeApk(apkFile)
+        val (decodedApkDirectory, decodedApkInfo) = decodeApk(apkFile)
 
         return try {
             ApkScanResult(
                 apkFilePath = apkFile.absolutePath,
                 apkFileSha256 = apkFile.toSha256(),
                 signingCheckResult = ApkCert(apkFile).verify(database, apkScannerConfig),
+                manifestCheckResult = processManifest(decodedApkInfo, decodedApkDirectory),
                 detectedLibraries = scanForLibraries(decodedApkDirectory).sortedBy { it.name.lowercase() }.toTypedArray(),
             )
         } finally {
@@ -41,12 +46,12 @@ class ApkProcessor(
         }
     }
 
-    private fun decodeApk(apkFile: File): File {
+    private fun decodeApk(apkFile: File): Pair<File, ApkInfo> {
         // Decode the APK file using apktool, as we need the smali output.
         val apkDecoderFile = ExtFile(apkFile)
         val apkDecoderConfig = Config().apply {
             decodeAssets = Config.DecodeAssets.NONE
-            decodeResources = Config.DecodeResources.NONE
+            decodeResources = Config.DecodeResources.FULL
             decodeSources = Config.DecodeSources.FULL
         }
         val apkDecoder = ApkDecoder(apkDecoderFile, apkDecoderConfig)
@@ -54,9 +59,43 @@ class ApkProcessor(
         // Generate a random string for the output directory, where the APK will be decoded into.
         val randomString = Randomizer.getRandomString()
         val outputDir = File("${workingDirectory.absolutePath}/${apkFile.name}_${randomString}/")
-        apkDecoder.decode(outputDir)
+        val apkInfo = apkDecoder.decode(outputDir)
 
-        return outputDir
+        return Pair(outputDir, apkInfo)
+    }
+
+    private fun processManifest(decodedApkInfo: ApkInfo, decodedApkDirectory: File): ManifestCheckResult {
+        val manifestFile = File(decodedApkDirectory, "AndroidManifest.xml")
+
+        val packageName = AndroidManifestUtil.pullPackageName(manifestFile) ?: ""
+        val applicationLabel = AndroidManifestUtil.pullApplicationLabel(manifestFile) ?: ""
+        val features = AndroidManifestUtil.pullFeatures(manifestFile).sortedBy { it.name }
+        val permissions = AndroidManifestUtil.pullPermissions(manifestFile).sortedBy { it.name }
+
+        val libDir = File(decodedApkDirectory, "lib")
+        val abis = if (libDir.exists()) {
+            libDir.listFiles { it.isDirectory }.map { it.name }
+        } else {
+            emptyList()
+        }
+
+        val manifest = Manifest(
+            appId = packageName,
+            versionCode = decodedApkInfo.versionInfo.versionCode.toInt(),
+            versionName = decodedApkInfo.versionInfo.versionName,
+            minSdk = decodedApkInfo.sdkInfo.minSdkVersion.toInt(),
+            targetSdk = decodedApkInfo.sdkInfo.targetSdkVersion.toInt(),
+            features = features,
+            permissions = permissions,
+            abis = abis,
+            label = applicationLabel,
+        )
+
+        // TODO: check for bad things :O
+
+        return ManifestCheckResult(
+            manifest = manifest,
+        )
     }
 
     private fun scanForLibraries(outputDir: File): List<LibraryInformation> {

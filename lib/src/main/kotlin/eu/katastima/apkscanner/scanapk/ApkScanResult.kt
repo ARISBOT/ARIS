@@ -7,6 +7,7 @@ package eu.katastima.apkscanner.scanapk
 
 import eu.katastima.apkscanner.extensions.nowAsLocalDate
 import eu.katastima.apkscanner.models.LibraryInformation
+import eu.katastima.apkscanner.models.manifest.ManifestCheckResult
 import eu.katastima.apkscanner.models.signing.SigningCheckResult
 import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.SerialName
@@ -19,6 +20,7 @@ data class ApkScanResult(
     val apkFilePath: String = "",
     val apkFileSha256: String = "",
     @SerialName("signingCheckResults") val signingCheckResult: SigningCheckResult = SigningCheckResult(),
+    val manifestCheckResult: ManifestCheckResult = ManifestCheckResult(),
     val detectedLibraries: Array<LibraryInformation> = emptyArray(),
 ) {
     override fun equals(other: Any?): Boolean {
