@@ -5,6 +5,7 @@
 
 package eu.katastima.apkscanner.database.dao
 
+import eu.katastima.apkscanner.models.signing.SigningCertificate
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.IntIdTable
 import org.jetbrains.exposed.v1.dao.IntEntity
@@ -36,4 +37,12 @@ class SigningCertificateDenylistEntity(id: EntityID<Int>) : IntEntity(id) {
                 "md5=$md5" +
                 ")"
     }
+
+    fun toSigningCertificate(): SigningCertificate = SigningCertificate(
+        name = name,
+        description = description,
+        sha256 = sha256,
+        sha1 = sha1,
+        md5 = md5,
+    )
 }

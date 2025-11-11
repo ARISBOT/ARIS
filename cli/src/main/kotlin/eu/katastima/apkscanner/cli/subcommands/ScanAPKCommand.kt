@@ -14,6 +14,8 @@ import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.help
 import com.github.ajalt.clikt.parameters.arguments.multiple
 import com.github.ajalt.clikt.parameters.types.file
+import eu.katastima.apkscanner.config.ApkScannerConfig
+import eu.katastima.apkscanner.database.DatabaseUtil
 import eu.katastima.apkscanner.extensions.*
 import eu.katastima.apkscanner.models.LibraryInformation
 import eu.katastima.apkscanner.scanapk.ApkScanResult
@@ -119,6 +121,9 @@ class ScanAPKCommand : SuspendingCliktCommand() {
             return
         }
 
+        val database = DatabaseUtil.getDatabase()
+        val apkScannerConfig = ApkScannerConfig.getConfig()
+
         // Print whether signature versions v1, v2 or v3 are valid.
         // v1: https://source.android.com/docs/security/features/apksigning#v1
         // v2: https://source.android.com/docs/security/features/apksigning/v2
@@ -138,6 +143,19 @@ class ScanAPKCommand : SuspendingCliktCommand() {
         var certificateCounter = 1
         verificationResult.certificates.forEach { certificate ->
             echo("* Certificate #${certificateCounter}")
+
+            val allowListedPair = certificate.isAllowListed(database, apkScannerConfig)
+            echo("  * Allowlisted: ${allowListedPair.first}")
+            if (allowListedPair.first) {
+                echo("    * ${allowListedPair.second}")
+            }
+
+            val denyListedPair = certificate.isDenyListed(database, apkScannerConfig)
+            echo("  * Denylisted: ${denyListedPair.first}")
+            if (denyListedPair.first) {
+                echo("    * ${denyListedPair.second}")
+            }
+
             echo("  * Key Algorithm Name: ${certificate.sigAlgName}")
             echo("  * Key Algorithm OID:  ${certificate.sigAlgOID}")
             echo("  * Issuer Principal:  ${certificate.issuerX500Principal}")
