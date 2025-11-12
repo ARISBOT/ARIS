@@ -43,10 +43,10 @@ object CertificateDataUtil {
                         name = it.name
                         description = it.description
                         sourceUrl = it.sourceUrl
-                        dn = it.dn.toList()
-                        sha256 = it.sha256.toList()
-                        sha1 = it.sha1.toList()
-                        md5 = it.md5.toList()
+                        dn = it.dn.sorted()
+                        sha256 = it.sha256.sorted()
+                        sha1 = it.sha1.sorted()
+                        md5 = it.md5.sorted()
                     }
                 }
             }
