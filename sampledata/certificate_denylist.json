@@ -11,7 +11,7 @@
   {
     "name": "Android testkey",
     "description": "test keys used in development only which should NEVER be used to sign packages in publicly released images (as that would open a major security hole).",
-    "sourceUrl": "https://android.googlesourceUrl.com/platform/build/+/refs/heads/main/target/product/security/README",
+    "sourceUrl": "https://android.googlesource.com/platform/build/+/refs/heads/main/target/product/security/README",
     "dn": "/C=US/ST=California/L=Mountain View/O=Android/OU=Android/CN=Android/emailAddress=android@android.com",
     "sha256": "",
     "sha1": "",
@@ -20,8 +20,8 @@
   {
     "name": "AOSP bluetooth.x509.pem",
     "description": "AOSP certs and private keys without password protection",
-    "sourceUrl": "https://android.googlesourceUrl.com/platform/build/+/refs/heads/main/target/product/security",
-    "dn": "/C=US/ST=California/L=Mountain View/O=Android/OU=Android/CN=/emailAddress=android@android.com",
+    "sourceUrl": "https://android.googlesource.com/platform/build/+/refs/heads/main/target/product/security",
+    "dn": "/C=US/ST=California/L=Mountain View/O=Android/OU=Android/CN=com.android.bluetooth.services/emailAddress=android@android.com",
     "sha256": "a6ccc500ff0e7421200eb66a7fe174ef1b00e52ca91727070cbedf061ff76c35",
     "sha1": "",
     "md5": ""
@@ -29,7 +29,7 @@
   {
     "name": "AOSP cts_uicc_2021.x509.pem",
     "description": "AOSP certs and private keys without password protection",
-    "sourceUrl": "https://android.googlesourceUrl.com/platform/build/+/refs/heads/main/target/product/security",
+    "sourceUrl": "https://android.googlesource.com/platform/build/+/refs/heads/main/target/product/security",
     "dn": "/C=US/ST=California/L=Mountain View/O=Android/OU=Android/CN=Android/emailAddress=android@android.com",
     "sha256": "ce7b2b47ae2b7552c8f92cc29124279883041fb623a5f194a82c9bf15d492aa0",
     "sha1": "",
@@ -38,7 +38,7 @@
   {
     "name": "AOSP media.x509.pem",
     "description": "AOSP certs and private keys without password protection",
-    "sourceUrl": "https://android.googlesourceUrl.com/platform/build/+/refs/heads/main/target/product/security",
+    "sourceUrl": "https://android.googlesource.com/platform/build/+/refs/heads/main/target/product/security",
     "dn": "/C=US/ST=California/L=Mountain View/O=Android/OU=Android/CN=Android/emailAddress=android@android.com",
     "sha256": "465983f7791f2abeb43ea2cbdc7f21a8260b72bc08a55c839fc1a43bc741a81e",
     "sha1": "",
@@ -47,7 +47,7 @@
   {
     "name": "AOSP networkstack.x509.pem",
     "description": "AOSP certs and private keys without password protection",
-    "sourceUrl": "https://android.googlesourceUrl.com/platform/build/+/refs/heads/main/target/product/security",
+    "sourceUrl": "https://android.googlesource.com/platform/build/+/refs/heads/main/target/product/security",
     "dn": "/C=US/ST=California/L=Mountain View/O=Android/OU=Android/CN=com.android.networkstack",
     "sha256": "e1dbadce60dc080d15b58a014b0dcf9400e24de23fa00b287a5a982bfebda2ee",
     "sha1": "",
@@ -56,7 +56,7 @@
   {
     "name": "AOSP nfc.x509.pem",
     "description": "AOSP certs and private keys without password protection",
-    "sourceUrl": "https://android.googlesourceUrl.com/platform/build/+/refs/heads/main/target/product/security",
+    "sourceUrl": "https://android.googlesource.com/platform/build/+/refs/heads/main/target/product/security",
     "dn": "/C=US/ST=California/L=Mountain View/O=Android/OU=Android/CN=com_android_nfc",
     "sha256": "fae9122a8721d6e2a196d2224dffcf773c9127e2bb956cbddb40b009192ffdfd",
     "sha1": "",
@@ -65,16 +65,25 @@
   {
     "name": "AOSP platform.x509.pem",
     "description": "AOSP certs and private keys without password protection",
-    "sourceUrl": "https://android.googlesourceUrl.com/platform/build/+/refs/heads/main/target/product/security",
+    "sourceUrl": "https://android.googlesource.com/platform/build/+/refs/heads/main/target/product/security",
     "dn": "/C=US/ST=California/L=Mountain View/O=Android/OU=Android/CN=Android/emailAddress=android@android.com",
     "sha256": "c8a2e9bccf597c2fb6dc66bee293fc13f2fc47ec77bc6b2b0d52c11f51192ab8",
     "sha1": "",
     "md5": ""
   },
   {
+    "name": "AOSP releasekey/testkey.x509.pem",
+    "description": "AOSP certs and private keys without password protection",
+    "sourceUrl": "https://android.googlesource.com/platform/build/+/refs/heads/main/target/product/security",
+    "dn": "/C=US/ST=California/L=Mountain View/O=Android/OU=Android/CN=Android/emailAddress=android@android.com",
+    "sha256": "a40da80a59d170caa950cf15c18c454d47a39b26989d8b640ecd745ba71bf5dc",
+    "sha1": "",
+    "md5": ""
+  },
+  {
     "name": "AOSP sdk_sandbox.x509.pem",
     "description": "AOSP certs and private keys without password protection",
-    "sourceUrl": "https://android.googlesourceUrl.com/platform/build/+/refs/heads/main/target/product/security",
+    "sourceUrl": "https://android.googlesource.com/platform/build/+/refs/heads/main/target/product/security",
     "dn": "/C=US/ST=California/L=Mountain View/O=Android/OU=Android/CN=Android/emailAddress=android@android.com",
     "sha256": "abf21f9e2af1d881cc673fddcefa6ed9c269a437bd64b279cf45844cfd589126",
     "sha1": "",
@@ -83,18 +92,9 @@
   {
     "name": "AOSP shared.x509.pem",
     "description": "AOSP certs and private keys without password protection",
-    "sourceUrl": "https://android.googlesourceUrl.com/platform/build/+/refs/heads/main/target/product/security",
+    "sourceUrl": "https://android.googlesource.com/platform/build/+/refs/heads/main/target/product/security",
     "dn": "/C=US/ST=California/L=Mountain View/O=Android/OU=Android/CN=Android/emailAddress=android@android.com",
     "sha256": "28bbfe4a7b97e74681dc55c2fbb6ccb8d6c74963733f6af6ae74d8c3a6e879fd",
-    "sha1": "",
-    "md5": ""
-  },
-  {
-    "name": "AOSP testkey.x509.pem",
-    "description": "AOSP certs and private keys without password protection",
-    "sourceUrl": "https://android.googlesourceUrl.com/platform/build/+/refs/heads/main/target/product/security",
-    "dn": "/C=US/ST=California/L=Mountain View/O=Android/OU=Android/CN=Android/emailAddress=android@android.com",
-    "sha256": "a40da80a59d170caa950cf15c18c454d47a39b26989d8b640ecd745ba71bf5dc",
     "sha1": "",
     "md5": ""
   },
