@@ -155,19 +155,26 @@ class ScanAPKCommand : SuspendingCliktCommand() {
 
         echo("Libraries detected:")
         echo("-------------------")
-        scanResult.detectedLibraries.forEach { library ->
-            echo("* ${library.name} (${library.libraryId}): ${library.type}, ${library.license}", trailingNewline = false)
 
-            if (library.antiFeatures.isNotEmpty()) {
-                echo("; ${formatAntiFeatures(library.antiFeatures)}", trailingNewline = false)
-                offendingLibraries.add(library)
+        if (scanResult.detectedLibraries.isEmpty()) {
+            echo("* No libraries detected")
+        } else {
+            scanResult.detectedLibraries.forEach { library ->
+                echo("* ${library.name} (${library.libraryId}): ${library.type}, ${library.license}", trailingNewline = false)
+
+                if (library.antiFeatures.isNotEmpty()) {
+                    echo("; ${formatAntiFeatures(library.antiFeatures)}", trailingNewline = false)
+                    offendingLibraries.add(library)
+                }
+                echo()
             }
-            echo()
         }
         echo()
 
+        echo("Offending libraries:")
+        echo("--------------------")
         if (offendingLibraries.isEmpty()) {
-            echo("No offending libraries found.")
+            echo("* No offending libraries detected")
         } else {
             hasOffendingLibrary = true
 
@@ -189,7 +196,7 @@ class ScanAPKCommand : SuspendingCliktCommand() {
 
         val signingCheckResult = scanResult.signingCheckResult
         if (signingCheckResult.isInvalid()) {
-            echo("Failed to verify signature, please ensure the APK is properly signed!")
+            echo("* Failed to verify signature, please ensure the APK is properly signed!")
             echo()
             return
         }
@@ -215,15 +222,17 @@ class ScanAPKCommand : SuspendingCliktCommand() {
         signingCheckResult.certificateResults.forEach { certificateResult ->
             echo("* Certificate #${certificateCounter}")
 
-            echo("  * Denylisted: ${certificateResult.denylistMatches.isNotEmpty().formatYesNo()}")
-            certificateResult.denylistMatches.forEach { denyListMatch ->
-                echo("    * Name: ${denyListMatch.name}")
-                echo("      * Description: ${denyListMatch.description.ifEmpty { "-" }}")
-                echo("      * Source URL:  ${denyListMatch.sourceUrl.ifEmpty { "-" }}")
-                echo("      * DN:          ${denyListMatch.dn.ifEmpty { "-" }}")
-                echo("      * SHA-256:     ${denyListMatch.sha256.ifEmpty { "-" }}")
-                echo("      * SHA-1:       ${denyListMatch.sha1.ifEmpty { "-" }}")
-                echo("      * MD5:         ${denyListMatch.md5.ifEmpty { "-" }}")
+            if (certificateResult.denylistMatches.isNotEmpty()) {
+                echo("  * [!] Certificate found in deny list")
+                certificateResult.denylistMatches.forEach { denyListMatch ->
+                    echo("    * Name: ${denyListMatch.name}")
+                    echo("      * Description: ${denyListMatch.description.ifEmpty { "-" }}")
+                    echo("      * Source URL:  ${denyListMatch.sourceUrl.ifEmpty { "-" }}")
+                    echo("      * DN:          ${denyListMatch.dn.ifEmpty { "-" }}")
+                    echo("      * SHA-256:     ${denyListMatch.sha256.ifEmpty { "-" }}")
+                    echo("      * SHA-1:       ${denyListMatch.sha1.ifEmpty { "-" }}")
+                    echo("      * MD5:         ${denyListMatch.md5.ifEmpty { "-" }}")
+                }
             }
 
             echo("  * Key Algorithm Name: ${certificateResult.sigAlgorithmName}")
@@ -232,8 +241,8 @@ class ScanAPKCommand : SuspendingCliktCommand() {
             echo("    * Principal: ${certificateResult.issuerPrincipal}")
             echo("    * Contains Control Characters: ${certificateResult.issuerContainsControlCharacters.formatYesNo()}")
             echo("  * Subject:")
-            echo("    * Principal:  ${certificateResult.subjectPrincipal}")
-            echo("    * Contains Control Characters:  ${certificateResult.subjectContainsControlCharacters.formatYesNo()}")
+            echo("    * Principal: ${certificateResult.subjectPrincipal}")
+            echo("    * Contains Control Characters: ${certificateResult.subjectContainsControlCharacters.formatYesNo()}")
             echo("  * Not Before: ${certificateResult.notBefore}")
             echo("  * Not After:  ${certificateResult.notAfter}")
             echo("  * SHA-256: ${certificateResult.sha256}")
