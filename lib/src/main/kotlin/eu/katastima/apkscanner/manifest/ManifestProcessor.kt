@@ -81,7 +81,20 @@ class ManifestProcessor(
     private fun checkForDangerousFilters(manifest: Manifest, manifestConfig: ManifestConfig): Set<String> {
         val dangerousFilters: MutableSet<String> = mutableSetOf()
 
-        // TODO: check for dangerous filters
+        // Each intent filter can have multiple actions, so we need to flatten it first and then map its name to get a set of strings.
+        // Use a set, because only unique actions need to be checked as it does not matter if a dangerous intent filter is used multiple times.
+        val manifestFilterActionSet = manifest.intentFilters.flatMap { it.actions }.map { it.name }.toSet()
+
+        // Check each filter entry, which contains [name, description, filters].
+        manifestConfig.dangerousFilters.entries.forEach { dangerousFilterEntry ->
+            // Check each flag within the entry
+            dangerousFilterEntry.filters.forEach { dangerousFilter ->
+                // If the manifest contains the dangerous filter, add it to the set.
+                if (manifestFilterActionSet.contains(dangerousFilter)) {
+                    dangerousFilters.add(dangerousFilter)
+                }
+            }
+        }
 
         return dangerousFilters
     }
