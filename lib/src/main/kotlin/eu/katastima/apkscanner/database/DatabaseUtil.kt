@@ -63,6 +63,10 @@ object DatabaseUtil {
             SchemaUtils.create(LibraryInformationTable)
             SchemaUtils.create(LibraryTable)
 
+            SchemaUtils.create(ManifestFlagConfigTable)
+            SchemaUtils.create(ManifestFilterConfigTable)
+            SchemaUtils.create(ManifestPermissionConfigTable)
+
             SchemaUtils.create(SigningCertificateDenylistTable)
         }
     }
@@ -75,6 +79,10 @@ object DatabaseUtil {
 
             SchemaUtils.drop(LibraryInformationTable)
             SchemaUtils.drop(LibraryTable)
+
+            SchemaUtils.drop(ManifestFlagConfigTable)
+            SchemaUtils.drop(ManifestFilterConfigTable)
+            SchemaUtils.drop(ManifestPermissionConfigTable)
 
             SchemaUtils.drop(SigningCertificateDenylistTable)
         }

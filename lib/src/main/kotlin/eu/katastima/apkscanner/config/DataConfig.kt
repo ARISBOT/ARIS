@@ -13,4 +13,5 @@ data class DataConfig(
     @SerialName("certificate_denylist_path") val certificateDenylistPath: String = "",
     @SerialName("library_definition_path") val libraryDefinitionPath: String = "",
     @SerialName("library_information_path") val libraryInformationPath: String = "",
+    @SerialName("manifest_config_path") val manifestConfigPath: String = "",
 )

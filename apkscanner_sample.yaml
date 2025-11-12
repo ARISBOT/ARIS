@@ -3,10 +3,13 @@
 # SPDX-License-Identifier: EUPL-1.2
 #
 
+# Configure however you see fit and place as `apkscanner.yaml`.
+
 data:
   certificate_denylist_path: "sampledata/certificate_denylist.json"
   library_definition_path: "sampledata/libsmali.jsonl"
   library_information_path: "sampledata/libinfo.jsonl"
+  manifest_config_path: "sampledata/manifest_config.json"
 database:
   debug: false
   type: "H2"

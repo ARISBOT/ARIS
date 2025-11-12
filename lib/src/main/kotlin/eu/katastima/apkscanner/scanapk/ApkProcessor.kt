@@ -12,10 +12,8 @@ import brut.directory.ExtFile
 import eu.katastima.apkscanner.config.ApkScannerConfig
 import eu.katastima.apkscanner.database.DatabaseUtil
 import eu.katastima.apkscanner.extensions.toSha256
-import eu.katastima.apkscanner.manifest.AndroidManifestUtil
+import eu.katastima.apkscanner.manifest.ManifestProcessor
 import eu.katastima.apkscanner.models.LibraryInformation
-import eu.katastima.apkscanner.models.manifest.Manifest
-import eu.katastima.apkscanner.models.manifest.ManifestCheckResult
 import eu.katastima.apkscanner.signing.ApkCert
 import eu.katastima.apkscanner.utils.Randomizer
 import okio.Closeable
@@ -37,7 +35,7 @@ class ApkProcessor(
                 apkFilePath = apkFile.absolutePath,
                 apkFileSha256 = apkFile.toSha256(),
                 signingCheckResult = ApkCert(apkFile).verify(database, apkScannerConfig),
-                manifestCheckResult = processManifest(decodedApkInfo, decodedApkDirectory),
+                manifestCheckResult = ManifestProcessor(apkScannerConfig, database).processManifest(decodedApkInfo, decodedApkDirectory),
                 detectedLibraries = scanForLibraries(decodedApkDirectory).sortedBy { it.name.lowercase() }.toTypedArray(),
             )
         } finally {
@@ -62,40 +60,6 @@ class ApkProcessor(
         val apkInfo = apkDecoder.decode(outputDir)
 
         return Pair(outputDir, apkInfo)
-    }
-
-    private fun processManifest(decodedApkInfo: ApkInfo, decodedApkDirectory: File): ManifestCheckResult {
-        val manifestFile = File(decodedApkDirectory, "AndroidManifest.xml")
-
-        val packageName = AndroidManifestUtil.pullPackageName(manifestFile) ?: ""
-        val applicationLabel = AndroidManifestUtil.pullApplicationLabel(manifestFile) ?: ""
-        val features = AndroidManifestUtil.pullFeatures(manifestFile).sortedBy { it.name }
-        val permissions = AndroidManifestUtil.pullPermissions(manifestFile).sortedBy { it.name }
-
-        val libDir = File(decodedApkDirectory, "lib")
-        val abis = if (libDir.exists()) {
-            libDir.listFiles { it.isDirectory }.map { it.name }
-        } else {
-            emptyList()
-        }
-
-        val manifest = Manifest(
-            appId = packageName,
-            versionCode = decodedApkInfo.versionInfo.versionCode.toInt(),
-            versionName = decodedApkInfo.versionInfo.versionName,
-            minSdk = decodedApkInfo.sdkInfo.minSdkVersion.toInt(),
-            targetSdk = decodedApkInfo.sdkInfo.targetSdkVersion.toInt(),
-            features = features,
-            permissions = permissions,
-            abis = abis,
-            label = applicationLabel,
-        )
-
-        // TODO: check for bad things :O
-
-        return ManifestCheckResult(
-            manifest = manifest,
-        )
     }
 
     private fun scanForLibraries(outputDir: File): List<LibraryInformation> {

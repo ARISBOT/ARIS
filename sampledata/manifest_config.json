@@ -1,0 +1,78 @@
+{
+  "dangerousFlags": {
+    "entries": [
+      {
+        "name": "Test Only",
+        "description": "TODO",
+        "flags": [
+          "testOnly"
+        ]
+      }
+    ]
+  },
+  "dangerousFilters": {
+    "entries": [
+      {
+        "name": "Accessibility Service",
+        "description": "TODO",
+        "filters": [
+          "android.accessibilityservice.AccessibilityService"
+        ]
+      }
+    ]
+  },
+  "dangerousPermissions": {
+    "entries": [
+      {
+        "name": "Access Location",
+        "description": "TODO",
+        "permissions": [
+          "ACCESS_COARSE_LOCATION",
+          "ACCESS_FINE_LOCATION"
+        ]
+      },
+      {
+        "name": "Access Location - Background",
+        "description": "TODO",
+        "permissions": [
+          "ACCESS_BACKGROUND_LOCATION"
+        ]
+      },
+      {
+        "name": "TODO: please clean me up",
+        "description": "TODO",
+        "permissions": [
+          "ACCESS_MEDIA_LOCATION",
+          "BLUETOOTH_SCAN",
+          "CAMERA",
+          "MANAGE_EXTERNAL_STORAGE",
+          "NEARBY_WIFI_DEVICES",
+          "PROCESS_OUTGOING_CALLS",
+          "QUERY_ALL_PACKAGES",
+          "READ_CALENDAR",
+          "READ_CALL_LOG",
+          "READ_CONTACTS",
+          "READ_EXTERNAL_STORAGE",
+          "READ_MEDIA_AUDIO",
+          "READ_MEDIA_IMAGES",
+          "READ_MEDIA_VIDEO",
+          "READ_PHONE_NUMBERS",
+          "READ_PHONE_STATE",
+          "READ_SMS",
+          "RECEIVE_MMS",
+          "RECEIVE_SENSITIVE_NOTIFICATIONS",
+          "RECEIVE_SMS",
+          "RECEIVE_WAP_PUSH",
+          "RECORD_AUDIO",
+          "REQUEST_DELETE_PACKAGES",
+          "REQUEST_INSTALL_PACKAGES",
+          "SEND_SMS",
+          "SYSTEM_ALERT_WINDOW",
+          "UPDATE_PACKAGES_WITHOUT_USER_ACTION",
+          "WRITE_CALL_LOG",
+          "WRITE_CONTACTS"
+        ]
+      }
+    ]
+  }
+}

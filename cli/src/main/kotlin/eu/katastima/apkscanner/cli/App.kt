@@ -11,10 +11,7 @@ import com.github.ajalt.clikt.core.subcommands
 import eu.katastima.apkscanner.cli.subcommands.ScanAPKCommand
 import eu.katastima.apkscanner.cli.subcommands.config.ConfigCommand
 import eu.katastima.apkscanner.cli.subcommands.config.ShowConfigCommand
-import eu.katastima.apkscanner.cli.subcommands.database.CreateDatabaseCommand
-import eu.katastima.apkscanner.cli.subcommands.database.DatabaseCommand
-import eu.katastima.apkscanner.cli.subcommands.database.ExportLibraryDefinitionsCommand
-import eu.katastima.apkscanner.cli.subcommands.database.ExportSigningCertificateDataCommand
+import eu.katastima.apkscanner.cli.subcommands.database.*
 import java.util.logging.Level
 import java.util.logging.Logger
 
@@ -33,6 +30,7 @@ suspend fun main(args: Array<String>) {
             DatabaseCommand().subcommands(
                 CreateDatabaseCommand(),
                 ExportLibraryDefinitionsCommand(),
+                ExportManifestConfigCommand(),
                 ExportSigningCertificateDataCommand(),
             ),
             ScanAPKCommand(),

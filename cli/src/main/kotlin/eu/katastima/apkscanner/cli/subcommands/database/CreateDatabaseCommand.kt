@@ -14,6 +14,7 @@ import eu.katastima.apkscanner.config.ApkScannerConfig
 import eu.katastima.apkscanner.database.CertificateDataUtil
 import eu.katastima.apkscanner.database.DatabaseUtil
 import eu.katastima.apkscanner.database.LibraryDataUtil
+import eu.katastima.apkscanner.database.ManifestDataUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
@@ -63,5 +64,8 @@ class CreateDatabaseCommand : SuspendingCliktCommand("setup") {
 
         // Import certificates data
         CertificateDataUtil.importCertificateData(database, apkScannerConfig)
+
+        // Import manifest data
+        ManifestDataUtil.importManifestConfigData(database, apkScannerConfig)
     }
 }
