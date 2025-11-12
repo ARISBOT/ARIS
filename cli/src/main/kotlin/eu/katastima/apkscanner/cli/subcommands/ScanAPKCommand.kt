@@ -14,6 +14,7 @@ import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.help
 import com.github.ajalt.clikt.parameters.arguments.multiple
 import com.github.ajalt.clikt.parameters.options.default
+import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.help
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.choice
@@ -47,7 +48,11 @@ class ScanAPKCommand : SuspendingCliktCommand() {
         .default(0, "no")
         .help("Store the scan result as json file")
 
-    private val resultJsonOutputDirectory: File by option("--output", "-o")
+    private val jsonEncodeDefaults: Boolean by option("--json-include-defaults")
+        .flag(default = false, defaultForHelp = "disabled")
+        .help("Encode default values as well when storing the scan result as json file")
+
+    private val jsonResultOutputDirectory: File by option("--output", "-o")
         .file(canBeFile = false)
         .default(File("output").absoluteFile)
         .help("A directory where scan output should be stored. The directory will be created, if it does not already exist.")
@@ -262,14 +267,11 @@ class ScanAPKCommand : SuspendingCliktCommand() {
     private fun storeScanResultAsJsonIfWanted(apkFile: File, scanResult: ApkScanResult) {
         val scanResultJsonString = when (storeAsJson) {
             1 -> {
-                Json { encodeDefaults = true }.encodeToString(scanResult)
+                Json { encodeDefaults = jsonEncodeDefaults }.encodeToString(scanResult)
             }
 
             2 -> {
-                Json {
-                    encodeDefaults = true
-                    prettyPrint = true
-                }.encodeToString(scanResult)
+                Json { encodeDefaults = jsonEncodeDefaults; prettyPrint = true }.encodeToString(scanResult)
             }
 
             else -> {
@@ -278,7 +280,7 @@ class ScanAPKCommand : SuspendingCliktCommand() {
             }
         }
         if (scanResultJsonString.isNotEmpty()) {
-            val resultOutputDirectory = File(resultJsonOutputDirectory, scanStartedAt.format(localDateTimeFormatter))
+            val resultOutputDirectory = File(jsonResultOutputDirectory, scanStartedAt.format(localDateTimeFormatter))
             resultOutputDirectory.mkdirs()
 
             val resultOutputFile = File(resultOutputDirectory, "apk-scanner_scan-apk_${apkFile.name}.json")
