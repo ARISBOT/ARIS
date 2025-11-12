@@ -15,10 +15,10 @@ object SigningCertificateDenylistTable : IntIdTable("signing_certificate_denylis
     val name = varchar("name", 255)
     val description = text("description").default("")
     val sourceUrl = varchar("sourceUrl", 255)
-    val dn = text("dn").default("")
-    val sha256 = varchar("sha256", 64).default("")
-    val sha1 = varchar("sha1", 40).default("")
-    val md5 = varchar("md5", 32).default("")
+    val dn = array<String>("dn")
+    val sha256 = array<String>("sha256")
+    val sha1 = array<String>("sha1")
+    val md5 = array<String>("md5")
 }
 
 class SigningCertificateDenylistEntity(id: EntityID<Int>) : IntEntity(id) {
@@ -48,9 +48,9 @@ class SigningCertificateDenylistEntity(id: EntityID<Int>) : IntEntity(id) {
         name = name,
         description = description,
         sourceUrl = sourceUrl,
-        dn = dn,
-        sha256 = sha256,
-        sha1 = sha1,
-        md5 = md5,
+        dn = dn.toSet(),
+        sha256 = sha256.toSet(),
+        sha1 = sha1.toSet(),
+        md5 = md5.toSet(),
     )
 }

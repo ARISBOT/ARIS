@@ -179,6 +179,7 @@ class ScanAPKCommand : SuspendingCliktCommand() {
             certificateResult.denylistMatches.forEach { denyListMatch ->
                 echo("    * Name: ${denyListMatch.name}")
                 echo("      * Description: ${denyListMatch.description.ifEmpty { "-" }}")
+                echo("      * Source URL:  ${denyListMatch.sourceUrl.ifEmpty { "-" }}")
                 echo("      * DN:          ${denyListMatch.dn.ifEmpty { "-" }}")
                 echo("      * SHA-256:     ${denyListMatch.sha256.ifEmpty { "-" }}")
                 echo("      * SHA-1:       ${denyListMatch.sha1.ifEmpty { "-" }}")

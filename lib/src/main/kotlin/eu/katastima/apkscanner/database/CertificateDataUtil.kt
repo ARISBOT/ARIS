@@ -43,10 +43,10 @@ object CertificateDataUtil {
                         name = it.name
                         description = it.description
                         sourceUrl = it.sourceUrl
-                        dn = it.dn
-                        sha256 = it.sha256
-                        sha1 = it.sha1
-                        md5 = it.md5
+                        dn = it.dn.toList()
+                        sha256 = it.sha256.toList()
+                        sha1 = it.sha1.toList()
+                        md5 = it.md5.toList()
                     }
                 }
             }
@@ -71,15 +71,7 @@ object CertificateDataUtil {
                 .sortedBy { SigningCertificateDenylistTable.name }
                 .map { SigningCertificateDenylistEntity.wrapRow(it) }
                 .forEach {
-                    val signingCertificate = SigningCertificate(
-                        name = it.name,
-                        description = it.description,
-                        sourceUrl = it.sourceUrl,
-                        dn = it.dn,
-                        sha256 = it.sha256,
-                        sha1 = it.sha1,
-                        md5 = it.md5,
-                    )
+                    val signingCertificate = it.toSigningCertificate()
                     denylist.add(signingCertificate)
                 }
         }
@@ -87,7 +79,7 @@ object CertificateDataUtil {
         denylist = denylist.sortedBy { it.name.lowercase() }.toMutableList()
 
         // If there is a template item, move it to the bottom of the list.
-        val templateItem = denylist.find { it.name == "none" && it.dn == "none" && it.sha256 == "123" }
+        val templateItem = denylist.find { it.name == "TEMPLATE_ENTRY" }
         if (templateItem != null) {
             denylist.remove(templateItem)
             denylist.addLast(templateItem)
