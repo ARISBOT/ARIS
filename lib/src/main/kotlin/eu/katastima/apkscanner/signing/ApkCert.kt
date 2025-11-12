@@ -50,7 +50,7 @@ class ApkCert(private val apkFile: File) {
                 sha1 = certificate.publicKey.encoded.toSha1(),
                 md5 = certificate.publicKey.encoded.toMd5(),
             )
-            val certificateResult = CertificateResult(
+            var certificateResult = CertificateResult(
                 denylistMatches = certificate.isDenyListed(database, apkScannerConfig),
                 sigAlgorithmName = certificate.sigAlgName,
                 sigAlgorithmOID = certificate.sigAlgOID,
@@ -62,6 +62,11 @@ class ApkCert(private val apkFile: File) {
                 sha1 = certificate.encoded.toSha1(),
                 md5 = certificate.encoded.toMd5(),
                 publicKeyResult = publicKeyResult,
+            )
+            // Check for control characters.
+            certificateResult = certificateResult.copy(
+                issuerContainsControlCharacters = certificateResult.issuerPrincipal.containsControlCharacters(),
+                subjectContainsControlCharacters = certificateResult.subjectPrincipal.containsControlCharacters(),
             )
             certificateResults.add(certificateResult)
         }
