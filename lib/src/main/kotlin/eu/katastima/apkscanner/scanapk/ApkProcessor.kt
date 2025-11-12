@@ -19,6 +19,7 @@ import eu.katastima.apkscanner.utils.Randomizer
 import okio.Closeable
 import org.jetbrains.exposed.v1.jdbc.Database
 import java.io.File
+import java.nio.file.Paths
 import kotlin.io.path.createTempDirectory
 
 class ApkProcessor(
@@ -32,7 +33,7 @@ class ApkProcessor(
 
         return try {
             ApkScanResult(
-                apkFilePath = apkFile.absolutePath,
+                apkFilePath = getApkFilePathForReport(apkFile),
                 apkFileSha256 = apkFile.toSha256(),
                 signingCheckResult = ApkCert(apkFile).verify(database, apkScannerConfig),
                 manifestCheckResult = ManifestProcessor(apkScannerConfig, database).processManifest(decodedApkInfo, decodedApkDirectory),
@@ -41,6 +42,21 @@ class ApkProcessor(
         } finally {
             // Delete the directory (which contains the decoded apk output) recursively to clean up.
             decodedApkDirectory.deleteRecursively()
+        }
+    }
+
+    private fun getApkFilePathForReport(apkFile: File): String {
+        return when (apkScannerConfig.scanConfig.apkReportedPathType) {
+            "absolute" -> apkFile.absolutePath
+
+            "filename" -> apkFile.name
+
+            "relative" -> {
+                val currentWorkingDirectory = Paths.get("").toAbsolutePath().toFile()
+                apkFile.relativeTo(currentWorkingDirectory).path
+            }
+
+            else -> apkFile.name
         }
     }
 

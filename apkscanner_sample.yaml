@@ -15,3 +15,10 @@ database:
   type: "H2"
   mode: "DEFAULT"
   path: "apkscanner"
+scan:
+  # Assuming the scanner is executed at /opt:
+  # - absolute: use absolute path of the file, e.g.: /opt/repo/file.apk
+  # - filename: use file name only, e.g.: file.apk
+  # - relative: use relative path from current working directory to the file, e.g.: repo/file.apk
+  # - default: use current default (filename)
+  apk_reported_path_type: "default"

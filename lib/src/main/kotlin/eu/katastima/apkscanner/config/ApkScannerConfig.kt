@@ -15,6 +15,7 @@ import java.io.File
 data class ApkScannerConfig(
     @SerialName("data") val dataConfig: DataConfig = DataConfig(),
     @SerialName("database") val databaseConfig: DatabaseConfig = DatabaseConfig(),
+    @SerialName("scan") val scanConfig: ScanConfig = ScanConfig(),
 ) {
 
     override fun toString(): String {
