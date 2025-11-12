@@ -26,6 +26,7 @@ class ManifestProcessor(
         val applicationLabel = AndroidManifestUtil.pullApplicationLabel(manifestFile) ?: ""
         val features = AndroidManifestUtil.pullFeatures(manifestFile).sortedBy { it.name }
         val flags = AndroidManifestUtil.pullApplicationFlags(manifestFile).sortedBy { it.name }
+        val intentFilters = AndroidManifestUtil.pullIntentFilters(manifestFile).sortedBy { it.actions.firstOrNull()?.name ?: "" }
         val permissions = AndroidManifestUtil.pullPermissions(manifestFile).sortedBy { it.name }
 
         val libDir = File(decodedApkDirectory, "lib")
@@ -43,6 +44,7 @@ class ManifestProcessor(
             targetSdk = decodedApkInfo.sdkInfo.targetSdkVersion.toInt(),
             features = features,
             flags = flags,
+            intentFilters = intentFilters,
             permissions = permissions,
             abis = abis,
             label = applicationLabel,

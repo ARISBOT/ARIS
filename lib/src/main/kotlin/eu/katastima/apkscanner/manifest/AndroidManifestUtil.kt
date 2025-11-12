@@ -7,9 +7,7 @@ package eu.katastima.apkscanner.manifest
 
 import brut.androlib.res.xml.ResXmlUtils
 import brut.xml.XmlUtils
-import eu.katastima.apkscanner.models.manifest.Feature
-import eu.katastima.apkscanner.models.manifest.Flag
-import eu.katastima.apkscanner.models.manifest.Permission
+import eu.katastima.apkscanner.models.manifest.*
 import org.w3c.dom.Node
 import org.w3c.dom.NodeList
 import org.xml.sax.SAXException
@@ -102,6 +100,7 @@ object AndroidManifestUtil {
         if (applicationAttributes.length <= 0) return emptyList()
 
         val applicationFlags = mutableSetOf<Flag>()
+        // TODO: clean this up.
         for (i in 0..applicationAttributes.length) {
             val attributeNode = applicationAttributes.item(i) ?: continue
             if (attributeNode.nodeName.isEmpty()) continue
@@ -111,6 +110,99 @@ object AndroidManifestUtil {
         }
         return applicationFlags.sortedBy { it.name }
     }
+
+    fun pullIntentFilters(file: File): List<IntentFilter> {
+        val applicationNodes = pullNodes(file, "/manifest/application")
+        val applicationNode = applicationNodes.firstOrNull() ?: return emptyList()
+        val applicationChildNodes = applicationNode.childNodes ?: return emptyList()
+        if (applicationChildNodes.length <= 0) return emptyList()
+
+        val nodeNamesToSearch = arrayOf(
+            "activity",
+            "activity-alias",
+            "service",
+            "receiver",
+            "provider",
+        )
+
+        val intentFilters = mutableListOf<IntentFilter>()
+        // TODO: clean this up.
+        for (i in 0..applicationChildNodes.length) {
+            val applicationChildNode = applicationChildNodes.item(i) ?: continue
+            if (!nodeNamesToSearch.contains(applicationChildNode.nodeName)) continue
+            if (applicationChildNode.childNodes == null) continue
+            if (applicationChildNode.childNodes.length <= 0) continue
+
+            for (i in 0..applicationChildNode.childNodes.length) {
+                val intentFilterNode = applicationChildNode.childNodes.item(i) ?: continue
+                if (intentFilterNode.nodeName != "intent-filter") continue
+                if (intentFilterNode.childNodes == null) continue
+                if (intentFilterNode.childNodes.length <= 0) continue
+
+                val actionList = mutableListOf<Action>()
+                val categoryList = mutableListOf<Category>()
+                val dataList = mutableListOf<Data>()
+
+                for (i in 0..intentFilterNode.childNodes.length) {
+                    val intentFilterChildNode = intentFilterNode.childNodes.item(i) ?: continue
+                    when (intentFilterChildNode.nodeName) {
+                        "action" -> {
+                            val action = pullAction(intentFilterChildNode) ?: continue
+                            actionList.add(action)
+                        }
+
+                        "category" -> {
+                            val category = pullCategory(intentFilterChildNode) ?: continue
+                            categoryList.add(category)
+                        }
+
+                        "data" -> {
+                            val data = pullData(intentFilterChildNode) ?: continue
+                            dataList.add(data)
+                        }
+
+                        else -> continue
+                    }
+                }
+
+                val intentFilter = IntentFilter(
+                    actions = actionList,
+                    categories = categoryList,
+                    data = dataList,
+                )
+                intentFilters.add(intentFilter)
+            }
+        }
+        return intentFilters
+    }
+
+    private fun pullAction(node: Node): Action? {
+        val actionAttributes = node.attributes ?: return null
+        val nameItem = actionAttributes.getNamedItem("android:name") ?: return null
+        return Action(nameItem.nodeValue)
+    }
+
+    private fun pullCategory(node: Node): Category? {
+        val categoryAttributes = node.attributes ?: return null
+        val nameItem = categoryAttributes.getNamedItem("android:name") ?: return null
+        return Category(nameItem.nodeValue)
+    }
+
+    private fun pullData(node: Node): Data? {
+        val dataAttributes = node.attributes ?: return null
+        return Data(
+            scheme = dataAttributes.getNamedItem("android:scheme")?.nodeValue ?: "",
+            host = dataAttributes.getNamedItem("android:host")?.nodeValue ?: "",
+            port = dataAttributes.getNamedItem("android:port")?.nodeValue ?: "",
+            path = dataAttributes.getNamedItem("android:path")?.nodeValue ?: "",
+            pathPattern = dataAttributes.getNamedItem("android:pathPattern")?.nodeValue ?: "",
+            pathPrefix = dataAttributes.getNamedItem("android:pathPrefix")?.nodeValue ?: "",
+            pathSuffix = dataAttributes.getNamedItem("android:pathSuffix")?.nodeValue ?: "",
+            pathAdvancedPattern = dataAttributes.getNamedItem("android:pathAdvancedPattern")?.nodeValue ?: "",
+            mimeType = dataAttributes.getNamedItem("android:mimeType")?.nodeValue ?: "",
+        )
+    }
+
 
     fun pullPermissions(file: File): List<Permission> {
         val usesPermissionNodes = pullNodes(file, "/manifest/uses-permission")

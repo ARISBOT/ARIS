@@ -28,9 +28,23 @@
     "entries": [
       {
         "name": "Accessibility Service",
-        "description": "TODO",
+        "description": "Grants access to a lot of features of the system which are usually unavailable to normal apps to be able to aid users in using their device. However, access to these features can also be abused.",
         "filters": [
           "android.accessibilityservice.AccessibilityService"
+        ]
+      },
+      {
+        "name": "Input Method Service",
+        "description": "Grant the ability to act as IME (Input Method) to enter data. Only apps actually providing input should implement this, otherwise it might be used to capture user input.",
+        "filters": [
+          "android.view.InputMethod"
+        ]
+      },
+      {
+        "name": "VPN Service",
+        "description": "Grants the ability to intercept network traffic. Only VPN and certain privacy-protecting applications, such as non-root ad-blockers/firewalls, should implement this.",
+        "filters": [
+          "android.net.VpnService"
         ]
       }
     ]
