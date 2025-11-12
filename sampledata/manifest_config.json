@@ -2,10 +2,24 @@
   "dangerousFlags": {
     "entries": [
       {
-        "name": "Test Only",
-        "description": "TODO",
+        "name": "Debuggable",
+        "description": "Whether the application can be debugged, even when running on a device in user mode. This is a potential security risk but it also seems to be the only way for Android 12+ to get `adb backup` to include app data.",
         "flags": [
-          "testOnly"
+          "android:debuggable"
+        ]
+      },
+      {
+        "name": "Test Only",
+        "description": "Indicates whether this application is only for testing purposes. For example, it might expose functionality or data outside of itself that can cause a security hole, but be useful for testing. This kind of APK only installs through `adb`.",
+        "flags": [
+          "android:testOnly"
+        ]
+      },
+      {
+        "name": "Uses Cleartext Traffic",
+        "description": "Indicates whether the app intends to use cleartext network traffic, such as cleartext HTTP. The key reason for avoiding cleartext traffic is the lack of confidentiality, authenticity, and protections against tampering. A network attacker can eavesdrop on transmitted data and also modify it without being detected.",
+        "flags": [
+          "android:usesCleartextTraffic"
         ]
       }
     ]

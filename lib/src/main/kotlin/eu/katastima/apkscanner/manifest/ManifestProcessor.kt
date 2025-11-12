@@ -25,6 +25,7 @@ class ManifestProcessor(
         val packageName = AndroidManifestUtil.pullPackageName(manifestFile) ?: ""
         val applicationLabel = AndroidManifestUtil.pullApplicationLabel(manifestFile) ?: ""
         val features = AndroidManifestUtil.pullFeatures(manifestFile).sortedBy { it.name }
+        val flags = AndroidManifestUtil.pullApplicationFlags(manifestFile).sortedBy { it.name }
         val permissions = AndroidManifestUtil.pullPermissions(manifestFile).sortedBy { it.name }
 
         val libDir = File(decodedApkDirectory, "lib")
@@ -41,6 +42,7 @@ class ManifestProcessor(
             minSdk = decodedApkInfo.sdkInfo.minSdkVersion.toInt(),
             targetSdk = decodedApkInfo.sdkInfo.targetSdkVersion.toInt(),
             features = features,
+            flags = flags,
             permissions = permissions,
             abis = abis,
             label = applicationLabel,
@@ -58,7 +60,18 @@ class ManifestProcessor(
     private fun checkForDangerousFlags(manifest: Manifest, manifestConfig: ManifestConfig): Set<String> {
         val dangerousFlags: MutableSet<String> = mutableSetOf()
 
-        // TODO: check for dangerous flags
+        val manifestFlags = manifest.flags.map { it.name }
+
+        // Check each flag entry, which contains [name, description, flags].
+        manifestConfig.dangerousFlags.entries.forEach { dangerousFlagEntry ->
+            // Check each flag within the entry
+            dangerousFlagEntry.flags.forEach { dangerousFlag ->
+                // If the manifest contains the dangerous flag, add it to the set.
+                if (manifestFlags.contains(dangerousFlag)) {
+                    dangerousFlags.add(dangerousFlag)
+                }
+            }
+        }
 
         return dangerousFlags
     }

@@ -15,6 +15,7 @@ data class Manifest(
     val minSdk: Int,
     val targetSdk: Int,
     val features: List<Feature> = emptyList(),
+    val flags: List<Flag> = emptyList(),
     val permissions: List<Permission> = emptyList(),
     val abis: List<String> = emptyList(),
     val label: String = "",

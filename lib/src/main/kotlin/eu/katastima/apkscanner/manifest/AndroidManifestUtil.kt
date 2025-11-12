@@ -8,6 +8,7 @@ package eu.katastima.apkscanner.manifest
 import brut.androlib.res.xml.ResXmlUtils
 import brut.xml.XmlUtils
 import eu.katastima.apkscanner.models.manifest.Feature
+import eu.katastima.apkscanner.models.manifest.Flag
 import eu.katastima.apkscanner.models.manifest.Permission
 import org.w3c.dom.Node
 import org.w3c.dom.NodeList
@@ -92,6 +93,23 @@ object AndroidManifestUtil {
                 Feature("")
             }
         }.filter { it.name != "" }
+    }
+
+    fun pullApplicationFlags(file: File): List<Flag> {
+        val applicationNodes = pullNodes(file, "/manifest/application")
+        val applicationNode = applicationNodes.firstOrNull() ?: return emptyList()
+        val applicationAttributes = applicationNode.attributes ?: return emptyList()
+        if (applicationAttributes.length <= 0) return emptyList()
+
+        val applicationFlags = mutableSetOf<Flag>()
+        for (i in 0..applicationAttributes.length) {
+            val attributeNode = applicationAttributes.item(i) ?: continue
+            if (attributeNode.nodeName.isEmpty()) continue
+
+            val flag = Flag(attributeNode.nodeName, attributeNode.nodeValue)
+            applicationFlags.add(flag)
+        }
+        return applicationFlags.sortedBy { it.name }
     }
 
     fun pullPermissions(file: File): List<Permission> {
