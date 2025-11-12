@@ -87,7 +87,18 @@ class ManifestProcessor(
     private fun checkForDangerousPermissions(manifest: Manifest, manifestConfig: ManifestConfig): Set<String> {
         val dangerousPermissions: MutableSet<String> = mutableSetOf()
 
-        // TODO: check for dangerous permissions
+        val manifestPermissions = manifest.permissions.map { it.name }
+
+        // Check each permission entry, which contains [name, description, permissions].
+        manifestConfig.dangerousPermissions.entries.forEach { dangerousPermissionEntry ->
+            // Check each permission within the entry
+            dangerousPermissionEntry.permissions.forEach { dangerousPermission ->
+                // If the manifest contains the dangerous flag, add it to the set.
+                if (manifestPermissions.contains(dangerousPermission)) {
+                    dangerousPermissions.add(dangerousPermission)
+                }
+            }
+        }
 
         return dangerousPermissions
     }

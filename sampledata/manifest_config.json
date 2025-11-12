@@ -41,50 +41,50 @@
         "name": "Access Location",
         "description": "TODO",
         "permissions": [
-          "ACCESS_COARSE_LOCATION",
-          "ACCESS_FINE_LOCATION"
+          "android.permission.ACCESS_COARSE_LOCATION",
+          "android.permission.ACCESS_FINE_LOCATION"
         ]
       },
       {
         "name": "Access Location - Background",
         "description": "TODO",
         "permissions": [
-          "ACCESS_BACKGROUND_LOCATION"
+          "android.permission.ACCESS_BACKGROUND_LOCATION"
         ]
       },
       {
         "name": "TODO: please clean me up",
         "description": "TODO",
         "permissions": [
-          "ACCESS_MEDIA_LOCATION",
-          "BLUETOOTH_SCAN",
-          "CAMERA",
-          "MANAGE_EXTERNAL_STORAGE",
-          "NEARBY_WIFI_DEVICES",
-          "PROCESS_OUTGOING_CALLS",
-          "QUERY_ALL_PACKAGES",
-          "READ_CALENDAR",
-          "READ_CALL_LOG",
-          "READ_CONTACTS",
-          "READ_EXTERNAL_STORAGE",
-          "READ_MEDIA_AUDIO",
-          "READ_MEDIA_IMAGES",
-          "READ_MEDIA_VIDEO",
-          "READ_PHONE_NUMBERS",
-          "READ_PHONE_STATE",
-          "READ_SMS",
-          "RECEIVE_MMS",
-          "RECEIVE_SENSITIVE_NOTIFICATIONS",
-          "RECEIVE_SMS",
-          "RECEIVE_WAP_PUSH",
-          "RECORD_AUDIO",
-          "REQUEST_DELETE_PACKAGES",
-          "REQUEST_INSTALL_PACKAGES",
-          "SEND_SMS",
-          "SYSTEM_ALERT_WINDOW",
-          "UPDATE_PACKAGES_WITHOUT_USER_ACTION",
-          "WRITE_CALL_LOG",
-          "WRITE_CONTACTS"
+          "android.permission.ACCESS_MEDIA_LOCATION",
+          "android.permission.BLUETOOTH_SCAN",
+          "android.permission.CAMERA",
+          "android.permission.MANAGE_EXTERNAL_STORAGE",
+          "android.permission.NEARBY_WIFI_DEVICES",
+          "android.permission.PROCESS_OUTGOING_CALLS",
+          "android.permission.QUERY_ALL_PACKAGES",
+          "android.permission.READ_CALENDAR",
+          "android.permission.READ_CALL_LOG",
+          "android.permission.READ_CONTACTS",
+          "android.permission.READ_EXTERNAL_STORAGE",
+          "android.permission.READ_MEDIA_AUDIO",
+          "android.permission.READ_MEDIA_IMAGES",
+          "android.permission.READ_MEDIA_VIDEO",
+          "android.permission.READ_PHONE_NUMBERS",
+          "android.permission.READ_PHONE_STATE",
+          "android.permission.READ_SMS",
+          "android.permission.RECEIVE_MMS",
+          "android.permission.RECEIVE_SENSITIVE_NOTIFICATIONS",
+          "android.permission.RECEIVE_SMS",
+          "android.permission.RECEIVE_WAP_PUSH",
+          "android.permission.RECORD_AUDIO",
+          "android.permission.REQUEST_DELETE_PACKAGES",
+          "android.permission.REQUEST_INSTALL_PACKAGES",
+          "android.permission.SEND_SMS",
+          "android.permission.SYSTEM_ALERT_WINDOW",
+          "android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION",
+          "android.permission.WRITE_CALL_LOG",
+          "android.permission.WRITE_CONTACTS"
         ]
       }
     ]
