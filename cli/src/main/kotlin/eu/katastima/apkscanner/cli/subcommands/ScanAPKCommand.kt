@@ -7,7 +7,6 @@ package eu.katastima.apkscanner.cli.subcommands
 
 import com.github.ajalt.clikt.command.SuspendingCliktCommand
 import com.github.ajalt.clikt.core.Context
-import com.github.ajalt.clikt.core.ProgramResult
 import com.github.ajalt.clikt.core.context
 import com.github.ajalt.clikt.output.MordantHelpFormatter
 import com.github.ajalt.clikt.parameters.arguments.argument
@@ -69,8 +68,6 @@ class ScanAPKCommand : SuspendingCliktCommand() {
         secondFraction(fixedLength = 3)
     }
 
-    private var hasOffendingLibrary: Boolean = false
-
     init {
         context {
             helpFormatter = { MordantHelpFormatter(it, showDefaultValues = true, requiredOptionMarker = "*") }
@@ -85,10 +82,6 @@ class ScanAPKCommand : SuspendingCliktCommand() {
             it.scanMulti(apkFiles, this::printScanResult)
         }
         echo("Have a nice day!")
-
-        if (hasOffendingLibrary) {
-            throw ProgramResult(1)
-        }
     }
 
     private fun printScanResult(apkFile: File, scanResult: ApkScanResult) {
@@ -176,8 +169,6 @@ class ScanAPKCommand : SuspendingCliktCommand() {
         if (offendingLibraries.isEmpty()) {
             echo("* No offending libraries detected")
         } else {
-            hasOffendingLibrary = true
-
             echo("Offending libraries:")
             echo("--------------------")
             offendingLibraries.forEach { offendingLibrary ->
