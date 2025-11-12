@@ -24,6 +24,7 @@ import eu.katastima.apkscanner.extensions.formatValidInvalid
 import eu.katastima.apkscanner.extensions.formatYesNo
 import eu.katastima.apkscanner.extensions.nowAsLocalDate
 import eu.katastima.apkscanner.models.LibraryInformation
+import eu.katastima.apkscanner.models.manifest.ManifestCheckResult
 import eu.katastima.apkscanner.models.signing.SigningBlockResult
 import eu.katastima.apkscanner.scanapk.ApkScanResult
 import eu.katastima.apkscanner.scanapk.ScanAPK
@@ -102,15 +103,49 @@ class ScanAPKCommand : SuspendingCliktCommand() {
         echo("Scanned APK:")
         echo("------------")
 
-        echo("* File: ${scanResult.apkFilePath}")
-        echo("* SHA-256: ${scanResult.apkFileSha256}")
+        echo("* App name: ${scanResult.manifestCheckResult.manifest.label}")
+        echo("* App id:   ${scanResult.manifestCheckResult.manifest.appId}")
+        echo("* File:     ${scanResult.apkFilePath}")
+        echo("* SHA-256:  ${scanResult.apkFileSha256}")
         echo()
 
+        printManifestResult(scanResult.manifestCheckResult)
         printLibraryResult(scanResult)
         printSignatureVerificationResult(scanResult)
         printAndroidSigningBlockResult(scanResult.signingCheckResult.signingBlockResult)
 
         echo("------------------------------------------------------------------------------")
+        echo()
+    }
+
+    private fun printManifestResult(manifestCheckResult: ManifestCheckResult) {
+        echo("Manifest verification:")
+        echo("----------------------")
+
+        val manifestResultStringBuilder = StringBuilder()
+
+        if (manifestCheckResult.dangerousFilters.isNotEmpty()) {
+            manifestResultStringBuilder.append("* Dangerous filters\n")
+            manifestCheckResult.dangerousFilters.forEach { manifestResultStringBuilder.append("  * $it\n") }
+        }
+
+        if (manifestCheckResult.dangerousFlags.isNotEmpty()) {
+            manifestResultStringBuilder.append("* Dangerous flags\n")
+            manifestCheckResult.dangerousFlags.forEach { manifestResultStringBuilder.append("  * $it\n") }
+        }
+
+        if (manifestCheckResult.dangerousPermissions.isNotEmpty()) {
+            manifestResultStringBuilder.append("* Dangerous permissions\n")
+            manifestCheckResult.dangerousPermissions.forEach { manifestResultStringBuilder.append("  * $it\n") }
+        }
+
+        val manifestResultString = if (manifestResultStringBuilder.isEmpty()) {
+            "* No violations detected"
+        } else {
+            manifestResultStringBuilder.toString()
+        }.trim()
+        echo(manifestResultString)
+
         echo()
     }
 
@@ -225,10 +260,8 @@ class ScanAPKCommand : SuspendingCliktCommand() {
             "Google" to AndroidSigningBlock.getGoogleBlocks(),
             "Payload" to AndroidSigningBlock.getPayloadBlocks(),
         ).forEach {
-            formatSigningBlockGroup(signingBlockResult.blocks, it.key, it.value)
-                .trim()
-                .split("\n")
-                .forEach { message -> echo(message) }
+            val signingBlockMessage = formatSigningBlockGroup(signingBlockResult.blocks, it.key, it.value).trim()
+            echo(signingBlockMessage)
         }
 
         val unknownBlocks = signingBlockResult.unknownBlocksFormatted
