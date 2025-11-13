@@ -12,6 +12,10 @@ plugins {
     alias(libs.plugins.kotlinPluginSerialization)
 
     alias(libs.plugins.shadowGradlePlugin)
+
+    `maven-publish`
+    // TODO: set up signing
+    //`signing`
 }
 
 dependencies {
@@ -26,4 +30,67 @@ dependencies {
     api(libs.bundles.exposed)
 
     testImplementation(kotlin("test"))
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            groupId = "eu.katastima"
+            artifactId = "apkscanner"
+            version = "0.0.1"
+
+            from(components["java"])
+
+            versionMapping {
+                usage("java-api") {
+                    fromResolutionOf("runtimeClasspath")
+                }
+                usage("java-runtime") {
+                    fromResolutionResult()
+                }
+            }
+
+            pom {
+                name = "APK Scanner"
+                description = "do not use yet - work in progress"
+                url = "https://katastima.org/apkscanner/overview"
+                licenses {
+                    license {
+                        name = "European Union Public Licence, Version 1.2"
+                        url = "https://eupl.eu/"
+                    }
+                }
+                developers {
+                    developer {
+                        id = "amartinz"
+                        name = "Alexander Martinz"
+                        email = "alex@amartinz.at"
+                    }
+                }
+                scm {
+                    connection = "scm:git:https://codeberg.org/Katastima/apkscanner.git"
+                    developerConnection = "scm:git:ssh://git@codeberg.org/Katastima/apkscanner.git"
+                    url = "https://codeberg.org/Katastima/apkscanner"
+                }
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            name = "Codeberg"
+            url = uri("https://codeberg.org/api/packages/Katastima/maven")
+
+            credentials(HttpHeaderCredentials::class) {
+                name = "Authorization"
+                // Get access token from e.g.: ~/.gradle/gradle.properties.
+                // Create a new token at https://codeberg.org/user/settings/applications, granting "package" -> "Read and write".
+                value = "token ${findProperty("codeberg_access_token") as? String}"
+            }
+
+            authentication {
+                register("header", HttpHeaderAuthentication::class)
+            }
+        }
+    }
 }
