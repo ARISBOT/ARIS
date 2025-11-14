@@ -12,7 +12,12 @@ import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.katastima.apkscanner.config.ApkScannerConfig
-import org.katastima.apkscanner.database.dao.*
+import org.katastima.apkscanner.database.dao.ManifestFilterConfigEntity
+import org.katastima.apkscanner.database.dao.ManifestFilterConfigTable
+import org.katastima.apkscanner.database.dao.ManifestFlagConfigEntity
+import org.katastima.apkscanner.database.dao.ManifestFlagConfigTable
+import org.katastima.apkscanner.database.dao.ManifestPermissionConfigEntity
+import org.katastima.apkscanner.database.dao.ManifestPermissionConfigTable
 import org.katastima.apkscanner.models.manifest.config.ManifestConfig
 import org.katastima.apkscanner.models.manifest.config.ManifestFilterConfig
 import org.katastima.apkscanner.models.manifest.config.ManifestFlagConfig

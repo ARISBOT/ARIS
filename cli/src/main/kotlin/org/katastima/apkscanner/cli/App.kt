@@ -11,7 +11,11 @@ import com.github.ajalt.clikt.core.subcommands
 import org.katastima.apkscanner.cli.subcommands.ScanAPKCommand
 import org.katastima.apkscanner.cli.subcommands.config.ConfigCommand
 import org.katastima.apkscanner.cli.subcommands.config.ShowConfigCommand
-import org.katastima.apkscanner.cli.subcommands.database.*
+import org.katastima.apkscanner.cli.subcommands.database.CreateDatabaseCommand
+import org.katastima.apkscanner.cli.subcommands.database.DatabaseCommand
+import org.katastima.apkscanner.cli.subcommands.database.ExportLibraryDefinitionsCommand
+import org.katastima.apkscanner.cli.subcommands.database.ExportManifestConfigCommand
+import org.katastima.apkscanner.cli.subcommands.database.ExportSigningCertificateDataCommand
 import java.util.logging.Level
 import java.util.logging.Logger
 

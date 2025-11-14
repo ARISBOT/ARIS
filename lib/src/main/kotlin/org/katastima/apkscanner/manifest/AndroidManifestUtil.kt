@@ -7,7 +7,13 @@ package org.katastima.apkscanner.manifest
 
 import brut.androlib.res.xml.ResXmlUtils
 import brut.xml.XmlUtils
-import org.katastima.apkscanner.models.manifest.*
+import org.katastima.apkscanner.models.manifest.Action
+import org.katastima.apkscanner.models.manifest.Category
+import org.katastima.apkscanner.models.manifest.Data
+import org.katastima.apkscanner.models.manifest.Feature
+import org.katastima.apkscanner.models.manifest.Flag
+import org.katastima.apkscanner.models.manifest.IntentFilter
+import org.katastima.apkscanner.models.manifest.Permission
 import org.w3c.dom.Node
 import org.w3c.dom.NodeList
 import org.xml.sax.SAXException
