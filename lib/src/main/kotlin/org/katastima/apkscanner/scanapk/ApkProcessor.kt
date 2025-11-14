@@ -17,10 +17,14 @@ import org.katastima.apkscanner.manifest.ManifestProcessor
 import org.katastima.apkscanner.models.LibraryInformation
 import org.katastima.apkscanner.signing.ApkCert
 import org.katastima.apkscanner.utils.Randomizer
+import org.slf4j.LoggerFactory
 import java.io.Closeable
 import java.io.File
 import java.nio.file.Paths
 import kotlin.io.path.createTempDirectory
+import kotlin.math.max
+import kotlin.system.measureTimeMillis
+import kotlin.time.measureTimedValue
 
 class ApkProcessor(
     private val apkScannerConfig: ApkScannerConfig,
@@ -29,15 +33,46 @@ class ApkProcessor(
 ) : Closeable {
 
     fun processApk(apkFile: File): ApkScanResult {
-        val (decodedApkDirectory, decodedApkInfo) = decodeApk(apkFile)
+        val (decodeApkPair, decodeTimeTaken) = measureTimedValue {
+            decodeApk(apkFile)
+        }
+        LOGGER.debug("decodeApk(apkFile): {} ms", decodeTimeTaken.inWholeMilliseconds)
+
+        val (decodedApkDirectory, decodedApkInfo) = decodeApkPair
+        val (apkFilePath, apkFilePathDuration) = measureTimedValue {
+            getApkFilePathForReport(apkFile)
+        }
+        LOGGER.debug("getApkFilePathForReport(apkFile): {} ms", apkFilePathDuration.inWholeMilliseconds)
+
+        val (apkFileSha256, apkFileSha256Duration) = measureTimedValue {
+            apkFile.toSha256()
+        }
+        LOGGER.debug("apkFileSha256: {} ms", apkFileSha256Duration.inWholeMilliseconds)
+
+        val (signingCheckResult, signingCheckDuration) = measureTimedValue {
+            val apkCert = ApkCert(apkFile)
+            apkCert.verify(database, apkScannerConfig.databaseConfig.debug)
+        }
+        LOGGER.debug("signingCheckResult: {} ms", signingCheckDuration.inWholeMilliseconds)
+
+        val (manifestCheckResult, manifestCheckDuration) = measureTimedValue {
+            val manifestProcessor = ManifestProcessor(apkScannerConfig, database)
+            manifestProcessor.processManifest(decodedApkInfo, decodedApkDirectory)
+        }
+        LOGGER.debug("manifestCheckResult: {} ms", manifestCheckDuration.inWholeMilliseconds)
+
+        val (detectedLibraries, detectLibrariesDuration) = measureTimedValue {
+            scanForLibraries(decodedApkDirectory).sortedBy { it.name.lowercase() }.toTypedArray()
+        }
+        LOGGER.debug("scanForLibraries: {} ms", detectLibrariesDuration.inWholeMilliseconds)
 
         return try {
             ApkScanResult(
-                apkFilePath = getApkFilePathForReport(apkFile),
-                apkFileSha256 = apkFile.toSha256(),
-                signingCheckResult = ApkCert(apkFile).verify(database, apkScannerConfig.databaseConfig.debug),
-                manifestCheckResult = ManifestProcessor(apkScannerConfig, database).processManifest(decodedApkInfo, decodedApkDirectory),
-                detectedLibraries = scanForLibraries(decodedApkDirectory).sortedBy { it.name.lowercase() }.toTypedArray(),
+                apkFilePath = apkFilePath,
+                apkFileSha256 = apkFileSha256,
+                signingCheckResult = signingCheckResult,
+                manifestCheckResult = manifestCheckResult,
+                detectedLibraries = detectedLibraries,
             )
         } finally {
             // Delete the directory (which contains the decoded apk output) recursively to clean up.
@@ -81,33 +116,60 @@ class ApkProcessor(
     private fun scanForLibraries(outputDir: File): List<LibraryInformation> {
         val libraryInformationList = mutableListOf<LibraryInformation>()
 
+        var totalProcessingDuration = 0L
+        var totalProcessedDirectories = 0L
         outputDir
             // Filter by directories, where the name equals "smali".
             .listFiles { it.isDirectory && it.name.lowercase() == "smali" }
             .forEach { smaliDirectory ->
-                // Walk through all the directories within the smali directory
-                smaliDirectory
-                    .walkTopDown()
-                    .filter { it.isDirectory }
-                    .forEach { directory ->
-                        if (directory != smaliDirectory) {
-                            var libraryId = directory.absolutePath.replace("${smaliDirectory.absolutePath}${File.separator}", "")
-                            libraryId = "${File.separator}${libraryId}"
-
-                            val libraryInformation = DatabaseUtil.getLibraryInformationFromLibraryPath(
-                                database = database,
-                                libraryPath = libraryId,
-                                debugDatabase = apkScannerConfig.databaseConfig.debug
-                            )
-                            libraryInformationList.addAll(libraryInformation)
-                        }
+                var processedDirectories = 0
+                val processSmaliDirectoryDuration = measureTimeMillis {
+                    processSmaliDirectory(smaliDirectory) {
+                        libraryInformationList.addAll(it)
+                        processedDirectories++
                     }
+                }
+                totalProcessedDirectories += processedDirectories
+                totalProcessingDuration += processSmaliDirectoryDuration
+                LOGGER.debug("processSmaliDirectory(): {} ms for {} directories", processSmaliDirectoryDuration, processedDirectories)
             }
+        LOGGER.debug(
+            "scanForLibraries(): processed a total of {} directories in {} ms ({} ms / directory)",
+            totalProcessedDirectories, totalProcessingDuration, totalProcessingDuration / max(1, totalProcessedDirectories)
+        )
 
         return libraryInformationList
     }
 
+    private fun processSmaliDirectory(smaliDirectory: File, onProcess: (libraryInformationSet: Set<LibraryInformation>) -> Unit) {
+        val smaliDirectoryPath = "${smaliDirectory.absolutePath}${File.separator}"
+
+        // Walk through all the directories within the smali directory
+        smaliDirectory
+            .walkTopDown()
+            .filter { it.isDirectory }
+            .forEach { directory ->
+                if (directory != smaliDirectory) {
+                    val libraryInformationSet = processSmaliChildDirectory(directory.absolutePath, smaliDirectoryPath)
+                    onProcess(libraryInformationSet)
+                }
+            }
+    }
+
+    private fun processSmaliChildDirectory(absoluteDirectoryPath: String, absoluteSmaliDirectoryPath: String): Set<LibraryInformation> {
+        val libraryId = absoluteDirectoryPath.replace(absoluteSmaliDirectoryPath, "")
+        return DatabaseUtil.getLibraryInformationFromLibraryPath(
+            database = database,
+            libraryPath = "${File.separator}${libraryId}",
+            debugDatabase = apkScannerConfig.databaseConfig.debug
+        )
+    }
+
     override fun close() {
         workingDirectory.deleteRecursively()
+    }
+
+    companion object {
+        private val LOGGER = LoggerFactory.getLogger(ApkProcessor::class.java)
     }
 }
