@@ -16,9 +16,13 @@ import org.katastima.apkscanner.config.ApkScannerConfig
 import org.katastima.apkscanner.database.dao.SigningCertificateDenylistEntity
 import org.katastima.apkscanner.database.dao.SigningCertificateDenylistTable
 import org.katastima.apkscanner.models.signing.SigningCertificate
+import org.slf4j.LoggerFactory
 import java.io.File
+import kotlin.system.measureTimeMillis
 
 object CertificateDataUtil {
+
+    private val LOGGER = LoggerFactory.getLogger(CertificateDataUtil::class.java)
 
     fun importCertificateData(database: Database, apkScannerConfig: ApkScannerConfig) {
         val json = Json { ignoreUnknownKeys = true }
@@ -28,8 +32,13 @@ object CertificateDataUtil {
 
     private fun importDenylist(json: Json, database: Database, apkScannerConfig: ApkScannerConfig) {
         val denylistPath = File(apkScannerConfig.dataConfig.certificateDenylistPath)
-        if (denylistPath.exists()) {
-            val denyList: MutableList<SigningCertificate> = mutableListOf()
+        if (!denylistPath.exists()) {
+            LOGGER.info("Certificate denylist path ({}) not specified or does not exist, skipping import", denylistPath.absolutePath)
+            return
+        }
+
+        val denyList: MutableList<SigningCertificate> = mutableListOf()
+        val importDuration = measureTimeMillis {
             val jsonElement = json.parseToJsonElement(denylistPath.readText())
             jsonElement.jsonArray.forEach { denyList.add(json.decodeFromJsonElement<SigningCertificate>(it)) }
 
@@ -50,11 +59,8 @@ object CertificateDataUtil {
                     }
                 }
             }
-
-            println("Imported ${denyList.size} denied certificates from: ${denylistPath.absolutePath}")
-        } else {
-            println("Certificate denylist path not specified or does not exist, skipping import")
         }
+        LOGGER.info("Imported {} denied certificates from: {} in {} ms", denyList.size, denylistPath.absolutePath, importDuration)
     }
 
     fun exportCertificateDenylist(database: Database, apkScannerConfig: ApkScannerConfig): List<SigningCertificate> {

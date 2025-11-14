@@ -17,56 +17,63 @@ import org.katastima.apkscanner.models.manifest.config.ManifestConfig
 import org.katastima.apkscanner.models.manifest.config.ManifestFilterConfig
 import org.katastima.apkscanner.models.manifest.config.ManifestFlagConfig
 import org.katastima.apkscanner.models.manifest.config.ManifestPermissionConfig
+import org.slf4j.LoggerFactory
 import java.io.File
+import kotlin.system.measureTimeMillis
 
 object ManifestDataUtil {
+
+    private val LOGGER = LoggerFactory.getLogger(ManifestDataUtil::class.java)
 
     fun importManifestConfigData(database: Database, apkScannerConfig: ApkScannerConfig): ManifestConfig {
         val json = Json { ignoreUnknownKeys = true }
 
         val manifestConfigPath = File(apkScannerConfig.dataConfig.manifestConfigPath)
         if (!manifestConfigPath.exists()) {
-            println("Manifest config path not specified or does not exist, skipping import")
+            LOGGER.warn("Manifest config path ({}) not specified or does not exist, skipping import", manifestConfigPath.absolutePath)
             return ManifestConfig()
         }
 
-        val jsonElement = json.parseToJsonElement(manifestConfigPath.readText())
-        val manifestConfig: ManifestConfig = json.decodeFromJsonElement(jsonElement)
+        val manifestConfig: ManifestConfig
 
-        transaction(database) {
-            if (apkScannerConfig.databaseConfig.debug) {
-                addLogger(StdOutSqlLogger)
-            }
+        val importDuration = measureTimeMillis {
+            val jsonElement = json.parseToJsonElement(manifestConfigPath.readText())
+            manifestConfig = json.decodeFromJsonElement(jsonElement)
 
-            // Flags
-            manifestConfig.dangerousFlags.entries.sortedBy { it.name }.forEach {
-                ManifestFlagConfigEntity.new {
-                    name = it.name
-                    description = it.description
-                    flags = it.flags.sorted()
+            transaction(database) {
+                if (apkScannerConfig.databaseConfig.debug) {
+                    addLogger(StdOutSqlLogger)
                 }
-            }
 
-            // Filters
-            manifestConfig.dangerousFilters.entries.sortedBy { it.name }.forEach {
-                ManifestFilterConfigEntity.new {
-                    name = it.name
-                    description = it.description
-                    filters = it.filters.sorted()
+                // Flags
+                manifestConfig.dangerousFlags.entries.sortedBy { it.name }.forEach {
+                    ManifestFlagConfigEntity.new {
+                        name = it.name
+                        description = it.description
+                        flags = it.flags.sorted()
+                    }
                 }
-            }
 
-            // Permissions
-            manifestConfig.dangerousPermissions.entries.sortedBy { it.name }.forEach {
-                ManifestPermissionConfigEntity.new {
-                    name = it.name
-                    description = it.description
-                    permissions = it.permissions.sorted()
+                // Filters
+                manifestConfig.dangerousFilters.entries.sortedBy { it.name }.forEach {
+                    ManifestFilterConfigEntity.new {
+                        name = it.name
+                        description = it.description
+                        filters = it.filters.sorted()
+                    }
+                }
+
+                // Permissions
+                manifestConfig.dangerousPermissions.entries.sortedBy { it.name }.forEach {
+                    ManifestPermissionConfigEntity.new {
+                        name = it.name
+                        description = it.description
+                        permissions = it.permissions.sorted()
+                    }
                 }
             }
         }
-
-        println("Imported manifest config ${manifestConfig.getGroupAndCountString()} from: ${manifestConfigPath.absolutePath}")
+        LOGGER.info("Imported manifest config {} from: {} in {} ms", manifestConfig.getGroupAndCountString(), manifestConfigPath.absolutePath, importDuration)
 
         return manifestConfig
     }
