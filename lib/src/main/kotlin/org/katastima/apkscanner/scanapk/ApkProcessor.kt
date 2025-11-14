@@ -79,8 +79,7 @@ class ApkProcessor(
     }
 
     private fun scanForLibraries(outputDir: File): List<LibraryInformation> {
-        val database = DatabaseUtil.getDatabase()
-        val databaseConfig = ApkScannerConfig.getConfig().databaseConfig
+        val databaseConfig = apkScannerConfig.databaseConfig
 
         val libraryInformationList = mutableListOf<LibraryInformation>()
 
@@ -97,7 +96,7 @@ class ApkProcessor(
                             var libraryId = directory.absolutePath.replace("${smaliDirectory.absolutePath}${File.separator}", "")
                             libraryId = "${File.separator}${libraryId}"
 
-                            val libraryInformation = DatabaseUtil.getLibraryInformationFromLibraryPath(database, databaseConfig, libraryId)
+                            val libraryInformation = DatabaseUtil.getLibraryInformationFromLibraryPath(database, libraryId, databaseConfig.debug)
                             libraryInformationList.addAll(libraryInformation)
                         }
                     }

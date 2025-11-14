@@ -30,6 +30,7 @@ class CreateDatabaseCommand : SuspendingCliktCommand("setup") {
 
     override suspend fun run() {
         val apkScannerConfig = ApkScannerConfig.getConfig()
+        val debugDatabase = apkScannerConfig.databaseConfig.debug
 
         val database = DatabaseUtil.getDatabase()
 
@@ -56,8 +57,8 @@ class CreateDatabaseCommand : SuspendingCliktCommand("setup") {
             }
         }
 
-        DatabaseUtil.dropTables(database, apkScannerConfig.databaseConfig)
-        DatabaseUtil.setupDatabase(database, apkScannerConfig.databaseConfig)
+        DatabaseUtil.dropTables(database, debugDatabase)
+        DatabaseUtil.setupDatabase(database, debugDatabase)
 
         // Import legacy data
         LibraryDataUtil.importLibraryData(database, apkScannerConfig)

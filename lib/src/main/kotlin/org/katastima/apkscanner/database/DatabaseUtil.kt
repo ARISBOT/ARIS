@@ -5,17 +5,17 @@
 
 package org.katastima.apkscanner.database
 
+import org.jetbrains.exposed.v1.core.StdOutSqlLogger
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.SchemaUtils
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.katastima.apkscanner.config.ApkScannerConfig
 import org.katastima.apkscanner.config.DatabaseConfig
 import org.katastima.apkscanner.config.DatabaseMode
 import org.katastima.apkscanner.config.DatabaseType
 import org.katastima.apkscanner.database.dao.*
 import org.katastima.apkscanner.models.LibraryInformation
-import org.jetbrains.exposed.v1.core.StdOutSqlLogger
-import org.jetbrains.exposed.v1.core.eq
-import org.jetbrains.exposed.v1.jdbc.Database
-import org.jetbrains.exposed.v1.jdbc.SchemaUtils
-import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import java.io.File
 
 object DatabaseUtil {
@@ -54,9 +54,9 @@ object DatabaseUtil {
         }
     }
 
-    fun setupDatabase(database: Database, databaseConfig: DatabaseConfig) {
+    fun setupDatabase(database: Database, debugDatabase: Boolean = false) {
         transaction(database) {
-            if (databaseConfig.debug) {
+            if (debugDatabase) {
                 addLogger(StdOutSqlLogger)
             }
 
@@ -71,9 +71,9 @@ object DatabaseUtil {
         }
     }
 
-    fun dropTables(database: Database, databaseConfig: DatabaseConfig) {
+    fun dropTables(database: Database, debugDatabase: Boolean = false) {
         transaction(database) {
-            if (databaseConfig.debug) {
+            if (debugDatabase) {
                 addLogger(StdOutSqlLogger)
             }
 
@@ -88,11 +88,11 @@ object DatabaseUtil {
         }
     }
 
-    fun getLibraryInformationFromLibraryPath(database: Database, databaseConfig: DatabaseConfig, libraryPath: String): Set<LibraryInformation> {
+    fun getLibraryInformationFromLibraryPath(database: Database, libraryPath: String, debugDatabase: Boolean = false): Set<LibraryInformation> {
         val libraryInformationSet = mutableSetOf<LibraryInformation>()
 
         transaction(database) {
-            if (databaseConfig.debug) {
+            if (debugDatabase) {
                 addLogger(StdOutSqlLogger)
             }
 

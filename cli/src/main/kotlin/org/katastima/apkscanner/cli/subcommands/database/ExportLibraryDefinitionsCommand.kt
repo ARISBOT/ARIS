@@ -22,7 +22,7 @@ class ExportLibraryDefinitionsCommand : SuspendingCliktCommand("export-library-d
         val apkScannerConfig = ApkScannerConfig.getConfig()
 
         val database = DatabaseUtil.getDatabase()
-        DatabaseUtil.setupDatabase(database, apkScannerConfig.databaseConfig)
+        DatabaseUtil.setupDatabase(database, apkScannerConfig.databaseConfig.debug)
 
         val dataConfig = apkScannerConfig.dataConfig
         val informationFile = File(dataConfig.libraryInformationPath)

@@ -33,6 +33,7 @@ import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.format
 import kotlinx.datetime.format.char
 import kotlinx.serialization.json.Json
+import org.katastima.apkscanner.database.DatabaseUtil
 import java.io.File
 
 
@@ -77,7 +78,8 @@ class ScanAPKCommand : SuspendingCliktCommand() {
     override fun help(context: Context): String = "Scan a single apk and list its used libraries, offending libraries and anti features."
 
     override suspend fun run() {
-        ScanAPK().use {
+        val database = DatabaseUtil.getDatabase()
+        ScanAPK(database).use {
             echo("Scanning ${apkFiles.size} APK(s).\n")
             it.scanMulti(apkFiles, this::printScanResult)
         }

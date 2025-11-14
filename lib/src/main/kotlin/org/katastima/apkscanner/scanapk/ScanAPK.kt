@@ -5,17 +5,18 @@
 
 package org.katastima.apkscanner.scanapk
 
-import org.katastima.apkscanner.config.ApkScannerConfig
-import org.katastima.apkscanner.database.DatabaseUtil
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.katastima.apkscanner.config.ApkScannerConfig
 import java.io.Closeable
 import java.io.File
 import kotlin.io.path.createTempDirectory
 import kotlin.time.measureTimedValue
 
-class ScanAPK(workingDirectory: File = createTempDirectory().toFile()) : Closeable {
+class ScanAPK(
+    database: Database,
+    workingDirectory: File = createTempDirectory().toFile(),
+) : Closeable {
 
-    private val database: Database by lazy { DatabaseUtil.getDatabase() }
     private val apkScannerConfig: ApkScannerConfig by lazy { ApkScannerConfig.getConfig() }
     private val apkProcessor: ApkProcessor by lazy {
         ApkProcessor(
