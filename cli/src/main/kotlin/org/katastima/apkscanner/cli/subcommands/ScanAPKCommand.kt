@@ -26,7 +26,7 @@ import org.katastima.apkscanner.models.LibraryInformation
 import org.katastima.apkscanner.models.manifest.ManifestCheckResult
 import org.katastima.apkscanner.models.signing.SigningBlockResult
 import org.katastima.apkscanner.scanapk.ApkScanResult
-import org.katastima.apkscanner.scanapk.ScanAPK
+import org.katastima.apkscanner.scanapk.ApkScanner
 import org.katastima.apkscanner.signing.AndroidSigningBlock
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
@@ -79,7 +79,7 @@ class ScanAPKCommand : SuspendingCliktCommand() {
 
     override suspend fun run() {
         val database = DatabaseUtil.getDatabase()
-        ScanAPK(database).use {
+        ApkScanner(database).use {
             echo("Scanning ${apkFiles.size} APK(s).\n")
             it.scanMulti(apkFiles, this::printScanResult)
         }

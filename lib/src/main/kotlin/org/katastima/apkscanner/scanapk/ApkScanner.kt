@@ -12,7 +12,7 @@ import java.io.File
 import kotlin.io.path.createTempDirectory
 import kotlin.time.measureTimedValue
 
-class ScanAPK(
+class ApkScanner(
     database: Database,
     workingDirectory: File = createTempDirectory().toFile(),
 ) : Closeable {
