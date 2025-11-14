@@ -10,7 +10,6 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
-import org.katastima.apkscanner.config.ApkScannerConfig
 import org.katastima.apkscanner.config.DatabaseConfig
 import org.katastima.apkscanner.config.DatabaseMode
 import org.katastima.apkscanner.config.DatabaseType
@@ -20,12 +19,16 @@ import java.io.File
 
 object DatabaseUtil {
 
-    private val _database: Database by lazy { connectToDatabase() }
+    private lateinit var _database: Database
 
-    fun getDatabase(): Database = _database
+    fun getDatabase(databaseConfig: DatabaseConfig): Database {
+        if (!::_database.isInitialized) {
+            _database = connectToDatabase(databaseConfig)
+        }
+        return _database
+    }
 
-    private fun connectToDatabase(): Database {
-        val databaseConfig = ApkScannerConfig.getConfig().databaseConfig
+    private fun connectToDatabase(databaseConfig: DatabaseConfig): Database {
         return when (databaseConfig.type) {
             DatabaseType.H2 -> connectToH2Database(databaseConfig)
             DatabaseType.SQLITE -> connectToSqliteDatabase(databaseConfig)

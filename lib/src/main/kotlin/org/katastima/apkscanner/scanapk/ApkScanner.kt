@@ -13,11 +13,11 @@ import kotlin.io.path.createTempDirectory
 import kotlin.time.measureTimedValue
 
 class ApkScanner(
+    apkScannerConfig: ApkScannerConfig,
     database: Database,
     workingDirectory: File = createTempDirectory().toFile(),
 ) : Closeable {
 
-    private val apkScannerConfig: ApkScannerConfig by lazy { ApkScannerConfig.getConfig() }
     private val apkProcessor: ApkProcessor by lazy {
         ApkProcessor(
             apkScannerConfig = apkScannerConfig,

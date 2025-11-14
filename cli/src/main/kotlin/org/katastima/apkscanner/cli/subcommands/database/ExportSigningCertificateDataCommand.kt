@@ -22,7 +22,7 @@ class ExportSigningCertificateDataCommand : SuspendingCliktCommand("export-signi
         val apkScannerConfig = ApkScannerConfig.getConfig()
         val dataConfig = apkScannerConfig.dataConfig
 
-        val database = DatabaseUtil.getDatabase()
+        val database = DatabaseUtil.getDatabase(apkScannerConfig.databaseConfig)
         DatabaseUtil.setupDatabase(database, apkScannerConfig.databaseConfig.debug)
 
         val denylistPath = File(dataConfig.certificateDenylistPath)

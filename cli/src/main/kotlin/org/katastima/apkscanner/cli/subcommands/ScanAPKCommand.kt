@@ -18,6 +18,13 @@ import com.github.ajalt.clikt.parameters.options.help
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.choice
 import com.github.ajalt.clikt.parameters.types.file
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.format
+import kotlinx.datetime.format.char
+import kotlinx.serialization.json.Json
+import org.katastima.apkscanner.config.ApkScannerConfig
+import org.katastima.apkscanner.database.DatabaseUtil
 import org.katastima.apkscanner.extensions.formatAsHex
 import org.katastima.apkscanner.extensions.formatValidInvalid
 import org.katastima.apkscanner.extensions.formatYesNo
@@ -28,12 +35,6 @@ import org.katastima.apkscanner.models.signing.SigningBlockResult
 import org.katastima.apkscanner.scanapk.ApkScanResult
 import org.katastima.apkscanner.scanapk.ApkScanner
 import org.katastima.apkscanner.signing.AndroidSigningBlock
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.format
-import kotlinx.datetime.format.char
-import kotlinx.serialization.json.Json
-import org.katastima.apkscanner.database.DatabaseUtil
 import java.io.File
 
 
@@ -78,8 +79,11 @@ class ScanAPKCommand : SuspendingCliktCommand() {
     override fun help(context: Context): String = "Scan a single apk and list its used libraries, offending libraries and anti features."
 
     override suspend fun run() {
-        val database = DatabaseUtil.getDatabase()
-        ApkScanner(database).use {
+        val apkScannerConfig = ApkScannerConfig.getConfig()
+        val databaseConfig = apkScannerConfig.databaseConfig
+        val database = DatabaseUtil.getDatabase(databaseConfig)
+
+        ApkScanner(apkScannerConfig, database).use {
             echo("Scanning ${apkFiles.size} APK(s).\n")
             it.scanMulti(apkFiles, this::printScanResult)
         }

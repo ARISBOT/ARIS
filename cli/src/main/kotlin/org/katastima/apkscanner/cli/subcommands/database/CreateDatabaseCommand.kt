@@ -30,9 +30,7 @@ class CreateDatabaseCommand : SuspendingCliktCommand("setup") {
 
     override suspend fun run() {
         val apkScannerConfig = ApkScannerConfig.getConfig()
-        val debugDatabase = apkScannerConfig.databaseConfig.debug
-
-        val database = DatabaseUtil.getDatabase()
+        val database = DatabaseUtil.getDatabase(apkScannerConfig.databaseConfig)
 
         if (!forceSetup) {
             val tablesExist = transaction(database) {
@@ -57,8 +55,8 @@ class CreateDatabaseCommand : SuspendingCliktCommand("setup") {
             }
         }
 
-        DatabaseUtil.dropTables(database, debugDatabase)
-        DatabaseUtil.setupDatabase(database, debugDatabase)
+        DatabaseUtil.dropTables(database, apkScannerConfig.databaseConfig.debug)
+        DatabaseUtil.setupDatabase(database, apkScannerConfig.databaseConfig.debug)
 
         // Import legacy data
         LibraryDataUtil.importLibraryData(database, apkScannerConfig)

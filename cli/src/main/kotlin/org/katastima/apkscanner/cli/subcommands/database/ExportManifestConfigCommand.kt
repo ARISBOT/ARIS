@@ -22,7 +22,7 @@ class ExportManifestConfigCommand : SuspendingCliktCommand("export-manifest-conf
         val apkScannerConfig = ApkScannerConfig.getConfig()
         val dataConfig = apkScannerConfig.dataConfig
 
-        val database = DatabaseUtil.getDatabase()
+        val database = DatabaseUtil.getDatabase(apkScannerConfig.databaseConfig)
         DatabaseUtil.setupDatabase(database, apkScannerConfig.databaseConfig.debug)
 
         val manifestConfigPath = File(dataConfig.manifestConfigPath)

@@ -21,7 +21,7 @@ class ExportLibraryDefinitionsCommand : SuspendingCliktCommand("export-library-d
     override suspend fun run() {
         val apkScannerConfig = ApkScannerConfig.getConfig()
 
-        val database = DatabaseUtil.getDatabase()
+        val database = DatabaseUtil.getDatabase(apkScannerConfig.databaseConfig)
         DatabaseUtil.setupDatabase(database, apkScannerConfig.databaseConfig.debug)
 
         val dataConfig = apkScannerConfig.dataConfig
