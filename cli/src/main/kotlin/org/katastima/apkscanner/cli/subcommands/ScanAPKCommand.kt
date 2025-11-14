@@ -18,6 +18,7 @@ import com.github.ajalt.clikt.parameters.options.help
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.choice
 import com.github.ajalt.clikt.parameters.types.file
+import kotlinx.coroutines.Dispatchers
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.format
@@ -83,7 +84,12 @@ class ScanAPKCommand : SuspendingCliktCommand() {
         val databaseConfig = apkScannerConfig.databaseConfig
         val database = DatabaseUtil.getDatabase(databaseConfig)
 
-        ApkScanner(apkScannerConfig, database).use {
+        ApkScanner(
+            apkScannerConfig = apkScannerConfig,
+            database = database,
+            backgroundDispatcher = Dispatchers.Default,
+            ioDispatcher = Dispatchers.IO,
+        ).use {
             echo("Scanning ${apkFiles.size} APK(s).\n")
             it.scanMulti(apkFiles, this::printScanResult)
         }

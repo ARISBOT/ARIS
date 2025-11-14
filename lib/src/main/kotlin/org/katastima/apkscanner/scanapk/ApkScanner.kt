@@ -5,6 +5,7 @@
 
 package org.katastima.apkscanner.scanapk
 
+import kotlinx.coroutines.CoroutineDispatcher
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.katastima.apkscanner.config.ApkScannerConfig
 import java.io.Closeable
@@ -15,6 +16,8 @@ import kotlin.time.measureTimedValue
 class ApkScanner(
     apkScannerConfig: ApkScannerConfig,
     database: Database,
+    private val backgroundDispatcher: CoroutineDispatcher,
+    private val ioDispatcher: CoroutineDispatcher,
     workingDirectory: File = createTempDirectory().toFile(),
 ) : Closeable {
 
@@ -22,11 +25,13 @@ class ApkScanner(
         ApkProcessor(
             apkScannerConfig = apkScannerConfig,
             database = database,
+            backgroundDispatcher = backgroundDispatcher,
+            ioDispatcher = ioDispatcher,
             workingDirectory = workingDirectory,
         )
     }
 
-    fun scanSingle(apkFile: File): ApkScanResult {
+    suspend fun scanSingle(apkFile: File): ApkScanResult {
         val (apkScanResult, timeTaken) = measureTimedValue {
             apkProcessor.processApk(apkFile)
         }
@@ -36,7 +41,7 @@ class ApkScanner(
         )
     }
 
-    fun scanMulti(apkFiles: List<File>, scanCallback: ((apkFile: File, scanResult: ApkScanResult) -> Unit)? = null): Map<File, ApkScanResult> {
+    suspend fun scanMulti(apkFiles: List<File>, scanCallback: ((apkFile: File, scanResult: ApkScanResult) -> Unit)? = null): Map<File, ApkScanResult> {
         val apkScanResultMap: MutableMap<File, ApkScanResult> = mutableMapOf()
         apkFiles.forEach { apkFile ->
             val scanResult = scanSingle(apkFile)

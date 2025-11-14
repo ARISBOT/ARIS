@@ -9,6 +9,10 @@ import brut.androlib.ApkDecoder
 import brut.androlib.Config
 import brut.androlib.meta.ApkInfo
 import brut.directory.ExtFile
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.withContext
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.katastima.apkscanner.config.ApkScannerConfig
 import org.katastima.apkscanner.database.DatabaseUtil
@@ -29,10 +33,12 @@ import kotlin.time.measureTimedValue
 class ApkProcessor(
     private val apkScannerConfig: ApkScannerConfig,
     private val database: Database,
+    private val backgroundDispatcher: CoroutineDispatcher,
+    private val ioDispatcher: CoroutineDispatcher,
     private val workingDirectory: File = createTempDirectory().toFile()
 ) : Closeable {
 
-    fun processApk(apkFile: File): ApkScanResult {
+    suspend fun processApk(apkFile: File): ApkScanResult = withContext(backgroundDispatcher) {
         val (decodeApkPair, decodeTimeTaken) = measureTimedValue {
             decodeApk(apkFile)
         }
@@ -66,7 +72,7 @@ class ApkProcessor(
         }
         LOGGER.debug("scanForLibraries: {} ms", detectLibrariesDuration.inWholeMilliseconds)
 
-        return try {
+        return@withContext try {
             ApkScanResult(
                 apkFilePath = apkFilePath,
                 apkFileSha256 = apkFileSha256,
@@ -113,7 +119,7 @@ class ApkProcessor(
         return Pair(outputDir, apkInfo)
     }
 
-    private fun scanForLibraries(outputDir: File): List<LibraryInformation> {
+    private suspend fun scanForLibraries(outputDir: File): List<LibraryInformation> {
         val libraryInformationList = mutableListOf<LibraryInformation>()
 
         var totalProcessingDuration = 0L
@@ -141,19 +147,18 @@ class ApkProcessor(
         return libraryInformationList
     }
 
-    private fun processSmaliDirectory(smaliDirectory: File, onProcess: (libraryInformationSet: Set<LibraryInformation>) -> Unit) {
+    private suspend fun processSmaliDirectory(smaliDirectory: File, onProcess: (informationSet: Set<LibraryInformation>) -> Unit) = withContext(ioDispatcher) {
         val smaliDirectoryPath = "${smaliDirectory.absolutePath}${File.separator}"
 
         // Walk through all the directories within the smali directory
         smaliDirectory
             .walkTopDown()
             .filter { it.isDirectory }
-            .forEach { directory ->
-                if (directory != smaliDirectory) {
-                    val libraryInformationSet = processSmaliChildDirectory(directory.absolutePath, smaliDirectoryPath)
-                    onProcess(libraryInformationSet)
-                }
-            }
+            .filter { it.absolutePath != smaliDirectory.absolutePath }
+            .toSet()
+            .map { async { processSmaliChildDirectory(it.absolutePath, smaliDirectoryPath) } }
+            .awaitAll()
+            .forEach { onProcess(it) }
     }
 
     private fun processSmaliChildDirectory(absoluteDirectoryPath: String, absoluteSmaliDirectoryPath: String): Set<LibraryInformation> {
