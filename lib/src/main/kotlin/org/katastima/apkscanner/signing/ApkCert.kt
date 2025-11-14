@@ -6,17 +6,15 @@
 package org.katastima.apkscanner.signing
 
 import com.android.apksig.ApkVerifier
-import org.katastima.apkscanner.config.ApkScannerConfig
+import org.jetbrains.exposed.v1.jdbc.Database
 import org.katastima.apkscanner.extensions.*
 import org.katastima.apkscanner.models.signing.*
-import org.jetbrains.exposed.v1.jdbc.Database
+import org.slf4j.LoggerFactory
 import java.io.File
-import java.util.logging.Level
-import java.util.logging.Logger
 
 class ApkCert(private val apkFile: File) {
 
-    fun verify(database: Database, apkScannerConfig: ApkScannerConfig): SigningCheckResult {
+    fun verify(database: Database, debugDatabase: Boolean = false): SigningCheckResult {
         var signingCheckResult = SigningCheckResult()
 
         try {
@@ -38,7 +36,7 @@ class ApkCert(private val apkFile: File) {
                 certificates = result.signerCertificates,
             )
         } catch (e: Exception) {
-            LOGGER.log(Level.SEVERE, "Could not verify APK (${apkFile})", e)
+            LOGGER.error("Could not verify APK (${apkFile})", e)
         }
 
         val certificateResults = mutableListOf<CertificateResult>()
@@ -51,7 +49,7 @@ class ApkCert(private val apkFile: File) {
                 md5 = certificate.publicKey.encoded.toMd5(),
             )
             var certificateResult = CertificateResult(
-                denylistMatches = certificate.isDenyListed(database, apkScannerConfig),
+                denylistMatches = certificate.isDenyListed(database, debugDatabase),
                 sigAlgorithmName = certificate.sigAlgName,
                 sigAlgorithmOID = certificate.sigAlgOID,
                 issuerPrincipal = certificate.issuerX500Principal.toString(),
@@ -93,6 +91,6 @@ class ApkCert(private val apkFile: File) {
     }
 
     companion object {
-        private val LOGGER = Logger.getLogger(ApkCert::class.simpleName)
+        private val LOGGER = LoggerFactory.getLogger(ApkCert::class.java)
     }
 }

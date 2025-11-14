@@ -33,6 +33,7 @@ dependencies {
     api(libs.okio)
 
     api(libs.bundles.exposed)
+    api(libs.bundles.logging)
 
     testImplementation(kotlin("test"))
 }

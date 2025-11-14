@@ -5,11 +5,10 @@
 
 package org.katastima.apkscanner.signing
 
+import org.slf4j.LoggerFactory
 import java.io.File
 import java.io.RandomAccessFile
 import java.nio.ByteBuffer
-import java.util.logging.Level
-import java.util.logging.Logger
 
 class AndroidSigningBlock(private val apkFile: File) {
 
@@ -27,7 +26,7 @@ class AndroidSigningBlock(private val apkFile: File) {
                     val idValueMap = AndroidSigningBlockUtil.getIdValuePairs(androidSigningBlockPair.first).toMap()
                     signingBlockValueIdMap.putAll(idValueMap)
                 } catch (exc: Exception) {
-                    LOGGER.log(Level.SEVERE, "Could not read APK signing block", exc)
+                    LOGGER.error("Could not read APK signing block", exc)
                 }
             }
         }
@@ -68,7 +67,7 @@ class AndroidSigningBlock(private val apkFile: File) {
     }
 
     companion object {
-        private val LOGGER = Logger.getLogger(AndroidSigningBlock::class.simpleName)
+        private val LOGGER = LoggerFactory.getLogger(AndroidSigningBlock::class.java)
 
         fun getAllBlocks(): Map<Int, String> = getOkBlocks() + getGoogleBlocks() + getPayloadBlocks()
 

@@ -8,16 +8,17 @@ package org.katastima.apkscanner.signing
 import org.katastima.apkscanner.extensions.sliceFromTo
 import org.katastima.apkscanner.extensions.sliceWithSize
 import org.katastima.apkscanner.utils.ZipUtil
+import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.channels.FileChannel
-import java.util.logging.Level
-import java.util.logging.Logger
 
 /** Adapted from https://android.googlesource.com/platform/frameworks/base/+/main/core/java/android/util/apk/ApkSigningBlockUtils.java */
 
 object AndroidSigningBlockUtil {
+
+    private val LOGGER = LoggerFactory.getLogger(AndroidSigningBlockUtil::class.java)
 
     /**
      * See: https://source.android.com/docs/security/features/apksigning/v2#apk-signing-block-format
@@ -32,8 +33,6 @@ object AndroidSigningBlockUtil {
 
     const val MAGIC_APK_SIG_BLOCK_LE_HIGH: Long = 0x3234206B636F6C42L
     const val MAGIC_APK_SIG_BLOCK_LE_LOW: Long = 0x20676953204b5041L
-
-    private val LOGGER = Logger.getLogger(AndroidSigningBlockUtil::class.simpleName)
 
     @Throws(IllegalArgumentException::class, RuntimeException::class)
     fun getIdValuePairs(apkSigningBlockBuffer: ByteBuffer): MutableMap<Int, ByteBuffer> {
@@ -134,7 +133,7 @@ object AndroidSigningBlockUtil {
         val bytes = getBytes(byteBuffer)
         String(bytes, Charsets.UTF_8)
     } catch (exc: Exception) {
-        LOGGER.log(Level.SEVERE, "Could not get string from bytes", exc)
+        LOGGER.error("Could not get string from bytes", exc)
         ""
     }
 }

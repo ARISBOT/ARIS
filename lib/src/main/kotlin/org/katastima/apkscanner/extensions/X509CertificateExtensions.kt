@@ -5,22 +5,21 @@
 
 package org.katastima.apkscanner.extensions
 
-import org.katastima.apkscanner.config.ApkScannerConfig
-import org.katastima.apkscanner.database.dao.SigningCertificateDenylistEntity
-import org.katastima.apkscanner.database.dao.SigningCertificateDenylistTable
-import org.katastima.apkscanner.models.signing.SigningCertificate
 import org.jetbrains.exposed.v1.core.StdOutSqlLogger
 import org.jetbrains.exposed.v1.core.neq
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import org.katastima.apkscanner.database.dao.SigningCertificateDenylistEntity
+import org.katastima.apkscanner.database.dao.SigningCertificateDenylistTable
+import org.katastima.apkscanner.models.signing.SigningCertificate
 import java.security.PublicKey
 import java.security.cert.X509Certificate
 import java.security.interfaces.DSAKey
 import java.security.interfaces.ECKey
 import java.security.interfaces.RSAKey
 
-fun X509Certificate.isDenyListed(database: Database, apkScannerConfig: ApkScannerConfig): Set<SigningCertificate> {
+fun X509Certificate.isDenyListed(database: Database, debugDatabase: Boolean = false): Set<SigningCertificate> {
     val denylistMatches: MutableSet<SigningCertificate> = mutableSetOf()
 
     val encodedSha256 = encoded.toSha256()
@@ -31,7 +30,7 @@ fun X509Certificate.isDenyListed(database: Database, apkScannerConfig: ApkScanne
     val dnSplitList = subjectX500Principal.name.split(",").sorted()
 
     transaction(database) {
-        if (apkScannerConfig.databaseConfig.debug) {
+        if (debugDatabase) {
             addLogger(StdOutSqlLogger)
         }
 

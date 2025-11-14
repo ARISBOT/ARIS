@@ -19,7 +19,6 @@ dependencies {
     implementation(project(":lib"))
 
     implementation(libs.clikt)
-    implementation(libs.slf4j.nop)
 }
 
 application {

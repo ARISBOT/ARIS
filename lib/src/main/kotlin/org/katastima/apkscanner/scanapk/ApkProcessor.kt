@@ -9,6 +9,7 @@ import brut.androlib.ApkDecoder
 import brut.androlib.Config
 import brut.androlib.meta.ApkInfo
 import brut.directory.ExtFile
+import org.jetbrains.exposed.v1.jdbc.Database
 import org.katastima.apkscanner.config.ApkScannerConfig
 import org.katastima.apkscanner.database.DatabaseUtil
 import org.katastima.apkscanner.extensions.toSha256
@@ -16,8 +17,7 @@ import org.katastima.apkscanner.manifest.ManifestProcessor
 import org.katastima.apkscanner.models.LibraryInformation
 import org.katastima.apkscanner.signing.ApkCert
 import org.katastima.apkscanner.utils.Randomizer
-import okio.Closeable
-import org.jetbrains.exposed.v1.jdbc.Database
+import java.io.Closeable
 import java.io.File
 import java.nio.file.Paths
 import kotlin.io.path.createTempDirectory
@@ -35,7 +35,7 @@ class ApkProcessor(
             ApkScanResult(
                 apkFilePath = getApkFilePathForReport(apkFile),
                 apkFileSha256 = apkFile.toSha256(),
-                signingCheckResult = ApkCert(apkFile).verify(database, apkScannerConfig),
+                signingCheckResult = ApkCert(apkFile).verify(database, apkScannerConfig.databaseConfig.debug),
                 manifestCheckResult = ManifestProcessor(apkScannerConfig, database).processManifest(decodedApkInfo, decodedApkDirectory),
                 detectedLibraries = scanForLibraries(decodedApkDirectory).sortedBy { it.name.lowercase() }.toTypedArray(),
             )
@@ -79,8 +79,6 @@ class ApkProcessor(
     }
 
     private fun scanForLibraries(outputDir: File): List<LibraryInformation> {
-        val databaseConfig = apkScannerConfig.databaseConfig
-
         val libraryInformationList = mutableListOf<LibraryInformation>()
 
         outputDir
@@ -96,7 +94,11 @@ class ApkProcessor(
                             var libraryId = directory.absolutePath.replace("${smaliDirectory.absolutePath}${File.separator}", "")
                             libraryId = "${File.separator}${libraryId}"
 
-                            val libraryInformation = DatabaseUtil.getLibraryInformationFromLibraryPath(database, libraryId, databaseConfig.debug)
+                            val libraryInformation = DatabaseUtil.getLibraryInformationFromLibraryPath(
+                                database = database,
+                                libraryPath = libraryId,
+                                debugDatabase = apkScannerConfig.databaseConfig.debug
+                            )
                             libraryInformationList.addAll(libraryInformation)
                         }
                     }

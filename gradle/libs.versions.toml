@@ -35,6 +35,9 @@ h2 = "2.4.240"
 # see: https://github.com/charleskorn/kaml/releases
 kaml = "0.102.0"
 
+# see: https://logback.qos.ch/download.html
+logback = "1.5.21"
+
 # see: https://square.github.io/okio/changelog/
 okio = "3.16.2"
 
@@ -61,14 +64,17 @@ exposed-dao = { module = "org.jetbrains.exposed:exposed-dao", version.ref = "exp
 exposed-jdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "exposed" }
 h2 = { module = "com.h2database:h2", version.ref = "h2" }
 kaml = { module = "com.charleskorn.kaml:kaml", version.ref = "kaml" }
+logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
+logback-core = { module = "ch.qos.logback:logback-core", version.ref = "logback" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
-slf4j-nop = { module = "org.slf4j:slf4j-nop", version.ref = "slf4j" }
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 sqlite-jdbc = { module = "org.xerial:sqlite-jdbc", version.ref = "sqlite-jdbc" }
 
 # Libraries can be bundled together for easier import
 [bundles]
 kotlinxEcosystem = ["kotlinxDatetime", "kotlinxSerialization", "kotlinxCoroutines"]
 exposed = ["exposed-core", "exposed-dao", "exposed-jdbc", "h2", "sqlite-jdbc"]
+logging = ["logback-classic", "logback-core", "slf4j-api"]
 
 [plugins]
 kotlinPluginSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
