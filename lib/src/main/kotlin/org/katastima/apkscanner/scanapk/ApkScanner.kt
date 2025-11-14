@@ -8,9 +8,12 @@ package org.katastima.apkscanner.scanapk
 import kotlinx.coroutines.CoroutineDispatcher
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.katastima.apkscanner.config.ApkScannerConfig
+import org.slf4j.LoggerFactory
 import java.io.Closeable
 import java.io.File
 import kotlin.io.path.createTempDirectory
+import kotlin.math.max
+import kotlin.system.measureTimeMillis
 import kotlin.time.measureTimedValue
 
 class ApkScanner(
@@ -43,17 +46,35 @@ class ApkScanner(
 
     suspend fun scanMulti(apkFiles: List<File>, scanCallback: ((apkFile: File, scanResult: ApkScanResult) -> Unit)? = null): Map<File, ApkScanResult> {
         val apkScanResultMap: MutableMap<File, ApkScanResult> = mutableMapOf()
-        apkFiles.forEach { apkFile ->
-            val scanResult = scanSingle(apkFile)
-            apkScanResultMap[apkFile] = scanResult
 
-            // If callback is specified, invoke it.
-            scanCallback?.invoke(apkFile, scanResult)
+        var totalScanDuration = 0L
+        var totalProcessedApks = 0L
+
+        apkFiles.forEach { apkFile ->
+            val scanDuration = measureTimeMillis {
+                val scanResult = scanSingle(apkFile)
+                apkScanResultMap[apkFile] = scanResult
+
+                // If callback is specified, invoke it.
+                scanCallback?.invoke(apkFile, scanResult)
+                totalProcessedApks++
+            }
+            totalScanDuration += scanDuration
+            LOGGER.debug("scanDuration: {} ms", scanDuration)
         }
+        LOGGER.debug(
+            "Total scan duration: {} ms for {} apks ({} ms / apk)",
+            totalScanDuration, totalProcessedApks, totalScanDuration / max(1, totalProcessedApks)
+        )
+
         return apkScanResultMap
     }
 
     override fun close() {
         apkProcessor.close()
+    }
+
+    companion object {
+        private val LOGGER = LoggerFactory.getLogger(ApkScanner::class.java)
     }
 }
