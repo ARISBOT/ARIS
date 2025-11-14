@@ -5,18 +5,18 @@
 
 package org.katastima.apkscanner.database
 
-import org.katastima.apkscanner.config.ApkScannerConfig
-import org.katastima.apkscanner.database.dao.*
-import org.katastima.apkscanner.models.manifest.config.ManifestConfig
-import org.katastima.apkscanner.models.manifest.config.ManifestFilterConfig
-import org.katastima.apkscanner.models.manifest.config.ManifestFlagConfig
-import org.katastima.apkscanner.models.manifest.config.ManifestPermissionConfig
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
 import org.jetbrains.exposed.v1.core.StdOutSqlLogger
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import org.katastima.apkscanner.config.ApkScannerConfig
+import org.katastima.apkscanner.database.dao.*
+import org.katastima.apkscanner.models.manifest.config.ManifestConfig
+import org.katastima.apkscanner.models.manifest.config.ManifestFilterConfig
+import org.katastima.apkscanner.models.manifest.config.ManifestFlagConfig
+import org.katastima.apkscanner.models.manifest.config.ManifestPermissionConfig
 import java.io.File
 
 object ManifestDataUtil {

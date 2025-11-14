@@ -6,12 +6,12 @@
 package org.katastima.apkscanner.manifest
 
 import brut.androlib.meta.ApkInfo
+import org.jetbrains.exposed.v1.jdbc.Database
 import org.katastima.apkscanner.config.ApkScannerConfig
 import org.katastima.apkscanner.database.ManifestDataUtil
 import org.katastima.apkscanner.models.manifest.Manifest
 import org.katastima.apkscanner.models.manifest.ManifestCheckResult
 import org.katastima.apkscanner.models.manifest.config.ManifestConfig
-import org.jetbrains.exposed.v1.jdbc.Database
 import java.io.File
 
 class ManifestProcessor(

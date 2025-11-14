@@ -5,13 +5,13 @@
 
 package org.katastima.apkscanner.scanapk
 
+import kotlinx.datetime.LocalDateTime
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.katastima.apkscanner.extensions.nowAsLocalDate
 import org.katastima.apkscanner.models.LibraryInformation
 import org.katastima.apkscanner.models.manifest.ManifestCheckResult
 import org.katastima.apkscanner.models.signing.SigningCheckResult
-import kotlinx.datetime.LocalDateTime
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 
 @Serializable
 data class ApkScanResult(

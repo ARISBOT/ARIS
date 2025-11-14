@@ -5,10 +5,6 @@
 
 package org.katastima.apkscanner.database
 
-import org.katastima.apkscanner.config.ApkScannerConfig
-import org.katastima.apkscanner.database.dao.SigningCertificateDenylistEntity
-import org.katastima.apkscanner.database.dao.SigningCertificateDenylistTable
-import org.katastima.apkscanner.models.signing.SigningCertificate
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.jsonArray
@@ -16,6 +12,10 @@ import org.jetbrains.exposed.v1.core.StdOutSqlLogger
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import org.katastima.apkscanner.config.ApkScannerConfig
+import org.katastima.apkscanner.database.dao.SigningCertificateDenylistEntity
+import org.katastima.apkscanner.database.dao.SigningCertificateDenylistTable
+import org.katastima.apkscanner.models.signing.SigningCertificate
 import java.io.File
 
 object CertificateDataUtil {

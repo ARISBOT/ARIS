@@ -5,11 +5,11 @@
 
 package org.katastima.apkscanner.database.dao
 
-import org.katastima.apkscanner.models.manifest.config.ManifestPermissionConfigEntry
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.IntIdTable
 import org.jetbrains.exposed.v1.dao.IntEntity
 import org.jetbrains.exposed.v1.dao.IntEntityClass
+import org.katastima.apkscanner.models.manifest.config.ManifestPermissionConfigEntry
 
 object ManifestPermissionConfigTable : IntIdTable("manifest_config_permissions") {
     val name = varchar("name", 255)

@@ -10,15 +10,15 @@ import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.help
 import com.github.ajalt.clikt.parameters.options.option
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import org.jetbrains.exposed.v1.jdbc.SchemaUtils
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.katastima.apkscanner.config.ApkScannerConfig
 import org.katastima.apkscanner.database.CertificateDataUtil
 import org.katastima.apkscanner.database.DatabaseUtil
 import org.katastima.apkscanner.database.LibraryDataUtil
 import org.katastima.apkscanner.database.ManifestDataUtil
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import org.jetbrains.exposed.v1.jdbc.SchemaUtils
-import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
 class CreateDatabaseCommand : SuspendingCliktCommand("setup") {
 
