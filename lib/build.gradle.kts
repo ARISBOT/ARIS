@@ -35,7 +35,7 @@ dependencies {
 publishing {
     publications {
         create<MavenPublication>("maven") {
-            groupId = "eu.katastima"
+            groupId = "org.katastima"
             artifactId = "apkscanner"
             version = "0.0.1"
 
