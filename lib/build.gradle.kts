@@ -18,6 +18,11 @@ plugins {
     //`signing`
 }
 
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
 dependencies {
     // Apply the kotlinx bundle of dependencies from the version catalog (`gradle/libs.versions.toml`).
     api(libs.bundles.kotlinxEcosystem)
