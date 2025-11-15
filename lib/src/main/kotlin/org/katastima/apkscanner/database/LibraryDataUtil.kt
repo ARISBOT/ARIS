@@ -114,8 +114,7 @@ object LibraryDataUtil {
 
                                 LibraryEntry.new {
                                     path = it.path
-                                    libraryId = it.id
-                                    //libraryDefinition = foundDefinition
+                                    libraryInformationEntry = foundDefinition
                                 }
                             }
                     }
@@ -136,10 +135,9 @@ object LibraryDataUtil {
                 addLogger(StdOutSqlLogger)
             }
 
-            LibraryInformationTable
-                .selectAll()
+            LibraryInformationEntry
+                .all()
                 .sortedBy { LibraryInformationTable.libraryId }
-                .map { LibraryInformationEntry.wrapRow(it) }
                 .forEach { libraryInformationEntry ->
                     val legacyInformation = LegacyLibraryInformation(
                         id = libraryInformationEntry.libraryId,
@@ -154,12 +152,12 @@ object LibraryDataUtil {
                     transaction {
                         LibraryTable
                             .selectAll()
-                            .where { LibraryTable.libraryId eq libraryInformationEntry.libraryId }
-                            .sortedBy { LibraryTable.libraryId }
+                            .where { LibraryTable.libraryInformationEntry eq libraryInformationEntry.id }
+                            .sortedBy { LibraryTable.libraryInformationEntry.name }
                             .map { LibraryEntry.wrapRow(it) }
                             .forEach { libraryEntry ->
                                 val legacyDefinition = LegacyLibraryDefinition(
-                                    id = libraryEntry.libraryId,
+                                    id = libraryInformationEntry.libraryId,
                                     path = libraryEntry.path,
                                     name = libraryInformationEntry.name,
                                     type = libraryInformationEntry.type,

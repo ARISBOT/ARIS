@@ -13,31 +13,26 @@ import org.katastima.apkscanner.models.Library
 
 object LibraryTable : IntIdTable("libraries") {
     val path = varchar("path", 255)
-    var libraryId = varchar("library_id", 255)
-    // This does not work with SQLite :/
-    //val libraryDefinition = reference("library_definition", LibraryDefinitions)
+    val libraryInformationEntry = reference("library_definition", LibraryInformationTable)
 }
 
 class LibraryEntry(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<LibraryEntry>(LibraryTable)
 
     var path by LibraryTable.path
-    var libraryId by LibraryTable.libraryId
-    // This does not work with SQLite :/
-    //var libraryDefinition by LibraryDefinition referencedOn Libraries.libraryDefinition
+    var libraryInformationEntry by LibraryInformationEntry referencedOn LibraryTable.libraryInformationEntry
 
     override fun toString(): String {
         return "LibraryEntry(" +
                 "path=$path, " +
-                "libraryId=$libraryId" +
-                //"libraryDefinition=$libraryDefinition" +
+                "libraryDefinition=$libraryInformationEntry" +
                 ")"
     }
 
     fun toLibrary(): Library {
         return Library(
             path = this.path,
-            libraryId = this.libraryId,
+            libraryInformation = libraryInformationEntry.toLibraryInformation(),
         )
     }
 }

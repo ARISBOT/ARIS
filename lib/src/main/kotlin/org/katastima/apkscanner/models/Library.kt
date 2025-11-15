@@ -10,5 +10,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Library(
     val path: String,
-    val libraryId: String,
+    val libraryInformation: LibraryInformation,
 )

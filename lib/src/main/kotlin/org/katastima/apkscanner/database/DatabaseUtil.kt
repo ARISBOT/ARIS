@@ -14,7 +14,6 @@ import org.katastima.apkscanner.config.DatabaseConfig
 import org.katastima.apkscanner.config.DatabaseMode
 import org.katastima.apkscanner.config.DatabaseType
 import org.katastima.apkscanner.database.dao.LibraryEntry
-import org.katastima.apkscanner.database.dao.LibraryInformationEntry
 import org.katastima.apkscanner.database.dao.LibraryInformationTable
 import org.katastima.apkscanner.database.dao.LibraryTable
 import org.katastima.apkscanner.database.dao.ManifestFilterConfigTable
@@ -106,34 +105,12 @@ object DatabaseUtil {
                 addLogger(StdOutSqlLogger)
             }
 
-            val informationMap = mutableMapOf<String, LibraryInformationEntry>()
             LibraryEntry
                 .find { LibraryTable.path eq libraryPath }
                 .forEach { libraryEntry ->
-                    if (informationMap[libraryEntry.libraryId] == null) {
-                        LibraryInformationEntry
-                            .find { LibraryInformationTable.libraryId eq libraryEntry.libraryId }
-                            .forEach { libraryInformationEntry ->
-                                informationMap[libraryEntry.libraryId] = libraryInformationEntry
-                            }
-                    }
+                    val libraryInformation = libraryEntry.libraryInformationEntry.toLibraryInformation()
+                    libraryInformationSet.add(libraryInformation)
                 }
-
-            informationMap.values.forEach { informationEntry ->
-                val libraryInformation = LibraryInformation(
-                    libraryId = informationEntry.libraryId,
-                    name = informationEntry.name,
-                    details = informationEntry.details,
-                    type = informationEntry.type,
-                    permissions = informationEntry.permissions.toTypedArray(),
-                    url = informationEntry.url,
-                    modWarningId = informationEntry.modWarningId,
-                    antiFeatures = informationEntry.antiFeatures.toTypedArray(),
-                    license = informationEntry.license,
-                    emphasize = informationEntry.emphasize,
-                )
-                libraryInformationSet.add(libraryInformation)
-            }
         }
 
         return libraryInformationSet
