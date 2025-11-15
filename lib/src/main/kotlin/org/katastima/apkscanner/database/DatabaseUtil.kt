@@ -68,8 +68,9 @@ object DatabaseUtil {
                 addLogger(StdOutSqlLogger)
             }
 
-            SchemaUtils.drop(LibraryInformationTable)
+            // Need to drop the library table first, as it references the information table
             SchemaUtils.drop(LibraryTable)
+            SchemaUtils.drop(LibraryInformationTable)
 
             SchemaUtils.drop(ManifestFlagConfigTable)
             SchemaUtils.drop(ManifestFilterConfigTable)
