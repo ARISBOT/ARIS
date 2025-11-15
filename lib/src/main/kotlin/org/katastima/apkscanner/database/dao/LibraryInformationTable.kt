@@ -9,6 +9,8 @@ import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.IntIdTable
 import org.jetbrains.exposed.v1.dao.IntEntity
 import org.jetbrains.exposed.v1.dao.IntEntityClass
+import org.katastima.apkscanner.models.LegacyLibraryInformation
+import org.katastima.apkscanner.models.LibraryInformation
 
 object LibraryInformationTable : IntIdTable("library_information") {
     val libraryId = varchar("library_id", 255)
@@ -51,5 +53,31 @@ class LibraryInformationEntry(id: EntityID<Int>) : IntEntity(id) {
                 "license=$license, " +
                 "emphasize=$emphasize" +
                 ")"
+    }
+
+    fun toLibraryInformation(): LibraryInformation {
+        return LibraryInformation(
+            libraryId = this.libraryId,
+            name = this.name,
+            details = this.details,
+            type = this.type,
+            permissions = this.permissions.toTypedArray(),
+            url = this.url,
+            modWarningId = this.modWarningId,
+            antiFeatures = this.antiFeatures.toTypedArray(),
+            license = this.license,
+            emphasize = this.emphasize,
+        )
+    }
+
+    fun toLegacyLibraryInformation(): LegacyLibraryInformation {
+        return LegacyLibraryInformation(
+            id = this.libraryId,
+            emphasize = this.emphasize,
+            details = this.details,
+            modWarningId = this.modWarningId,
+            antiFeatures = this.antiFeatures.toTypedArray(),
+            license = this.license,
+        )
     }
 }

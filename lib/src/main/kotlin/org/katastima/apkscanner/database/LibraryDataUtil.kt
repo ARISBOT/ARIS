@@ -95,26 +95,30 @@ object LibraryDataUtil {
                     addLogger(StdOutSqlLogger)
                 }
 
-                libraryDefinitions.sortedBy { it.id }.forEach {
-                    LibraryInformationEntry.find { LibraryInformationTable.libraryId eq it.id }.forEach { foundDefinition ->
-                        val permissionSet = hashSetOf<String>()
-                        permissionSet.addAll(foundDefinition.permissions)
-                        permissionSet.addAll(it.perms)
+                libraryDefinitions
+                    .sortedBy { it.id }
+                    .forEach {
+                        LibraryInformationEntry
+                            .find { LibraryInformationTable.libraryId eq it.id }
+                            .forEach { foundDefinition ->
+                                val permissionSet = hashSetOf<String>()
+                                permissionSet.addAll(foundDefinition.permissions)
+                                permissionSet.addAll(it.perms)
 
-                        foundDefinition.apply {
-                            name = it.name
-                            type = it.type
-                            permissions = permissionSet.sorted()
-                            url = it.url
-                        }
+                                foundDefinition.apply {
+                                    name = it.name
+                                    type = it.type
+                                    permissions = permissionSet.sorted()
+                                    url = it.url
+                                }
 
-                        LibraryEntry.new {
-                            path = it.path
-                            libraryId = it.id
-                            //libraryDefinition = foundDefinition
-                        }
+                                LibraryEntry.new {
+                                    path = it.path
+                                    libraryId = it.id
+                                    //libraryDefinition = foundDefinition
+                                }
+                            }
                     }
-                }
             }
         }
         LOGGER.info("Imported {} library definitions from: {} in {} ms", libraryDefinitions.size, libraryDefinitionsFile.absolutePath, importDuration)

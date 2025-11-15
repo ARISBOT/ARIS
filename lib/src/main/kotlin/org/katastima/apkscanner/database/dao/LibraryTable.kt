@@ -9,6 +9,7 @@ import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.IntIdTable
 import org.jetbrains.exposed.v1.dao.IntEntity
 import org.jetbrains.exposed.v1.dao.IntEntityClass
+import org.katastima.apkscanner.models.Library
 
 object LibraryTable : IntIdTable("libraries") {
     val path = varchar("path", 255)
@@ -31,5 +32,12 @@ class LibraryEntry(id: EntityID<Int>) : IntEntity(id) {
                 "libraryId=$libraryId" +
                 //"libraryDefinition=$libraryDefinition" +
                 ")"
+    }
+
+    fun toLibrary(): Library {
+        return Library(
+            path = this.path,
+            libraryId = this.libraryId,
+        )
     }
 }
