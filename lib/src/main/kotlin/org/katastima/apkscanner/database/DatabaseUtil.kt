@@ -13,13 +13,7 @@ import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.katastima.apkscanner.config.DatabaseConfig
 import org.katastima.apkscanner.config.DatabaseMode
 import org.katastima.apkscanner.config.DatabaseType
-import org.katastima.apkscanner.database.dao.LibraryEntry
-import org.katastima.apkscanner.database.dao.LibraryInformationTable
-import org.katastima.apkscanner.database.dao.LibraryTable
-import org.katastima.apkscanner.database.dao.ManifestFilterConfigTable
-import org.katastima.apkscanner.database.dao.ManifestFlagConfigTable
-import org.katastima.apkscanner.database.dao.ManifestPermissionConfigTable
-import org.katastima.apkscanner.database.dao.SigningCertificateDenylistTable
+import org.katastima.apkscanner.database.dao.*
 import org.katastima.apkscanner.models.LibraryInformation
 import java.io.File
 
@@ -37,7 +31,6 @@ object DatabaseUtil {
     private fun connectToDatabase(databaseConfig: DatabaseConfig): Database {
         return when (databaseConfig.type) {
             DatabaseType.H2 -> connectToH2Database(databaseConfig)
-            DatabaseType.SQLITE -> connectToSqliteDatabase(databaseConfig)
         }
     }
 
@@ -49,17 +42,6 @@ object DatabaseUtil {
             }
 
             DatabaseMode.MEMORY -> Database.connect("jdbc:h2:mem:test", driver = "org.h2.Driver")
-        }
-    }
-
-    private fun connectToSqliteDatabase(databaseConfig: DatabaseConfig): Database {
-        return when (databaseConfig.mode) {
-            DatabaseMode.DEFAULT -> {
-                val databasePath = File(databaseConfig.path).absolutePath
-                Database.connect("jdbc:sqlite:${databasePath}", "org.sqlite.JDBC")
-            }
-
-            DatabaseMode.MEMORY -> Database.connect("jdbc:sqlite:file:test?mode=memory&cache=shared", "org.sqlite.JDBC")
         }
     }
 

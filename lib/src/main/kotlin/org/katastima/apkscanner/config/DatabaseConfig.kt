@@ -10,7 +10,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class DatabaseConfig(
     val debug: Boolean = true,
-    val type: DatabaseType = DatabaseType.SQLITE,
+    val type: DatabaseType = DatabaseType.H2,
     val mode: DatabaseMode = DatabaseMode.DEFAULT,
     val path: String = "apkscanner",
 )
@@ -18,7 +18,6 @@ data class DatabaseConfig(
 @Serializable
 enum class DatabaseType {
     H2,
-    SQLITE,
 }
 
 @Serializable
