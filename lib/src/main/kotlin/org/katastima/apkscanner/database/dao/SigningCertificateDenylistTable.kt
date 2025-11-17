@@ -12,7 +12,7 @@ import org.jetbrains.exposed.v1.dao.IntEntityClass
 import org.katastima.apkscanner.models.signing.SigningCertificate
 
 object SigningCertificateDenylistTable : IntIdTable("signing_certificate_denylist") {
-    val name = varchar("name", 255)
+    val name = varchar("name", 255).uniqueIndex()
     val description = text("description").default("")
     val sourceUrl = varchar("sourceUrl", 255)
     val dn = array<String>("dn")
