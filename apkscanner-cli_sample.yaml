@@ -13,3 +13,7 @@ apkscanner_config_file_path: "apkscanner.yaml"
 console_output:
   # Whether output should be rich, e.g.: bold, with color, etc.
   enable_rich_output: true
+
+scan_apk:
+  # Switch for enabling all verbose prints.
+  verbose_all: false

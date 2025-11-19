@@ -21,6 +21,7 @@ data class CliConfig(
     var quiet: Boolean = false,
     @SerialName("apkscanner_config_file_path") val apkScannerConfigFilePath: String = "apkscanner.yaml",
     @SerialName("console_output") val consoleOutputConfig: ConsoleOutputConfig = ConsoleOutputConfig(),
+    @SerialName("scan_apk") val scanApkConfig: ScanApkConfig = ScanApkConfig(),
     @Transient var configFilePath: String = "apkscanner-cli.yaml",
     @Transient var apkScannerConfig: ApkScannerConfig = ApkScannerConfig.getConfig(File(apkScannerConfigFilePath)),
 ) {

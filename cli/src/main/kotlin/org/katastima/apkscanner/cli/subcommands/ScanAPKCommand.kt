@@ -105,11 +105,11 @@ class ScanAPKCommand : ApkScannerCommand() {
         silenceableEcho("------------------------------------------------------------------------------")
         silenceableEcho()
 
-        silenceableEcho("Scan has completed:")
-        silenceableEcho("-------------------")
-        silenceableEcho("* Date (UTC): ${scanResult.scanDateUTC}")
-        silenceableEcho("* Duration: ${scanResult.scanDurationMs} ms")
-        silenceableEcho()
+        verboseEcho("Scan has completed:")
+        verboseEcho("-------------------")
+        verboseEcho("* Date (UTC): ${scanResult.scanDateUTC}")
+        verboseEcho("* Duration: ${scanResult.scanDurationMs} ms")
+        verboseEcho()
 
         silenceableEcho("Scanned APK:")
         silenceableEcho("------------")
@@ -335,6 +335,12 @@ class ScanAPKCommand : ApkScannerCommand() {
 
             val resultOutputFile = File(resultOutputDirectory, "apk-scanner_scan-apk_${apkFile.name}.json")
             resultOutputFile.writeText(scanResultJsonString)
+        }
+    }
+
+    private fun verboseEcho(message: Any? = "", trailingNewline: Boolean = true, err: Boolean = false) {
+        if (cliConfig.verbose || cliConfig.scanApkConfig.verboseAll) {
+            silenceableEcho(message, trailingNewline, err)
         }
     }
 }

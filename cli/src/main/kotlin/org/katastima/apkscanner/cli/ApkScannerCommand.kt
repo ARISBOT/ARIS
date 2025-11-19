@@ -17,11 +17,7 @@ abstract class ApkScannerCommand(name: String? = null) : SuspendingCliktCommand(
         silenceableEcho("")
     }
 
-    fun silenceableEcho(
-        message: Any?,
-        trailingNewline: Boolean = true,
-        err: Boolean = false,
-    ) {
+    fun silenceableEcho(message: Any?, trailingNewline: Boolean = true, err: Boolean = false) {
         if (cliConfig.quiet.not()) {
             currentContext.echoMessage(currentContext, message, trailingNewline, err)
         }
