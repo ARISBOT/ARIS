@@ -28,6 +28,7 @@ import org.katastima.apkscanner.database.DatabaseUtil
 import org.katastima.apkscanner.extensions.formatAsHex
 import org.katastima.apkscanner.extensions.formatValidInvalid
 import org.katastima.apkscanner.extensions.formatYesNo
+import org.katastima.apkscanner.extensions.getApkFilePathForReport
 import org.katastima.apkscanner.extensions.nowAsLocalDate
 import org.katastima.apkscanner.models.ApkScanResult
 import org.katastima.apkscanner.models.manifest.ManifestCheckResult
@@ -88,7 +89,12 @@ class ScanAPKCommand : ApkScannerCommand() {
             backgroundDispatcher = Dispatchers.Default,
             ioDispatcher = Dispatchers.IO,
         ).use {
-            silenceableEcho("Scanning ${apkFiles.size} APK(s).\n")
+            silenceableEcho("Scanning ${apkFiles.size} APK(s):")
+            apkFiles.forEach { apkFile ->
+                silenceableEcho("* ${apkFile.getApkFilePathForReport(apkScannerConfig)}")
+            }
+            silenceableEcho()
+
             it.scanMulti(apkFiles, this::printScanResult)
         }
     }
@@ -142,7 +148,7 @@ class ScanAPKCommand : ApkScannerCommand() {
         }
 
         val manifestResultString = if (manifestResultStringBuilder.isEmpty()) {
-            "* No violations detected"
+            "No violations detected."
         } else {
             manifestResultStringBuilder.toString()
         }.trim()
@@ -156,7 +162,7 @@ class ScanAPKCommand : ApkScannerCommand() {
         silenceableEcho("-------------------")
         val detectedLibraries = scanResult.libraryCheckResult.detectedLibraries
         if (detectedLibraries.isEmpty()) {
-            silenceableEcho("* No libraries detected")
+            silenceableEcho("No libraries detected.")
         } else {
             detectedLibraries.forEach { library ->
                 silenceableEcho("* ${library.name} (${library.libraryId}): ${library.type}, ${library.license}", trailingNewline = false)
@@ -176,7 +182,7 @@ class ScanAPKCommand : ApkScannerCommand() {
         silenceableEcho("--------------------")
         val offendingLibraries = scanResult.libraryCheckResult.offendingLibraries
         if (offendingLibraries.isEmpty()) {
-            silenceableEcho("* No offending libraries detected")
+            silenceableEcho("No offending libraries detected.")
         } else {
             offendingLibraries.forEach { offendingLibrary ->
                 silenceableEcho("* ${offendingLibrary.name} (${offendingLibrary.libraryId}): ${formatAntiFeatures(offendingLibrary.antiFeatures)}")
@@ -194,7 +200,7 @@ class ScanAPKCommand : ApkScannerCommand() {
 
         val signingCheckResult = scanResult.signingCheckResult
         if (signingCheckResult.isInvalid()) {
-            silenceableEcho("* Failed to verify signature, please ensure the APK is properly signed!")
+            silenceableEcho("Failed to verify signature, please ensure the APK is properly signed!")
             silenceableEcho()
             return
         }

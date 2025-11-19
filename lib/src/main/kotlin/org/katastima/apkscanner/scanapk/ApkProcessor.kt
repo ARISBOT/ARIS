@@ -13,6 +13,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.katastima.apkscanner.config.ApkScannerConfig
+import org.katastima.apkscanner.extensions.getApkFilePathForReport
 import org.katastima.apkscanner.extensions.toSha256
 import org.katastima.apkscanner.library.LibraryProcessor
 import org.katastima.apkscanner.manifest.ManifestProcessor
@@ -22,7 +23,6 @@ import org.katastima.apkscanner.utils.Randomizer
 import org.slf4j.LoggerFactory
 import java.io.Closeable
 import java.io.File
-import java.nio.file.Paths
 import kotlin.io.path.createTempDirectory
 import kotlin.time.measureTimedValue
 
@@ -42,7 +42,7 @@ class ApkProcessor(
 
         val (decodedApkDirectory, decodedApkInfo) = decodeApkPair
         val (apkFilePath, apkFilePathDuration) = measureTimedValue {
-            getApkFilePathForReport(apkFile)
+            apkFile.getApkFilePathForReport(apkScannerConfig)
         }
         LOGGER.debug("getApkFilePathForReport(apkFile): {} ms", apkFilePathDuration.inWholeMilliseconds)
 
@@ -80,21 +80,6 @@ class ApkProcessor(
         } finally {
             // Delete the directory (which contains the decoded apk output) recursively to clean up.
             decodedApkDirectory.deleteRecursively()
-        }
-    }
-
-    private fun getApkFilePathForReport(apkFile: File): String {
-        return when (apkScannerConfig.scanConfig.apkReportedPathType) {
-            "absolute" -> apkFile.absolutePath
-
-            "filename" -> apkFile.name
-
-            "relative" -> {
-                val currentWorkingDirectory = Paths.get("").toAbsolutePath().toFile()
-                apkFile.relativeTo(currentWorkingDirectory).path
-            }
-
-            else -> apkFile.name
         }
     }
 
