@@ -120,18 +120,18 @@ class ApkProcessor(
     }
 
     private suspend fun scanForLibraries(outputDir: File): List<LibraryInformation> {
-        val libraryInformationList = mutableListOf<LibraryInformation>()
+        val libraryInformationSet = mutableSetOf<LibraryInformation>()
 
         var totalProcessingDuration = 0L
         var totalProcessedDirectories = 0L
         outputDir
             // Filter by directories, where the name equals "smali".
-            .listFiles { it.isDirectory && it.name.lowercase() == "smali" }
+            .listFiles { it.isDirectory && it.name.lowercase().contains("smali") }
             .forEach { smaliDirectory ->
                 var processedDirectories = 0
                 val processSmaliDirectoryDuration = measureTimeMillis {
                     processSmaliDirectory(smaliDirectory) {
-                        libraryInformationList.addAll(it)
+                        libraryInformationSet.addAll(it)
                         processedDirectories++
                     }
                 }
@@ -144,7 +144,7 @@ class ApkProcessor(
             totalProcessedDirectories, totalProcessingDuration, totalProcessingDuration / max(1, totalProcessedDirectories)
         )
 
-        return libraryInformationList
+        return libraryInformationSet.sortedBy { it.name }
     }
 
     private suspend fun processSmaliDirectory(smaliDirectory: File, onProcess: (informationSet: Set<LibraryInformation>) -> Unit) = withContext(ioDispatcher) {
