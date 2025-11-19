@@ -18,8 +18,9 @@ import org.katastima.apkscanner.config.ApkScannerConfig
 import org.katastima.apkscanner.database.DatabaseUtil
 import org.katastima.apkscanner.extensions.toSha256
 import org.katastima.apkscanner.manifest.ManifestProcessor
-import org.katastima.apkscanner.models.LibraryCheckResult
-import org.katastima.apkscanner.models.LibraryInformation
+import org.katastima.apkscanner.models.ApkScanResult
+import org.katastima.apkscanner.models.library.LibraryCheckResult
+import org.katastima.apkscanner.models.library.LibraryInformation
 import org.katastima.apkscanner.signing.ApkCert
 import org.katastima.apkscanner.utils.Randomizer
 import org.slf4j.LoggerFactory

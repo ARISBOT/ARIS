@@ -9,8 +9,8 @@ import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.IntIdTable
 import org.jetbrains.exposed.v1.dao.IntEntity
 import org.jetbrains.exposed.v1.dao.IntEntityClass
-import org.katastima.apkscanner.models.LegacyLibraryInformation
-import org.katastima.apkscanner.models.LibraryInformation
+import org.katastima.apkscanner.models.library.LegacyLibraryInformation
+import org.katastima.apkscanner.models.library.LibraryInformation
 
 object LibraryInformationTable : IntIdTable("library_information") {
     val libraryId = varchar("library_id", 255)

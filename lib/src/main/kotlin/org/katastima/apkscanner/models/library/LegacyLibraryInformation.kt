@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: EUPL-1.2
  */
 
-package org.katastima.apkscanner.models
+package org.katastima.apkscanner.models.library
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

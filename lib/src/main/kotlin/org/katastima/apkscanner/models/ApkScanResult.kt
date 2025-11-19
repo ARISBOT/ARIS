@@ -3,13 +3,13 @@
  * SPDX-License-Identifier: EUPL-1.2
  */
 
-package org.katastima.apkscanner.scanapk
+package org.katastima.apkscanner.models
 
 import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.katastima.apkscanner.extensions.nowAsLocalDate
-import org.katastima.apkscanner.models.LibraryCheckResult
+import org.katastima.apkscanner.models.library.LibraryCheckResult
 import org.katastima.apkscanner.models.manifest.ManifestCheckResult
 import org.katastima.apkscanner.models.signing.SigningCheckResult
 

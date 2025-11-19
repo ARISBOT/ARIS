@@ -30,10 +30,10 @@ import org.katastima.apkscanner.extensions.formatAsHex
 import org.katastima.apkscanner.extensions.formatValidInvalid
 import org.katastima.apkscanner.extensions.formatYesNo
 import org.katastima.apkscanner.extensions.nowAsLocalDate
-import org.katastima.apkscanner.models.LibraryInformation
+import org.katastima.apkscanner.models.ApkScanResult
+import org.katastima.apkscanner.models.library.LibraryInformation
 import org.katastima.apkscanner.models.manifest.ManifestCheckResult
 import org.katastima.apkscanner.models.signing.SigningBlockResult
-import org.katastima.apkscanner.scanapk.ApkScanResult
 import org.katastima.apkscanner.scanapk.ApkScanner
 import org.katastima.apkscanner.signing.AndroidSigningBlock
 import java.io.File

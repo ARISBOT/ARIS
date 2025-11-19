@@ -9,7 +9,7 @@ import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.IntIdTable
 import org.jetbrains.exposed.v1.dao.IntEntity
 import org.jetbrains.exposed.v1.dao.IntEntityClass
-import org.katastima.apkscanner.models.Library
+import org.katastima.apkscanner.models.library.Library
 
 object LibraryTable : IntIdTable("libraries") {
     val path = varchar("path", 255)

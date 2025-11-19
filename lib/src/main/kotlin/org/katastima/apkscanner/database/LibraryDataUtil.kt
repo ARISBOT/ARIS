@@ -16,8 +16,8 @@ import org.katastima.apkscanner.database.dao.LibraryEntry
 import org.katastima.apkscanner.database.dao.LibraryInformationEntry
 import org.katastima.apkscanner.database.dao.LibraryInformationTable
 import org.katastima.apkscanner.database.dao.LibraryTable
-import org.katastima.apkscanner.models.LegacyLibraryDefinition
-import org.katastima.apkscanner.models.LegacyLibraryInformation
+import org.katastima.apkscanner.models.library.LegacyLibraryDefinition
+import org.katastima.apkscanner.models.library.LegacyLibraryInformation
 import org.slf4j.LoggerFactory
 import java.io.File
 import kotlin.system.measureTimeMillis
