@@ -10,6 +10,7 @@ import okio.HashingSink.Companion.sha256
 import okio.blackholeSink
 import okio.buffer
 import okio.source
+import org.katastima.apkscanner.config.ApkReportedPathType
 import org.katastima.apkscanner.config.ApkScannerConfig
 import java.io.File
 import java.nio.file.Paths
@@ -28,14 +29,13 @@ fun BufferedSource.toSha256(): String {
 }
 
 fun File.getApkFilePathForReport(apkScannerConfig: ApkScannerConfig): String = when (apkScannerConfig.scanConfig.apkReportedPathType) {
-    "absolute" -> this.absolutePath
+    ApkReportedPathType.ABSOLUTE -> this.absolutePath
 
-    "filename" -> this.name
+    ApkReportedPathType.FILENAME,
+    ApkReportedPathType.DEFAULT -> this.name
 
-    "relative" -> {
+    ApkReportedPathType.RELATIVE -> {
         val currentWorkingDirectory = Paths.get("").toAbsolutePath().toFile()
         this.relativeTo(currentWorkingDirectory).path
     }
-
-    else -> this.name
 }

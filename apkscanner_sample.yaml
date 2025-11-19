@@ -12,8 +12,8 @@ data:
   manifest_config_path: "sampledata/manifest_config.json"
 database:
   debug: false
-  type: "H2"
-  mode: "DEFAULT"
+  type: "h2"
+  mode: "default"
   path: "apkscanner"
 scan:
   # Assuming the scanner is executed at /opt:

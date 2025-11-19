@@ -10,5 +10,20 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ScanConfig(
-    @SerialName("apk_reported_path_type") val apkReportedPathType: String = "default",
+    @SerialName("apk_reported_path_type") val apkReportedPathType: ApkReportedPathType = ApkReportedPathType.DEFAULT,
 )
+
+@Serializable
+enum class ApkReportedPathType {
+    @SerialName("default")
+    DEFAULT,
+
+    @SerialName("absolute")
+    ABSOLUTE,
+
+    @SerialName("filename")
+    FILENAME,
+
+    @SerialName("relative")
+    RELATIVE,
+}
