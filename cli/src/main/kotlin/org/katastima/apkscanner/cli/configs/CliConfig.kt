@@ -7,6 +7,7 @@ package org.katastima.apkscanner.cli.configs
 
 import com.charleskorn.kaml.Yaml
 import com.charleskorn.kaml.YamlConfiguration
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import okio.source
@@ -19,6 +20,7 @@ data class CliConfig(
     var verbose: Boolean = false,
     var quiet: Boolean = false,
     val apkScannerConfigFilePath: String = "apkscanner.yaml",
+    @SerialName("console_output") val consoleOutputConfig: ConsoleOutputConfig = ConsoleOutputConfig(),
     @Transient var configFilePath: String = "apkscanner-cli.yaml",
     @Transient var apkScannerConfig: ApkScannerConfig = ApkScannerConfig.getConfig(File(apkScannerConfigFilePath)),
 ) {

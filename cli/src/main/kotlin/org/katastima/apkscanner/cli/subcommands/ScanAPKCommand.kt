@@ -297,8 +297,9 @@ class ScanAPKCommand : ApkScannerCommand() {
     }
 
     private fun formatAntiFeatures(antiFeatures: Array<String>): String = buildString {
-        // TODO: configurable console output formatting.
-        append("\u001B[1m")
+        if (cliConfig.consoleOutputConfig.richOutputEnabled) {
+            append("\u001B[1m")
+        }
         val antiFeatureIterator = antiFeatures.iterator()
         while (antiFeatureIterator.hasNext()) {
             append(antiFeatureIterator.next())
@@ -306,8 +307,9 @@ class ScanAPKCommand : ApkScannerCommand() {
                 append(",")
             }
         }
-        // TODO: configurable console output formatting.
-        append("\u001B[0m")
+        if (cliConfig.consoleOutputConfig.richOutputEnabled) {
+            append("\u001B[0m")
+        }
     }
 
     private fun storeScanResultAsJsonIfWanted(apkFile: File, scanResult: ApkScanResult) {
