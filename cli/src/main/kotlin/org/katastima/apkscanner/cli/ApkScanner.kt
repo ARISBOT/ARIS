@@ -44,10 +44,12 @@ class ApkScanner : SuspendingCliktCommand() {
         }
 
         val parsedConfigFile = configFile
-        if (parsedConfigFile != null && cliConfig.verbose) {
+        if (parsedConfigFile != null) {
             cliConfig.configFilePath = parsedConfigFile.absolutePath
-            echo("Loaded cli config from: ${cliConfig.configFilePath}")
-            echo()
+            if (cliConfig.verbose) {
+                echo("Loaded cli config from: ${cliConfig.configFilePath}")
+                echo()
+            }
         }
 
         cliConfig.quiet = if (quiet != null) {
@@ -57,5 +59,7 @@ class ApkScanner : SuspendingCliktCommand() {
         }
 
         parsedCliConfig?.apkScannerConfig?.let { cliConfig.apkScannerConfig = it }
+        parsedCliConfig?.consoleOutputConfig?.let { cliConfig.consoleOutputConfig = it }
+        parsedCliConfig?.scanApkConfig?.let { cliConfig.scanApkConfig = it }
     }
 }
