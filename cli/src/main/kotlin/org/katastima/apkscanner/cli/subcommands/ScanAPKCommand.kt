@@ -181,8 +181,6 @@ class ScanAPKCommand : SuspendingCliktCommand() {
         if (offendingLibraries.isEmpty()) {
             echo("* No offending libraries detected")
         } else {
-            echo("Offending libraries:")
-            echo("--------------------")
             offendingLibraries.forEach { offendingLibrary ->
                 echo("* ${offendingLibrary.name} (${offendingLibrary.libraryId}): ${formatAntiFeatures(offendingLibrary.antiFeatures)}")
             }
