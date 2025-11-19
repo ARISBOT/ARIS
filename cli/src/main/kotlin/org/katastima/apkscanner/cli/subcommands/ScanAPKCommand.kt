@@ -116,8 +116,14 @@ class ScanAPKCommand : ApkScannerCommand() {
         silenceableEcho("Scanned APK:")
         silenceableEcho("------------")
 
-        silenceableEcho("* App name: ${scanResult.manifestCheckResult.manifest.label}")
-        silenceableEcho("* App id:   ${scanResult.manifestCheckResult.manifest.appId}")
+        val apkManifest = scanResult.manifestCheckResult.manifest
+        silenceableEcho("* Name:      ${apkManifest.label}")
+        silenceableEcho("* Package:   ${apkManifest.appId}")
+        silenceableEcho("* Version:   ${apkManifest.versionName} (${apkManifest.versionCode})")
+        silenceableEcho("* SDK:")
+        silenceableEcho("  * MinSDK:    ${apkManifest.minSdk}")
+        silenceableEcho("  * TargetSDK: ${apkManifest.targetSdk}")
+        // TODO: compiler information (platformBuildVersion, compileSdkVersion) as verbose?
         verboseEcho(EchoType.APK_INFO, "* File:     ${scanResult.apkFilePath}")
         verboseEcho(EchoType.APK_INFO, "* SHA-256:  ${scanResult.apkFileSha256}")
         silenceableEcho()
