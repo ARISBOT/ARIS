@@ -11,4 +11,6 @@ import kotlinx.serialization.Serializable
 data class LibraryCheckResult(
     val detectedLibraries: List<LibraryInformation> = emptyList(),
     val offendingLibraries: List<LibraryInformation> = emptyList(),
+    val antiFeatures: Set<String> = emptySet(),
+    val modWarningIds: Set<String> = emptySet(),
 )

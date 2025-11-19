@@ -27,6 +27,23 @@ class LibraryProcessor(
 ) {
 
     suspend fun process(outputDir: File): LibraryCheckResult = withContext(ioDispatcher) {
+        val libraryInformationSet = detectLibraries(outputDir)
+
+        val detectedLibraries = libraryInformationSet.sortedBy { it.name.lowercase() }
+        val offendingLibraries = detectedLibraries.filter { it.antiFeatures.isNotEmpty() }
+
+        val antiFeatures = detectAntiFeatures(offendingLibraries)
+        val modWarningIds = detectModWarningIds(offendingLibraries)
+
+        return@withContext LibraryCheckResult(
+            detectedLibraries = detectedLibraries,
+            offendingLibraries = offendingLibraries,
+            antiFeatures = antiFeatures,
+            modWarningIds = modWarningIds,
+        )
+    }
+
+    private suspend fun detectLibraries(outputDir: File): Set<LibraryInformation> {
         val libraryInformationSet = mutableSetOf<LibraryInformation>()
 
         var totalProcessingDuration = 0L
@@ -51,13 +68,7 @@ class LibraryProcessor(
             totalProcessedDirectories, totalProcessingDuration, totalProcessingDuration / max(1, totalProcessedDirectories)
         )
 
-        val detectedLibraries = libraryInformationSet.sortedBy { it.name.lowercase() }
-        val offendingLibraries = detectedLibraries.filter { it.antiFeatures.isNotEmpty() }
-
-        return@withContext LibraryCheckResult(
-            detectedLibraries = detectedLibraries,
-            offendingLibraries = offendingLibraries,
-        )
+        return libraryInformationSet
     }
 
     private suspend fun processSmaliDirectory(
@@ -87,6 +98,27 @@ class LibraryProcessor(
             libraryPath = "${File.separator}${libraryId}",
             debugDatabase = apkScannerConfig.databaseConfig.debug
         )
+    }
+
+    private suspend fun detectAntiFeatures(offendingLibraries: List<LibraryInformation>): Set<String> = withContext(backgroundDispatcher) {
+        val antiFeatureSet = sortedSetOf<String>()
+        offendingLibraries
+            .map { it.antiFeatures }
+            .forEach { antiFeatures ->
+                antiFeatures
+                    .filter { it.isNotBlank() }
+                    .forEach { antiFeatureSet.add(it) }
+            }
+        return@withContext antiFeatureSet
+    }
+
+    private suspend fun detectModWarningIds(offendingLibraries: List<LibraryInformation>): Set<String> = withContext(backgroundDispatcher) {
+        val modWarningIdSet = sortedSetOf<String>()
+        offendingLibraries
+            .map { it.modWarningId }
+            .filter { it.isNotBlank() }
+            .forEach { modWarningIdSet.add(it) }
+        return@withContext modWarningIdSet
     }
 
     companion object {
