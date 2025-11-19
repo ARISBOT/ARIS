@@ -61,7 +61,7 @@ class LibraryProcessor(
                 }
                 totalProcessedDirectories += processedDirectories
                 totalProcessingDuration += processSmaliDirectoryDuration
-                LOGGER.debug("processSmaliDirectory(): {} ms for {} directories", processSmaliDirectoryDuration, processedDirectories)
+                LOGGER.debug("processSmaliDirectory(${smaliDirectory.name}): {} ms for {} directories", processSmaliDirectoryDuration, processedDirectories)
             }
         LOGGER.debug(
             "scanForLibraries(): processed a total of {} directories in {} ms ({} ms / directory)",
