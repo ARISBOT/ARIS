@@ -91,11 +91,13 @@ class ScanAPKCommand : ApkScannerCommand() {
             silenceableEcho("Scanning ${apkFiles.size} APK(s).\n")
             it.scanMulti(apkFiles, this::printScanResult)
         }
-        silenceableEcho("Have a nice day!")
     }
 
     private fun printScanResult(apkFile: File, scanResult: ApkScanResult) {
         storeScanResultAsJsonIfWanted(apkFile, scanResult)
+
+        silenceableEcho("------------------------------------------------------------------------------")
+        silenceableEcho()
 
         silenceableEcho("Scan has completed:")
         silenceableEcho("-------------------")
@@ -116,9 +118,6 @@ class ScanAPKCommand : ApkScannerCommand() {
         printLibraryResult(scanResult)
         printSignatureVerificationResult(scanResult)
         printAndroidSigningBlockResult(scanResult.signingCheckResult.signingBlockResult)
-
-        silenceableEcho("------------------------------------------------------------------------------")
-        silenceableEcho()
     }
 
     private fun printManifestResult(manifestCheckResult: ManifestCheckResult) {
