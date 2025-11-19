@@ -8,7 +8,7 @@
 verbose: false
 quiet: false
 
-apkScannerConfigFilePath: "apkscanner.yaml"
+apkscanner_config_file_path: "apkscanner.yaml"
 
 console_output:
   # Whether output should be rich, e.g.: bold, with color, etc.
