@@ -24,6 +24,10 @@ import kotlinx.datetime.format
 import kotlinx.datetime.format.char
 import kotlinx.serialization.json.Json
 import org.katastima.apkscanner.cli.ApkScannerCommand
+import org.katastima.apkscanner.cli.extensions.formatBold
+import org.katastima.apkscanner.cli.extensions.formatGreen
+import org.katastima.apkscanner.cli.extensions.formatRed
+import org.katastima.apkscanner.cli.extensions.formatYellow
 import org.katastima.apkscanner.database.DatabaseUtil
 import org.katastima.apkscanner.extensions.formatAsHex
 import org.katastima.apkscanner.extensions.formatVerifiedUnverified
@@ -117,9 +121,9 @@ class ScanAPKCommand : ApkScannerCommand() {
         silenceableEcho("------------")
 
         val apkManifest = scanResult.manifestCheckResult.manifest
-        silenceableEcho("* Name:      ${apkManifest.label}")
-        silenceableEcho("* Package:   ${apkManifest.appId}")
-        silenceableEcho("* Version:   ${apkManifest.versionName} (${apkManifest.versionCode})")
+        silenceableEcho("* Name:    ${apkManifest.label}")
+        silenceableEcho("* Package: ${apkManifest.appId}")
+        silenceableEcho("* Version: ${apkManifest.versionName} (${apkManifest.versionCode})")
         silenceableEcho("* SDK:")
         silenceableEcho("  * MinSDK:    ${apkManifest.minSdk}")
         silenceableEcho("  * TargetSDK: ${apkManifest.targetSdk}")
@@ -138,29 +142,28 @@ class ScanAPKCommand : ApkScannerCommand() {
         silenceableEcho("Manifest verification:")
         silenceableEcho("----------------------")
 
-        val manifestResultStringBuilder = StringBuilder()
-
         if (manifestCheckResult.dangerousFilters.isNotEmpty()) {
-            manifestResultStringBuilder.append("* Dangerous filters\n")
-            manifestCheckResult.dangerousFilters.forEach { manifestResultStringBuilder.append("  * $it\n") }
+            silenceableEcho("* Dangerous filters".formatYellow(cliConfig.consoleOutputConfig))
+            manifestCheckResult.dangerousFilters.forEach { silenceableEcho("  * $it".formatYellow(cliConfig.consoleOutputConfig)) }
         }
 
         if (manifestCheckResult.dangerousFlags.isNotEmpty()) {
-            manifestResultStringBuilder.append("* Dangerous flags\n")
-            manifestCheckResult.dangerousFlags.forEach { manifestResultStringBuilder.append("  * $it\n") }
+            silenceableEcho("* Dangerous flags".formatYellow(cliConfig.consoleOutputConfig))
+            manifestCheckResult.dangerousFlags.forEach { silenceableEcho("  * $it".formatYellow(cliConfig.consoleOutputConfig)) }
         }
 
         if (manifestCheckResult.dangerousPermissions.isNotEmpty()) {
-            manifestResultStringBuilder.append("* Dangerous permissions\n")
-            manifestCheckResult.dangerousPermissions.forEach { manifestResultStringBuilder.append("  * $it\n") }
+            silenceableEcho("* Dangerous permissions".formatYellow(cliConfig.consoleOutputConfig))
+            manifestCheckResult.dangerousPermissions.forEach { silenceableEcho("  * $it".formatYellow(cliConfig.consoleOutputConfig)) }
         }
 
-        val manifestResultString = if (manifestResultStringBuilder.isEmpty()) {
-            "No violations detected."
-        } else {
-            manifestResultStringBuilder.toString()
-        }.trim()
-        silenceableEcho(manifestResultString)
+        if (
+            manifestCheckResult.dangerousFilters.isEmpty() &&
+            manifestCheckResult.dangerousFlags.isEmpty() &&
+            manifestCheckResult.dangerousPermissions.isEmpty()
+        ) {
+            silenceableEcho("No offenders detected.".formatGreen(cliConfig.consoleOutputConfig))
+        }
 
         silenceableEcho()
     }
@@ -194,7 +197,7 @@ class ScanAPKCommand : ApkScannerCommand() {
         silenceableEcho("--------------------")
         val offendingLibraries = scanResult.libraryCheckResult.offendingLibraries
         if (offendingLibraries.isEmpty()) {
-            silenceableEcho("No offending libraries detected.")
+            silenceableEcho("No offending libraries detected.".formatGreen(cliConfig.consoleOutputConfig))
         } else {
             offendingLibraries.forEach { offendingLibrary ->
                 silenceableEcho("* ${offendingLibrary.name} (${offendingLibrary.libraryId}): ${formatAntiFeatures(offendingLibrary.antiFeatures)}")
@@ -212,7 +215,7 @@ class ScanAPKCommand : ApkScannerCommand() {
 
         val signingCheckResult = scanResult.signingCheckResult
         if (signingCheckResult.isInvalid()) {
-            silenceableEcho("Failed to verify signature, please ensure the APK is properly signed!")
+            silenceableEcho("Failed to verify signature, please ensure the APK is properly signed!".formatRed(cliConfig.consoleOutputConfig))
             silenceableEcho()
             return
         }
@@ -225,7 +228,7 @@ class ScanAPKCommand : ApkScannerCommand() {
             silenceableEcho("* Certificate #${certificateCounter}")
 
             if (certificateResult.denylistMatches.isNotEmpty()) {
-                silenceableEcho("  * [!] Certificate found in deny list")
+                silenceableEcho("  * [!] Certificate found in deny list".formatRed(cliConfig.consoleOutputConfig))
                 certificateResult.denylistMatches.forEach { denyListMatch ->
                     silenceableEcho("    * Name: ${denyListMatch.name}")
                     silenceableEcho("      * Description: ${denyListMatch.description.ifEmpty { "-" }}")
@@ -285,7 +288,7 @@ class ScanAPKCommand : ApkScannerCommand() {
             silenceableEcho("  * Issuer:")
             silenceableEcho("    * Principal: ${certificateResult.issuerPrincipal}")
             if (certificateResult.issuerContainsControlCharacters) {
-                silenceableEcho("    * Contains Control Characters: ${true.formatYesNo()}")
+                silenceableEcho("    * Contains Control Characters: ${true.formatYesNo()}".formatRed(cliConfig.consoleOutputConfig))
             } else {
                 verboseEcho(EchoType.SIGNATURE_CERTIFICATE, "    * Contains Control Characters: ${false.formatYesNo()}")
             }
@@ -298,7 +301,7 @@ class ScanAPKCommand : ApkScannerCommand() {
         silenceableEcho("  * Subject:")
         silenceableEcho("    * Principal: ${certificateResult.subjectPrincipal}")
         if (certificateResult.subjectContainsControlCharacters) {
-            silenceableEcho("    * Contains Control Characters: ${true.formatYesNo()}")
+            silenceableEcho("    * Contains Control Characters: ${true.formatYesNo()}".formatRed(cliConfig.consoleOutputConfig))
         } else {
             verboseEcho(EchoType.SIGNATURE_CERTIFICATE, "    * Contains Control Characters: ${false.formatYesNo()}")
         }
@@ -322,8 +325,11 @@ class ScanAPKCommand : ApkScannerCommand() {
 
         mapOf(
             "Google" to AndroidSigningBlock.getGoogleBlocks(),
+        ).forEach { printSigningBlock(signingBlockResult.blocks, it.key, it.value, hasBadBlocks.not(), false) }
+
+        mapOf(
             "Payload" to AndroidSigningBlock.getPayloadBlocks(),
-        ).forEach { printSigningBlock(signingBlockResult.blocks, it.key, it.value, hasBadBlocks.not()) }
+        ).forEach { printSigningBlock(signingBlockResult.blocks, it.key, it.value, hasBadBlocks.not(), true) }
 
         val unknownBlocks = signingBlockResult.unknownBlocksFormatted
         if (unknownBlocks.isEmpty()) {
@@ -332,18 +338,18 @@ class ScanAPKCommand : ApkScannerCommand() {
             verboseEcho(EchoType.SIGNING_BLOCK)
         } else {
             silenceableEcho("* Unknown blocks:")
-            unknownBlocks.forEach { silenceableEcho("  * $it") }
+            unknownBlocks.forEach { silenceableEcho("  * $it".formatRed(cliConfig.consoleOutputConfig)) }
             silenceableEcho()
         }
 
         if (hasBadBlocks.not()) {
-            silenceableEcho("No offending blocks found.")
+            silenceableEcho("No offending blocks found.".formatGreen(cliConfig.consoleOutputConfig))
         }
 
         silenceableEcho()
     }
 
-    private fun printSigningBlock(blocks: Set<Int>, blockType: String, blockMap: Map<Int, String>, verbose: Boolean) {
+    private fun printSigningBlock(blocks: Set<Int>, blockType: String, blockMap: Map<Int, String>, verbose: Boolean, critical: Boolean) {
         val typeMessage = "* $blockType blocks:"
         if (verbose) {
             verboseEcho(EchoType.SIGNING_BLOCK, typeMessage)
@@ -353,19 +359,20 @@ class ScanAPKCommand : ApkScannerCommand() {
 
         blockMap.forEach { (key, value) ->
             val hasBlock = blocks.contains(key)
-            val blockMessagePrefix = "  * Has \"${value}\" block (${key.formatAsHex()}):"
+            val blockMessage = "  * Has \"${value}\" block (${key.formatAsHex()}): ${hasBlock.formatYesNo()}"
             if (hasBlock) {
-                silenceableEcho("$blockMessagePrefix ${true.formatYesNo()}")
+                if (critical) {
+                    silenceableEcho(blockMessage.formatRed(cliConfig.consoleOutputConfig))
+                } else {
+                    silenceableEcho(blockMessage.formatYellow(cliConfig.consoleOutputConfig))
+                }
             } else {
-                verboseEcho(EchoType.SIGNING_BLOCK, "$blockMessagePrefix ${false.formatYesNo()}")
+                verboseEcho(EchoType.SIGNING_BLOCK, blockMessage)
             }
         }
     }
 
     private fun formatAntiFeatures(antiFeatures: Array<String>): String = buildString {
-        if (cliConfig.consoleOutputConfig.richOutputEnabled) {
-            append("\u001B[1m")
-        }
         val antiFeatureIterator = antiFeatures.iterator()
         while (antiFeatureIterator.hasNext()) {
             append(antiFeatureIterator.next())
@@ -373,10 +380,7 @@ class ScanAPKCommand : ApkScannerCommand() {
                 append(",")
             }
         }
-        if (cliConfig.consoleOutputConfig.richOutputEnabled) {
-            append("\u001B[0m")
-        }
-    }
+    }.formatBold(cliConfig.consoleOutputConfig)
 
     private fun storeScanResultAsJsonIfWanted(apkFile: File, scanResult: ApkScanResult) {
         val scanResultJsonString = when (storeAsJson) {
