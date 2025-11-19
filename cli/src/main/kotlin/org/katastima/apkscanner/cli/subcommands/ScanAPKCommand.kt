@@ -105,10 +105,10 @@ class ScanAPKCommand : ApkScannerCommand() {
         silenceableEcho("------------------------------------------------------------------------------")
         silenceableEcho()
 
-        verboseEcho("Scan has completed:")
-        verboseEcho("-------------------")
-        verboseEcho("* Date (UTC): ${scanResult.scanDateUTC}")
-        verboseEcho("* Duration: ${scanResult.scanDurationMs} ms")
+        verboseEcho(message = "Scan has completed:")
+        verboseEcho(message = "-------------------")
+        verboseEcho(message = "* Date (UTC): ${scanResult.scanDateUTC}")
+        verboseEcho(message = "* Duration: ${scanResult.scanDurationMs} ms")
         verboseEcho()
 
         silenceableEcho("Scanned APK:")
@@ -116,8 +116,8 @@ class ScanAPKCommand : ApkScannerCommand() {
 
         silenceableEcho("* App name: ${scanResult.manifestCheckResult.manifest.label}")
         silenceableEcho("* App id:   ${scanResult.manifestCheckResult.manifest.appId}")
-        verboseEchoApkInfo("* File:     ${scanResult.apkFilePath}")
-        verboseEchoApkInfo("* SHA-256:  ${scanResult.apkFileSha256}")
+        verboseEcho(EchoType.APK_INFO, "* File:     ${scanResult.apkFilePath}")
+        verboseEcho(EchoType.APK_INFO, "* SHA-256:  ${scanResult.apkFileSha256}")
         silenceableEcho()
 
         printManifestResult(scanResult.manifestCheckResult)
@@ -165,14 +165,18 @@ class ScanAPKCommand : ApkScannerCommand() {
             silenceableEcho("No libraries detected.")
         } else {
             detectedLibraries.forEach { library ->
-                silenceableEcho("* ${library.name} (${library.libraryId}): ${library.type}, ${library.license}", trailingNewline = false)
+                verboseEcho(
+                    EchoType.DETECTED_LIBRARIES,
+                    "* ${library.name} (${library.libraryId}): ${library.type}, ${library.license}",
+                    trailingNewline = false,
+                )
 
                 if (library.antiFeatures.isNotEmpty()) {
-                    silenceableEcho("; ${formatAntiFeatures(library.antiFeatures)}", trailingNewline = false)
+                    verboseEcho(EchoType.DETECTED_LIBRARIES, "; ${formatAntiFeatures(library.antiFeatures)}", trailingNewline = false)
                 }
-                silenceableEcho()
+                verboseEcho(EchoType.DETECTED_LIBRARIES)
             }
-            silenceableEcho()
+            verboseEcho(EchoType.DETECTED_LIBRARIES)
 
             silenceableEcho("${detectedLibraries.size} ${if (detectedLibraries.size == 1) "library" else "libraries"} found.")
         }
@@ -338,12 +342,20 @@ class ScanAPKCommand : ApkScannerCommand() {
         }
     }
 
-    private fun verboseEcho(message: Any? = "", trailingNewline: Boolean = true, err: Boolean = false, verbose: Boolean = cliConfig.scanApkConfig.verboseAll) {
+    private enum class EchoType {
+        GENERIC,
+        APK_INFO,
+        DETECTED_LIBRARIES,
+    }
+
+    private fun verboseEcho(echoType: EchoType = EchoType.GENERIC, message: Any? = "", trailingNewline: Boolean = true, err: Boolean = false) {
+        val verbose = cliConfig.scanApkConfig.verboseAll || when (echoType) {
+            EchoType.GENERIC -> cliConfig.scanApkConfig.verboseGeneric
+            EchoType.APK_INFO -> cliConfig.scanApkConfig.verboseApkInfo
+            EchoType.DETECTED_LIBRARIES -> cliConfig.scanApkConfig.verboseDetectedLibraries
+        }
         if (cliConfig.verbose || verbose) {
             silenceableEcho(message, trailingNewline, err)
         }
     }
-
-    private fun verboseEchoApkInfo(message: Any? = "", trailingNewline: Boolean = true, err: Boolean = false) =
-        verboseEcho(message, trailingNewline, err, cliConfig.scanApkConfig.verboseApkInfo)
 }

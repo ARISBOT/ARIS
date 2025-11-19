@@ -11,5 +11,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class ScanApkConfig(
     @SerialName("verbose_all") var verboseAll: Boolean = false,
+    @SerialName("verbose_generic") var verboseGeneric: Boolean = false,
     @SerialName("verbose_apk_info") var verboseApkInfo: Boolean = true,
+    @SerialName("verbose_detected_libraries") var verboseDetectedLibraries: Boolean = true,
 )

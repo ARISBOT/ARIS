@@ -17,5 +17,9 @@ console_output:
 scan_apk:
   # Switch for enabling all verbose prints.
   verbose_all: false
+  # Print generic information, such as information about the scan itself, e.g.: scan date, time, etc.
+  verbose_generic: false
   # Print additional apk information, such as file name, sha256sum of file, etc.
   verbose_apk_info: true
+  # Print full information of detected libraries.
+  verbose_detected_libraries: true
