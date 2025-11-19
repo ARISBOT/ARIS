@@ -321,15 +321,19 @@ class ScanAPKCommand : ApkScannerCommand() {
             }
         }
 
-        val hasBadBlocks = signingBlockResult.badBlocks.isNotEmpty()
+        val googleBlocks = AndroidSigningBlock.getGoogleBlocks()
+        val hasGoogleBlock = signingBlockResult.badBlocks.any { googleBlocks.contains(it) }
 
         mapOf(
-            "Google" to AndroidSigningBlock.getGoogleBlocks(),
-        ).forEach { printSigningBlock(signingBlockResult.blocks, it.key, it.value, hasBadBlocks.not(), false) }
+            "Google" to googleBlocks,
+        ).forEach { printSigningBlock(signingBlockResult.blocks, it.key, it.value, hasGoogleBlock.not(), false) }
+
+        val payloadBlocks = AndroidSigningBlock.getPayloadBlocks()
+        val hasPayloadBlock = signingBlockResult.badBlocks.any { payloadBlocks.contains(it) }
 
         mapOf(
-            "Payload" to AndroidSigningBlock.getPayloadBlocks(),
-        ).forEach { printSigningBlock(signingBlockResult.blocks, it.key, it.value, hasBadBlocks.not(), true) }
+            "Payload" to payloadBlocks,
+        ).forEach { printSigningBlock(signingBlockResult.blocks, it.key, it.value, hasPayloadBlock.not(), true) }
 
         val unknownBlocks = signingBlockResult.unknownBlocksFormatted
         if (unknownBlocks.isEmpty()) {
@@ -342,7 +346,7 @@ class ScanAPKCommand : ApkScannerCommand() {
             silenceableEcho()
         }
 
-        if (hasBadBlocks.not()) {
+        if (signingBlockResult.badBlocks.isEmpty()) {
             silenceableEcho("No offending blocks found.".formatGreen(cliConfig.consoleOutputConfig))
         }
 
