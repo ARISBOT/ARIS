@@ -26,7 +26,7 @@ import kotlinx.serialization.json.Json
 import org.katastima.apkscanner.cli.ApkScannerCommand
 import org.katastima.apkscanner.database.DatabaseUtil
 import org.katastima.apkscanner.extensions.formatAsHex
-import org.katastima.apkscanner.extensions.formatValidInvalid
+import org.katastima.apkscanner.extensions.formatVerifiedUnverified
 import org.katastima.apkscanner.extensions.formatYesNo
 import org.katastima.apkscanner.extensions.getApkFilePathForReport
 import org.katastima.apkscanner.extensions.nowAsLocalDate
@@ -217,15 +217,15 @@ class ScanAPKCommand : ApkScannerCommand() {
         // v4: https://source.android.com/docs/security/features/apksigning/v4
         val apkSigResult = signingCheckResult.apkSigResult
         silenceableEcho("* apksig")
-        silenceableEcho("  * Verified by apksig: ${apkSigResult.verifiedByApkSig.formatValidInvalid()}")
-        silenceableEcho("  * Source Stamp: ${apkSigResult.sourceStampVerified.formatValidInvalid()}")
-        silenceableEcho("  * v1: ${apkSigResult.v1.formatValidInvalid()}")
-        silenceableEcho("  * v2: ${apkSigResult.v2.formatValidInvalid()}")
-        silenceableEcho("  * v3: ${apkSigResult.v3.formatValidInvalid()}")
-        silenceableEcho("  * v3.1: ${apkSigResult.v31.formatValidInvalid()}")
-        silenceableEcho("  * v4: ${apkSigResult.v4.formatValidInvalid()}")
-        silenceableEcho("* Number of certificates: ${signingCheckResult.certificates.size}")
+        silenceableEcho("  * Verified by apksig: ${apkSigResult.verifiedByApkSig.formatVerifiedUnverified()}")
+        verboseEcho(EchoType.SIGNATURE_APKSIG, "  * Source Stamp: ${apkSigResult.sourceStampVerified.formatVerifiedUnverified()}")
+        verboseEcho(EchoType.SIGNATURE_APKSIG, "  * v1: ${apkSigResult.v1.formatVerifiedUnverified()}")
+        verboseEcho(EchoType.SIGNATURE_APKSIG, "  * v2: ${apkSigResult.v2.formatVerifiedUnverified()}")
+        verboseEcho(EchoType.SIGNATURE_APKSIG, "  * v3: ${apkSigResult.v3.formatVerifiedUnverified()}")
+        verboseEcho(EchoType.SIGNATURE_APKSIG, "  * v3.1: ${apkSigResult.v31.formatVerifiedUnverified()}")
+        verboseEcho(EchoType.SIGNATURE_APKSIG, "  * v4: ${apkSigResult.v4.formatVerifiedUnverified()}")
 
+        silenceableEcho("* Number of certificates: ${signingCheckResult.certificates.size}")
         var certificateCounter = 1
         signingCheckResult.certificateResults.forEach { certificateResult ->
             silenceableEcho("* Certificate #${certificateCounter}")
@@ -346,6 +346,7 @@ class ScanAPKCommand : ApkScannerCommand() {
         GENERIC,
         APK_INFO,
         DETECTED_LIBRARIES,
+        SIGNATURE_APKSIG,
     }
 
     private fun verboseEcho(echoType: EchoType = EchoType.GENERIC, message: Any? = "", trailingNewline: Boolean = true, err: Boolean = false) {
@@ -353,6 +354,7 @@ class ScanAPKCommand : ApkScannerCommand() {
             EchoType.GENERIC -> cliConfig.scanApkConfig.verboseGeneric
             EchoType.APK_INFO -> cliConfig.scanApkConfig.verboseApkInfo
             EchoType.DETECTED_LIBRARIES -> cliConfig.scanApkConfig.verboseDetectedLibraries
+            EchoType.SIGNATURE_APKSIG -> cliConfig.scanApkConfig.verboseSignatureApksig
         }
         if (cliConfig.verbose || verbose) {
             silenceableEcho(message, trailingNewline, err)

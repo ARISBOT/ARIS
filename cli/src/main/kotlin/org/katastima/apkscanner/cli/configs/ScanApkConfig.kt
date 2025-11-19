@@ -14,4 +14,5 @@ data class ScanApkConfig(
     @SerialName("verbose_generic") var verboseGeneric: Boolean = false,
     @SerialName("verbose_apk_info") var verboseApkInfo: Boolean = true,
     @SerialName("verbose_detected_libraries") var verboseDetectedLibraries: Boolean = true,
+    @SerialName("verbose_signature_apksig") var verboseSignatureApksig: Boolean = false,
 )

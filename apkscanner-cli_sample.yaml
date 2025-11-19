@@ -23,3 +23,5 @@ scan_apk:
   verbose_apk_info: true
   # Print full information of detected libraries.
   verbose_detected_libraries: true
+  # Print full information about the apksig signature verification.
+  verbose_signature_apksig: false

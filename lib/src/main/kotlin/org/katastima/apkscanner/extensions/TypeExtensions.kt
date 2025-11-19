@@ -8,8 +8,8 @@ package org.katastima.apkscanner.extensions
 fun Boolean.formatYesNo(): String =
     if (this) "Yes" else "No"
 
-fun Boolean.formatValidInvalid(): String =
-    if (this) "Valid" else "Invalid"
+fun Boolean.formatVerifiedUnverified(): String =
+    if (this) "Verified" else "Unverified"
 
 fun getHexFormat(useUpperCase: Boolean = true): HexFormat = HexFormat {
     upperCase = useUpperCase
