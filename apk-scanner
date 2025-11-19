@@ -5,5 +5,17 @@
 # SPDX-License-Identifier: EUPL-1.2
 #
 
-# Generate first with `./gradlew shadowJar`.
-java -jar cli/build/libs/cli-all.jar "$@"
+### Generate first with `./gradlew shadowJar`.
+APKSCANNER_CLI_FILE="cli/build/libs/cli-all.jar"
+
+### In case you want to specify additional java options.
+JAVA_OPTS=""
+
+## For example, use a custom logback logger config:
+#JAVA_OPTS="-Dlogback.configurationFile=sampledata/logback.xml"
+
+if [ -n "$JAVA_OPTS" ]; then
+  java "${JAVA_OPTS}" -jar "${APKSCANNER_CLI_FILE}" "$@"
+else
+  java -jar "${APKSCANNER_CLI_FILE}" "$@"
+fi
