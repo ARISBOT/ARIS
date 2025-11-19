@@ -1,0 +1,11 @@
+#
+# SPDX-FileCopyrightText: Katastima Authors
+# SPDX-License-Identifier: EUPL-1.2
+#
+
+# Configure however you see fit and place as `apkscanner-cli.yaml`.
+
+verbose: false
+quiet: false
+
+apkScannerConfigFilePath: "apkscanner.yaml"

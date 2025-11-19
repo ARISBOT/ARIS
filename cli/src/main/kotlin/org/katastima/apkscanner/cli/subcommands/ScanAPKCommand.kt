@@ -313,10 +313,12 @@ class ScanAPKCommand : ApkScannerCommand() {
     private fun storeScanResultAsJsonIfWanted(apkFile: File, scanResult: ApkScanResult) {
         val scanResultJsonString = when (storeAsJson) {
             1 -> {
+                @Suppress("JSON_FORMAT_REDUNDANT")
                 Json { encodeDefaults = jsonExcludeDefaults.not() }.encodeToString(scanResult)
             }
 
             2 -> {
+                @Suppress("JSON_FORMAT_REDUNDANT")
                 Json { encodeDefaults = jsonExcludeDefaults.not(); prettyPrint = true }.encodeToString(scanResult)
             }
 

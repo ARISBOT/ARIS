@@ -49,6 +49,9 @@ bin/
 /apkscanner.db
 /apkscanner.mv.db
 /apkscanner.trace.db
+
 /apkscanner.yaml
+/apkscanner-cli.yaml
+
 /output
 /sampledata/*.exported

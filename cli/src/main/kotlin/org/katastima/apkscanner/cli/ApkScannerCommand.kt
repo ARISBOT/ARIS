@@ -7,6 +7,7 @@ package org.katastima.apkscanner.cli
 
 import com.github.ajalt.clikt.command.SuspendingCliktCommand
 import com.github.ajalt.clikt.core.requireObject
+import org.katastima.apkscanner.cli.configs.CliConfig
 
 abstract class ApkScannerCommand(name: String? = null) : SuspendingCliktCommand(name) {
 

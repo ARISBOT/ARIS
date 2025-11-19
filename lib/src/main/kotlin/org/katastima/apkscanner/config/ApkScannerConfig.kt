@@ -6,9 +6,11 @@
 package org.katastima.apkscanner.config
 
 import com.charleskorn.kaml.Yaml
+import com.charleskorn.kaml.YamlConfiguration
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import okio.source
+import org.slf4j.LoggerFactory
 import java.io.File
 
 @Serializable
@@ -26,15 +28,20 @@ data class ApkScannerConfig(
 
         private const val CONFIG_NAME = "apkscanner.yaml"
 
+        private val LOGGER = LoggerFactory.getLogger(ApkScannerConfig::class.java)
+
         private var apkScannerConfig: ApkScannerConfig? = null
 
-        fun getConfig(): ApkScannerConfig {
+        fun getConfig(configFile: File? = null): ApkScannerConfig {
             if (apkScannerConfig == null) {
-                apkScannerConfig = if (doesConfigExist()) {
+                val configFile = getConfigFile(configFile)
+                apkScannerConfig = if (configFile.exists()) {
                     try {
-                        Yaml.default.decodeFromSource(serializer(), getConfigFile().source())
+                        val yamlConfiguration = YamlConfiguration(encodeDefaults = true, strictMode = false)
+                        val yaml = Yaml(configuration = yamlConfiguration)
+                        yaml.decodeFromSource(serializer(), configFile.source())
                     } catch (exc: Exception) {
-                        exc.printStackTrace()
+                        LOGGER.warn("Could not load apk scanner config (${configFile.absolutePath})", exc)
                         ApkScannerConfig()
                     }
                 } else {
@@ -44,8 +51,6 @@ data class ApkScannerConfig(
             return apkScannerConfig!!
         }
 
-        fun getConfigFile(): File = File(CONFIG_NAME)
-
-        fun doesConfigExist(): Boolean = getConfigFile().exists()
+        private fun getConfigFile(configFile: File?): File = configFile ?: File(CONFIG_NAME)
     }
 }
