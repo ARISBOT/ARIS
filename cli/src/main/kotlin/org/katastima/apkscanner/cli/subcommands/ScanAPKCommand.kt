@@ -31,7 +31,6 @@ import org.katastima.apkscanner.extensions.formatValidInvalid
 import org.katastima.apkscanner.extensions.formatYesNo
 import org.katastima.apkscanner.extensions.nowAsLocalDate
 import org.katastima.apkscanner.models.ApkScanResult
-import org.katastima.apkscanner.models.library.LibraryInformation
 import org.katastima.apkscanner.models.manifest.ManifestCheckResult
 import org.katastima.apkscanner.models.signing.SigningBlockResult
 import org.katastima.apkscanner.scanapk.ApkScanner
@@ -155,34 +154,29 @@ class ScanAPKCommand : SuspendingCliktCommand() {
     }
 
     private fun printLibraryResult(scanResult: ApkScanResult) {
-        val libraryCheckResult = scanResult.libraryCheckResult
-
-        // Store offending libraries in an own list to prevent having to iterate through the whole list multiple times.
-        val offendingLibraries: MutableList<LibraryInformation> = mutableListOf()
-
         echo("Libraries detected:")
         echo("-------------------")
-
-        if (libraryCheckResult.detectedLibraries.isEmpty()) {
+        val detectedLibraries = scanResult.libraryCheckResult.detectedLibraries
+        if (detectedLibraries.isEmpty()) {
             echo("* No libraries detected")
         } else {
-            libraryCheckResult.detectedLibraries.forEach { library ->
+            detectedLibraries.forEach { library ->
                 echo("* ${library.name} (${library.libraryId}): ${library.type}, ${library.license}", trailingNewline = false)
 
                 if (library.antiFeatures.isNotEmpty()) {
                     echo("; ${formatAntiFeatures(library.antiFeatures)}", trailingNewline = false)
-                    offendingLibraries.add(library)
                 }
                 echo()
             }
             echo()
 
-            echo("${libraryCheckResult.detectedLibraries.size} ${if (libraryCheckResult.detectedLibraries.size == 1) "library" else "libraries"} found.")
+            echo("${detectedLibraries.size} ${if (detectedLibraries.size == 1) "library" else "libraries"} found.")
         }
         echo()
 
         echo("Offending libraries:")
         echo("--------------------")
+        val offendingLibraries = scanResult.libraryCheckResult.offendingLibraries
         if (offendingLibraries.isEmpty()) {
             echo("* No offending libraries detected")
         } else {

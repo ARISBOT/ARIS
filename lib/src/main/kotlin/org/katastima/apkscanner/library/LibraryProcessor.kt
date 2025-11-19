@@ -52,9 +52,11 @@ class LibraryProcessor(
         )
 
         val detectedLibraries = libraryInformationSet.sortedBy { it.name.lowercase() }
+        val offendingLibraries = detectedLibraries.filter { it.antiFeatures.isNotEmpty() }
 
         return@withContext LibraryCheckResult(
             detectedLibraries = detectedLibraries,
+            offendingLibraries = offendingLibraries,
         )
     }
 
