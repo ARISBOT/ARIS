@@ -173,6 +173,9 @@ class ScanAPKCommand : SuspendingCliktCommand() {
                 }
                 echo()
             }
+            echo()
+
+            echo("${scanResult.detectedLibraries.size} ${if (scanResult.detectedLibraries.size == 1) "library" else "libraries"} found.")
         }
         echo()
 
