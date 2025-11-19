@@ -25,3 +25,5 @@ scan_apk:
   verbose_detected_libraries: true
   # Print full information about the apksig signature verification.
   verbose_signature_apksig: false
+  # Print full information about the certificate during signature verification, e.g.: issuer and subject principals, public key hashes, etc.
+  verbose_signature_certificate: false

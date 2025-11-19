@@ -32,6 +32,8 @@ import org.katastima.apkscanner.extensions.getApkFilePathForReport
 import org.katastima.apkscanner.extensions.nowAsLocalDate
 import org.katastima.apkscanner.models.ApkScanResult
 import org.katastima.apkscanner.models.manifest.ManifestCheckResult
+import org.katastima.apkscanner.models.signing.ApkSigResult
+import org.katastima.apkscanner.models.signing.CertificateResult
 import org.katastima.apkscanner.models.signing.SigningBlockResult
 import org.katastima.apkscanner.scanapk.ApkScanner
 import org.katastima.apkscanner.signing.AndroidSigningBlock
@@ -209,21 +211,7 @@ class ScanAPKCommand : ApkScannerCommand() {
             return
         }
 
-        // Print whether signature versions v1, v2 or v3 are valid.
-        // v1: https://source.android.com/docs/security/features/apksigning#v1
-        // v2: https://source.android.com/docs/security/features/apksigning/v2
-        // v3: https://source.android.com/docs/security/features/apksigning/v3
-        // v3.1: https://source.android.com/docs/security/features/apksigning/v3-1
-        // v4: https://source.android.com/docs/security/features/apksigning/v4
-        val apkSigResult = signingCheckResult.apkSigResult
-        silenceableEcho("* apksig")
-        silenceableEcho("  * Verified by apksig: ${apkSigResult.verifiedByApkSig.formatVerifiedUnverified()}")
-        verboseEcho(EchoType.SIGNATURE_APKSIG, "  * Source Stamp: ${apkSigResult.sourceStampVerified.formatVerifiedUnverified()}")
-        verboseEcho(EchoType.SIGNATURE_APKSIG, "  * v1: ${apkSigResult.v1.formatVerifiedUnverified()}")
-        verboseEcho(EchoType.SIGNATURE_APKSIG, "  * v2: ${apkSigResult.v2.formatVerifiedUnverified()}")
-        verboseEcho(EchoType.SIGNATURE_APKSIG, "  * v3: ${apkSigResult.v3.formatVerifiedUnverified()}")
-        verboseEcho(EchoType.SIGNATURE_APKSIG, "  * v3.1: ${apkSigResult.v31.formatVerifiedUnverified()}")
-        verboseEcho(EchoType.SIGNATURE_APKSIG, "  * v4: ${apkSigResult.v4.formatVerifiedUnverified()}")
+        printSignatureApksig(signingCheckResult.apkSigResult)
 
         silenceableEcho("* Number of certificates: ${signingCheckResult.certificates.size}")
         var certificateCounter = 1
@@ -244,28 +232,70 @@ class ScanAPKCommand : ApkScannerCommand() {
             }
 
             silenceableEcho("  * Key Algorithm Name: ${certificateResult.sigAlgorithmName}")
-            silenceableEcho("  * Key Algorithm OID:  ${certificateResult.sigAlgorithmOID}")
-            silenceableEcho("  * Issuer:")
-            silenceableEcho("    * Principal: ${certificateResult.issuerPrincipal}")
-            silenceableEcho("    * Contains Control Characters: ${certificateResult.issuerContainsControlCharacters.formatYesNo()}")
-            silenceableEcho("  * Subject:")
-            silenceableEcho("    * Principal: ${certificateResult.subjectPrincipal}")
-            silenceableEcho("    * Contains Control Characters: ${certificateResult.subjectContainsControlCharacters.formatYesNo()}")
+            verboseEcho(EchoType.SIGNATURE_CERTIFICATE, "  * Key Algorithm OID:  ${certificateResult.sigAlgorithmOID}")
+
+            printSignaturePrincipals(certificateResult)
+
             silenceableEcho("  * Not Before: ${certificateResult.notBefore}")
             silenceableEcho("  * Not After:  ${certificateResult.notAfter}")
             silenceableEcho("  * SHA-256: ${certificateResult.sha256}")
-            silenceableEcho("  * SHA-1:   ${certificateResult.sha1}")
-            silenceableEcho("  * MD5:     ${certificateResult.md5}")
+            verboseEcho(EchoType.SIGNATURE_CERTIFICATE, "  * SHA-1:   ${certificateResult.sha1}")
+            verboseEcho(EchoType.SIGNATURE_CERTIFICATE, "  * MD5:     ${certificateResult.md5}")
             silenceableEcho("  * Public Key")
             silenceableEcho("    * Key Algorithm: ${certificateResult.publicKeyResult.keyAlgorithm}")
             silenceableEcho("    * Key Size (bits): ${certificateResult.publicKeyResult.keySizeBits}")
-            silenceableEcho("    * SHA-256: ${certificateResult.publicKeyResult.sha256}")
-            silenceableEcho("    * SHA-1:   ${certificateResult.publicKeyResult.sha1}")
-            silenceableEcho("    * MD5:     ${certificateResult.publicKeyResult.md5}")
+            verboseEcho(EchoType.SIGNATURE_CERTIFICATE, "    * SHA-256: ${certificateResult.publicKeyResult.sha256}")
+            verboseEcho(EchoType.SIGNATURE_CERTIFICATE, "    * SHA-1:   ${certificateResult.publicKeyResult.sha1}")
+            verboseEcho(EchoType.SIGNATURE_CERTIFICATE, "    * MD5:     ${certificateResult.publicKeyResult.md5}")
             certificateCounter++
         }
 
         silenceableEcho()
+    }
+
+    private fun printSignatureApksig(apkSigResult: ApkSigResult) {
+        // Print whether signature versions v1, v2 or v3 are valid.
+        // v1: https://source.android.com/docs/security/features/apksigning#v1
+        // v2: https://source.android.com/docs/security/features/apksigning/v2
+        // v3: https://source.android.com/docs/security/features/apksigning/v3
+        // v3.1: https://source.android.com/docs/security/features/apksigning/v3-1
+        // v4: https://source.android.com/docs/security/features/apksigning/v4
+        silenceableEcho("* apksig")
+        silenceableEcho("  * Verified by apksig: ${apkSigResult.verifiedByApkSig.formatVerifiedUnverified()}")
+        verboseEcho(EchoType.SIGNATURE_APKSIG, "  * Source Stamp: ${apkSigResult.sourceStampVerified.formatVerifiedUnverified()}")
+        verboseEcho(EchoType.SIGNATURE_APKSIG, "  * v1: ${apkSigResult.v1.formatVerifiedUnverified()}")
+        verboseEcho(EchoType.SIGNATURE_APKSIG, "  * v2: ${apkSigResult.v2.formatVerifiedUnverified()}")
+        verboseEcho(EchoType.SIGNATURE_APKSIG, "  * v3: ${apkSigResult.v3.formatVerifiedUnverified()}")
+        verboseEcho(EchoType.SIGNATURE_APKSIG, "  * v3.1: ${apkSigResult.v31.formatVerifiedUnverified()}")
+        verboseEcho(EchoType.SIGNATURE_APKSIG, "  * v4: ${apkSigResult.v4.formatVerifiedUnverified()}")
+    }
+
+    private fun printSignaturePrincipals(certificateResult: CertificateResult) {
+        val issuerMatchesSubject = certificateResult.issuerPrincipal == certificateResult.subjectPrincipal
+        if (!issuerMatchesSubject || certificateResult.issuerContainsControlCharacters) {
+            if (!issuerMatchesSubject) {
+                silenceableEcho("  * Issuer does NOT match subject")
+            }
+            silenceableEcho("  * Issuer:")
+            silenceableEcho("    * Principal: ${certificateResult.issuerPrincipal}")
+            if (certificateResult.issuerContainsControlCharacters) {
+                silenceableEcho("    * Contains Control Characters: ${true.formatYesNo()}")
+            } else {
+                verboseEcho(EchoType.SIGNATURE_CERTIFICATE, "    * Contains Control Characters: ${false.formatYesNo()}")
+            }
+        } else {
+            verboseEcho(EchoType.SIGNATURE_CERTIFICATE, "  * Issuer:")
+            verboseEcho(EchoType.SIGNATURE_CERTIFICATE, "    * Principal: ${certificateResult.issuerPrincipal}")
+            verboseEcho(EchoType.SIGNATURE_CERTIFICATE, "    * Contains Control Characters: ${false.formatYesNo()}")
+        }
+
+        silenceableEcho("  * Subject:")
+        silenceableEcho("    * Principal: ${certificateResult.subjectPrincipal}")
+        if (certificateResult.subjectContainsControlCharacters) {
+            silenceableEcho("    * Contains Control Characters: ${true.formatYesNo()}")
+        } else {
+            verboseEcho(EchoType.SIGNATURE_CERTIFICATE, "    * Contains Control Characters: ${false.formatYesNo()}")
+        }
     }
 
     private fun printAndroidSigningBlockResult(signingBlockResult: SigningBlockResult) {
@@ -347,6 +377,7 @@ class ScanAPKCommand : ApkScannerCommand() {
         APK_INFO,
         DETECTED_LIBRARIES,
         SIGNATURE_APKSIG,
+        SIGNATURE_CERTIFICATE,
     }
 
     private fun verboseEcho(echoType: EchoType = EchoType.GENERIC, message: Any? = "", trailingNewline: Boolean = true, err: Boolean = false) {
@@ -355,6 +386,7 @@ class ScanAPKCommand : ApkScannerCommand() {
             EchoType.APK_INFO -> cliConfig.scanApkConfig.verboseApkInfo
             EchoType.DETECTED_LIBRARIES -> cliConfig.scanApkConfig.verboseDetectedLibraries
             EchoType.SIGNATURE_APKSIG -> cliConfig.scanApkConfig.verboseSignatureApksig
+            EchoType.SIGNATURE_CERTIFICATE -> cliConfig.scanApkConfig.verboseSignatureCertificate
         }
         if (cliConfig.verbose || verbose) {
             silenceableEcho(message, trailingNewline, err)
