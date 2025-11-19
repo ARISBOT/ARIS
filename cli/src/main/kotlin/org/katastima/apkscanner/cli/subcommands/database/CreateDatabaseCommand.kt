@@ -5,7 +5,6 @@
 
 package org.katastima.apkscanner.cli.subcommands.database
 
-import com.github.ajalt.clikt.command.SuspendingCliktCommand
 import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.help
@@ -14,14 +13,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
-import org.katastima.apkscanner.config.ApkScannerConfig
+import org.katastima.apkscanner.cli.ApkScannerCommand
 import org.katastima.apkscanner.database.CertificateDataUtil
 import org.katastima.apkscanner.database.DatabaseUtil
 import org.katastima.apkscanner.database.LibraryDataUtil
 import org.katastima.apkscanner.database.ManifestDataUtil
 import kotlin.system.measureTimeMillis
 
-class CreateDatabaseCommand : SuspendingCliktCommand("setup") {
+class CreateDatabaseCommand : ApkScannerCommand("setup") {
 
     val forceSetup by option("--force", "-f")
         .flag()
@@ -30,7 +29,7 @@ class CreateDatabaseCommand : SuspendingCliktCommand("setup") {
     override fun help(context: Context): String = "Setup the database for usage, removing existing data."
 
     override suspend fun run() {
-        val apkScannerConfig = ApkScannerConfig.getConfig()
+        val apkScannerConfig = cliConfig.apkScannerConfig
         val database = DatabaseUtil.getDatabase(apkScannerConfig.databaseConfig)
 
         if (!forceSetup) {
@@ -70,6 +69,6 @@ class CreateDatabaseCommand : SuspendingCliktCommand("setup") {
             ManifestDataUtil.importManifestConfigData(database, apkScannerConfig)
         }
 
-        echo("Database set up in $setupTime ms")
+        silenceableEcho("Database set up in $setupTime ms")
     }
 }

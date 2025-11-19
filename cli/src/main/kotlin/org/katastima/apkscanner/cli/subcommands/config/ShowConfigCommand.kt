@@ -5,22 +5,15 @@
 
 package org.katastima.apkscanner.cli.subcommands.config
 
-import com.github.ajalt.clikt.command.SuspendingCliktCommand
 import com.github.ajalt.clikt.core.Context
-import org.katastima.apkscanner.config.ApkScannerConfig
+import org.katastima.apkscanner.cli.ApkScannerCommand
 
-class ShowConfigCommand : SuspendingCliktCommand("show") {
+class ShowConfigCommand : ApkScannerCommand("show") {
 
     override fun help(context: Context): String = "Show the current application configuration"
 
     override suspend fun run() {
-        echo("Configuration file: ${ApkScannerConfig.getConfigFile().absolutePath}")
-        if (!ApkScannerConfig.doesConfigExist()) {
-            echo("  - does not exist, create to overwrite values")
-        }
-        echo()
-
-        val apkScannerConfig: ApkScannerConfig = ApkScannerConfig.getConfig()
+        val apkScannerConfig = cliConfig.apkScannerConfig
         echo(apkScannerConfig.toString())
     }
 }

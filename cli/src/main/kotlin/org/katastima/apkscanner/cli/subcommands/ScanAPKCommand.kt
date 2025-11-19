@@ -5,7 +5,6 @@
 
 package org.katastima.apkscanner.cli.subcommands
 
-import com.github.ajalt.clikt.command.SuspendingCliktCommand
 import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.context
 import com.github.ajalt.clikt.output.MordantHelpFormatter
@@ -24,7 +23,7 @@ import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.format
 import kotlinx.datetime.format.char
 import kotlinx.serialization.json.Json
-import org.katastima.apkscanner.config.ApkScannerConfig
+import org.katastima.apkscanner.cli.ApkScannerCommand
 import org.katastima.apkscanner.database.DatabaseUtil
 import org.katastima.apkscanner.extensions.formatAsHex
 import org.katastima.apkscanner.extensions.formatValidInvalid
@@ -38,7 +37,7 @@ import org.katastima.apkscanner.signing.AndroidSigningBlock
 import java.io.File
 
 
-class ScanAPKCommand : SuspendingCliktCommand() {
+class ScanAPKCommand : ApkScannerCommand() {
 
     private val apkFiles: List<File> by argument("apk")
         .file(mustExist = true, mustBeReadable = true, canBeDir = false)
@@ -79,7 +78,7 @@ class ScanAPKCommand : SuspendingCliktCommand() {
     override fun help(context: Context): String = "Scan a single apk and list its used libraries, offending libraries and anti features."
 
     override suspend fun run() {
-        val apkScannerConfig = ApkScannerConfig.getConfig()
+        val apkScannerConfig = cliConfig.apkScannerConfig
         val databaseConfig = apkScannerConfig.databaseConfig
         val database = DatabaseUtil.getDatabase(databaseConfig)
 
@@ -89,42 +88,42 @@ class ScanAPKCommand : SuspendingCliktCommand() {
             backgroundDispatcher = Dispatchers.Default,
             ioDispatcher = Dispatchers.IO,
         ).use {
-            echo("Scanning ${apkFiles.size} APK(s).\n")
+            silenceableEcho("Scanning ${apkFiles.size} APK(s).\n")
             it.scanMulti(apkFiles, this::printScanResult)
         }
-        echo("Have a nice day!")
+        silenceableEcho("Have a nice day!")
     }
 
     private fun printScanResult(apkFile: File, scanResult: ApkScanResult) {
         storeScanResultAsJsonIfWanted(apkFile, scanResult)
 
-        echo("Scan has completed:")
-        echo("-------------------")
-        echo("* Date (UTC): ${scanResult.scanDateUTC}")
-        echo("* Duration: ${scanResult.scanDurationMs} ms")
-        echo()
+        silenceableEcho("Scan has completed:")
+        silenceableEcho("-------------------")
+        silenceableEcho("* Date (UTC): ${scanResult.scanDateUTC}")
+        silenceableEcho("* Duration: ${scanResult.scanDurationMs} ms")
+        silenceableEcho()
 
-        echo("Scanned APK:")
-        echo("------------")
+        silenceableEcho("Scanned APK:")
+        silenceableEcho("------------")
 
-        echo("* App name: ${scanResult.manifestCheckResult.manifest.label}")
-        echo("* App id:   ${scanResult.manifestCheckResult.manifest.appId}")
-        echo("* File:     ${scanResult.apkFilePath}")
-        echo("* SHA-256:  ${scanResult.apkFileSha256}")
-        echo()
+        silenceableEcho("* App name: ${scanResult.manifestCheckResult.manifest.label}")
+        silenceableEcho("* App id:   ${scanResult.manifestCheckResult.manifest.appId}")
+        silenceableEcho("* File:     ${scanResult.apkFilePath}")
+        silenceableEcho("* SHA-256:  ${scanResult.apkFileSha256}")
+        silenceableEcho()
 
         printManifestResult(scanResult.manifestCheckResult)
         printLibraryResult(scanResult)
         printSignatureVerificationResult(scanResult)
         printAndroidSigningBlockResult(scanResult.signingCheckResult.signingBlockResult)
 
-        echo("------------------------------------------------------------------------------")
-        echo()
+        silenceableEcho("------------------------------------------------------------------------------")
+        silenceableEcho()
     }
 
     private fun printManifestResult(manifestCheckResult: ManifestCheckResult) {
-        echo("Manifest verification:")
-        echo("----------------------")
+        silenceableEcho("Manifest verification:")
+        silenceableEcho("----------------------")
 
         val manifestResultStringBuilder = StringBuilder()
 
@@ -148,56 +147,56 @@ class ScanAPKCommand : SuspendingCliktCommand() {
         } else {
             manifestResultStringBuilder.toString()
         }.trim()
-        echo(manifestResultString)
+        silenceableEcho(manifestResultString)
 
-        echo()
+        silenceableEcho()
     }
 
     private fun printLibraryResult(scanResult: ApkScanResult) {
-        echo("Libraries detected:")
-        echo("-------------------")
+        silenceableEcho("Libraries detected:")
+        silenceableEcho("-------------------")
         val detectedLibraries = scanResult.libraryCheckResult.detectedLibraries
         if (detectedLibraries.isEmpty()) {
-            echo("* No libraries detected")
+            silenceableEcho("* No libraries detected")
         } else {
             detectedLibraries.forEach { library ->
-                echo("* ${library.name} (${library.libraryId}): ${library.type}, ${library.license}", trailingNewline = false)
+                silenceableEcho("* ${library.name} (${library.libraryId}): ${library.type}, ${library.license}", trailingNewline = false)
 
                 if (library.antiFeatures.isNotEmpty()) {
-                    echo("; ${formatAntiFeatures(library.antiFeatures)}", trailingNewline = false)
+                    silenceableEcho("; ${formatAntiFeatures(library.antiFeatures)}", trailingNewline = false)
                 }
-                echo()
+                silenceableEcho()
             }
-            echo()
+            silenceableEcho()
 
-            echo("${detectedLibraries.size} ${if (detectedLibraries.size == 1) "library" else "libraries"} found.")
+            silenceableEcho("${detectedLibraries.size} ${if (detectedLibraries.size == 1) "library" else "libraries"} found.")
         }
-        echo()
+        silenceableEcho()
 
-        echo("Offending libraries:")
-        echo("--------------------")
+        silenceableEcho("Offending libraries:")
+        silenceableEcho("--------------------")
         val offendingLibraries = scanResult.libraryCheckResult.offendingLibraries
         if (offendingLibraries.isEmpty()) {
-            echo("* No offending libraries detected")
+            silenceableEcho("* No offending libraries detected")
         } else {
             offendingLibraries.forEach { offendingLibrary ->
-                echo("* ${offendingLibrary.name} (${offendingLibrary.libraryId}): ${formatAntiFeatures(offendingLibrary.antiFeatures)}")
+                silenceableEcho("* ${offendingLibrary.name} (${offendingLibrary.libraryId}): ${formatAntiFeatures(offendingLibrary.antiFeatures)}")
             }
-            echo()
+            silenceableEcho()
 
-            echo("${offendingLibraries.size} offending ${if (offendingLibraries.size == 1) "library" else "libraries"} found.")
+            silenceableEcho("${offendingLibraries.size} offending ${if (offendingLibraries.size == 1) "library" else "libraries"} found.")
         }
-        echo()
+        silenceableEcho()
     }
 
     private fun printSignatureVerificationResult(scanResult: ApkScanResult) {
-        echo("Signature verification:")
-        echo("-----------------------")
+        silenceableEcho("Signature verification:")
+        silenceableEcho("-----------------------")
 
         val signingCheckResult = scanResult.signingCheckResult
         if (signingCheckResult.isInvalid()) {
-            echo("* Failed to verify signature, please ensure the APK is properly signed!")
-            echo()
+            silenceableEcho("* Failed to verify signature, please ensure the APK is properly signed!")
+            silenceableEcho()
             return
         }
 
@@ -208,61 +207,61 @@ class ScanAPKCommand : SuspendingCliktCommand() {
         // v3.1: https://source.android.com/docs/security/features/apksigning/v3-1
         // v4: https://source.android.com/docs/security/features/apksigning/v4
         val apkSigResult = signingCheckResult.apkSigResult
-        echo("* apksig")
-        echo("  * Verified by apksig: ${apkSigResult.verifiedByApkSig.formatValidInvalid()}")
-        echo("  * Source Stamp: ${apkSigResult.sourceStampVerified.formatValidInvalid()}")
-        echo("  * v1: ${apkSigResult.v1.formatValidInvalid()}")
-        echo("  * v2: ${apkSigResult.v2.formatValidInvalid()}")
-        echo("  * v3: ${apkSigResult.v3.formatValidInvalid()}")
-        echo("  * v3.1: ${apkSigResult.v31.formatValidInvalid()}")
-        echo("  * v4: ${apkSigResult.v4.formatValidInvalid()}")
-        echo("* Number of certificates: ${signingCheckResult.certificates.size}")
+        silenceableEcho("* apksig")
+        silenceableEcho("  * Verified by apksig: ${apkSigResult.verifiedByApkSig.formatValidInvalid()}")
+        silenceableEcho("  * Source Stamp: ${apkSigResult.sourceStampVerified.formatValidInvalid()}")
+        silenceableEcho("  * v1: ${apkSigResult.v1.formatValidInvalid()}")
+        silenceableEcho("  * v2: ${apkSigResult.v2.formatValidInvalid()}")
+        silenceableEcho("  * v3: ${apkSigResult.v3.formatValidInvalid()}")
+        silenceableEcho("  * v3.1: ${apkSigResult.v31.formatValidInvalid()}")
+        silenceableEcho("  * v4: ${apkSigResult.v4.formatValidInvalid()}")
+        silenceableEcho("* Number of certificates: ${signingCheckResult.certificates.size}")
 
         var certificateCounter = 1
         signingCheckResult.certificateResults.forEach { certificateResult ->
-            echo("* Certificate #${certificateCounter}")
+            silenceableEcho("* Certificate #${certificateCounter}")
 
             if (certificateResult.denylistMatches.isNotEmpty()) {
-                echo("  * [!] Certificate found in deny list")
+                silenceableEcho("  * [!] Certificate found in deny list")
                 certificateResult.denylistMatches.forEach { denyListMatch ->
-                    echo("    * Name: ${denyListMatch.name}")
-                    echo("      * Description: ${denyListMatch.description.ifEmpty { "-" }}")
-                    echo("      * Source URL:  ${denyListMatch.sourceUrl.ifEmpty { "-" }}")
-                    echo("      * DN:          ${denyListMatch.dn.ifEmpty { "-" }}")
-                    echo("      * SHA-256:     ${denyListMatch.sha256.ifEmpty { "-" }}")
-                    echo("      * SHA-1:       ${denyListMatch.sha1.ifEmpty { "-" }}")
-                    echo("      * MD5:         ${denyListMatch.md5.ifEmpty { "-" }}")
+                    silenceableEcho("    * Name: ${denyListMatch.name}")
+                    silenceableEcho("      * Description: ${denyListMatch.description.ifEmpty { "-" }}")
+                    silenceableEcho("      * Source URL:  ${denyListMatch.sourceUrl.ifEmpty { "-" }}")
+                    silenceableEcho("      * DN:          ${denyListMatch.dn.ifEmpty { "-" }}")
+                    silenceableEcho("      * SHA-256:     ${denyListMatch.sha256.ifEmpty { "-" }}")
+                    silenceableEcho("      * SHA-1:       ${denyListMatch.sha1.ifEmpty { "-" }}")
+                    silenceableEcho("      * MD5:         ${denyListMatch.md5.ifEmpty { "-" }}")
                 }
             }
 
-            echo("  * Key Algorithm Name: ${certificateResult.sigAlgorithmName}")
-            echo("  * Key Algorithm OID:  ${certificateResult.sigAlgorithmOID}")
-            echo("  * Issuer:")
-            echo("    * Principal: ${certificateResult.issuerPrincipal}")
-            echo("    * Contains Control Characters: ${certificateResult.issuerContainsControlCharacters.formatYesNo()}")
-            echo("  * Subject:")
-            echo("    * Principal: ${certificateResult.subjectPrincipal}")
-            echo("    * Contains Control Characters: ${certificateResult.subjectContainsControlCharacters.formatYesNo()}")
-            echo("  * Not Before: ${certificateResult.notBefore}")
-            echo("  * Not After:  ${certificateResult.notAfter}")
-            echo("  * SHA-256: ${certificateResult.sha256}")
-            echo("  * SHA-1:   ${certificateResult.sha1}")
-            echo("  * MD5:     ${certificateResult.md5}")
-            echo("  * Public Key")
-            echo("    * Key Algorithm: ${certificateResult.publicKeyResult.keyAlgorithm}")
-            echo("    * Key Size (bits): ${certificateResult.publicKeyResult.keySizeBits}")
-            echo("    * SHA-256: ${certificateResult.publicKeyResult.sha256}")
-            echo("    * SHA-1:   ${certificateResult.publicKeyResult.sha1}")
-            echo("    * MD5:     ${certificateResult.publicKeyResult.md5}")
+            silenceableEcho("  * Key Algorithm Name: ${certificateResult.sigAlgorithmName}")
+            silenceableEcho("  * Key Algorithm OID:  ${certificateResult.sigAlgorithmOID}")
+            silenceableEcho("  * Issuer:")
+            silenceableEcho("    * Principal: ${certificateResult.issuerPrincipal}")
+            silenceableEcho("    * Contains Control Characters: ${certificateResult.issuerContainsControlCharacters.formatYesNo()}")
+            silenceableEcho("  * Subject:")
+            silenceableEcho("    * Principal: ${certificateResult.subjectPrincipal}")
+            silenceableEcho("    * Contains Control Characters: ${certificateResult.subjectContainsControlCharacters.formatYesNo()}")
+            silenceableEcho("  * Not Before: ${certificateResult.notBefore}")
+            silenceableEcho("  * Not After:  ${certificateResult.notAfter}")
+            silenceableEcho("  * SHA-256: ${certificateResult.sha256}")
+            silenceableEcho("  * SHA-1:   ${certificateResult.sha1}")
+            silenceableEcho("  * MD5:     ${certificateResult.md5}")
+            silenceableEcho("  * Public Key")
+            silenceableEcho("    * Key Algorithm: ${certificateResult.publicKeyResult.keyAlgorithm}")
+            silenceableEcho("    * Key Size (bits): ${certificateResult.publicKeyResult.keySizeBits}")
+            silenceableEcho("    * SHA-256: ${certificateResult.publicKeyResult.sha256}")
+            silenceableEcho("    * SHA-1:   ${certificateResult.publicKeyResult.sha1}")
+            silenceableEcho("    * MD5:     ${certificateResult.publicKeyResult.md5}")
             certificateCounter++
         }
 
-        echo()
+        silenceableEcho()
     }
 
     private fun printAndroidSigningBlockResult(signingBlockResult: SigningBlockResult) {
-        echo("Android Signing Block verification:")
-        echo("-----------------------------------")
+        silenceableEcho("Android Signing Block verification:")
+        silenceableEcho("-----------------------------------")
 
         mapOf(
             "OK" to AndroidSigningBlock.getOkBlocks(),
@@ -270,18 +269,18 @@ class ScanAPKCommand : SuspendingCliktCommand() {
             "Payload" to AndroidSigningBlock.getPayloadBlocks(),
         ).forEach {
             val signingBlockMessage = formatSigningBlockGroup(signingBlockResult.blocks, it.key, it.value).trim()
-            echo(signingBlockMessage)
+            silenceableEcho(signingBlockMessage)
         }
 
         val unknownBlocks = signingBlockResult.unknownBlocksFormatted
-        echo("* Unknown blocks:")
+        silenceableEcho("* Unknown blocks:")
         if (unknownBlocks.isEmpty()) {
-            echo("  * No unknown blocks")
+            silenceableEcho("  * No unknown blocks")
         } else {
-            unknownBlocks.forEach { echo("  * $it") }
+            unknownBlocks.forEach { silenceableEcho("  * $it") }
         }
 
-        echo()
+        silenceableEcho()
     }
 
     private fun formatSigningBlockGroup(blocks: Set<Int>, blockType: String, blockMap: Map<Int, String>): String = buildString {
