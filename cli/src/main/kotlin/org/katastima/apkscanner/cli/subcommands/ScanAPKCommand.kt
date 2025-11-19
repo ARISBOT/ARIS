@@ -155,16 +155,18 @@ class ScanAPKCommand : SuspendingCliktCommand() {
     }
 
     private fun printLibraryResult(scanResult: ApkScanResult) {
+        val libraryCheckResult = scanResult.libraryCheckResult
+
         // Store offending libraries in an own list to prevent having to iterate through the whole list multiple times.
         val offendingLibraries: MutableList<LibraryInformation> = mutableListOf()
 
         echo("Libraries detected:")
         echo("-------------------")
 
-        if (scanResult.detectedLibraries.isEmpty()) {
+        if (libraryCheckResult.detectedLibraries.isEmpty()) {
             echo("* No libraries detected")
         } else {
-            scanResult.detectedLibraries.forEach { library ->
+            libraryCheckResult.detectedLibraries.forEach { library ->
                 echo("* ${library.name} (${library.libraryId}): ${library.type}, ${library.license}", trailingNewline = false)
 
                 if (library.antiFeatures.isNotEmpty()) {
@@ -175,7 +177,7 @@ class ScanAPKCommand : SuspendingCliktCommand() {
             }
             echo()
 
-            echo("${scanResult.detectedLibraries.size} ${if (scanResult.detectedLibraries.size == 1) "library" else "libraries"} found.")
+            echo("${libraryCheckResult.detectedLibraries.size} ${if (libraryCheckResult.detectedLibraries.size == 1) "library" else "libraries"} found.")
         }
         echo()
 

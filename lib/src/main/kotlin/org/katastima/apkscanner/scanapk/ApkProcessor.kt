@@ -18,6 +18,7 @@ import org.katastima.apkscanner.config.ApkScannerConfig
 import org.katastima.apkscanner.database.DatabaseUtil
 import org.katastima.apkscanner.extensions.toSha256
 import org.katastima.apkscanner.manifest.ManifestProcessor
+import org.katastima.apkscanner.models.LibraryCheckResult
 import org.katastima.apkscanner.models.LibraryInformation
 import org.katastima.apkscanner.signing.ApkCert
 import org.katastima.apkscanner.utils.Randomizer
@@ -67,8 +68,8 @@ class ApkProcessor(
         }
         LOGGER.debug("manifestCheckResult: {} ms", manifestCheckDuration.inWholeMilliseconds)
 
-        val (detectedLibraries, detectLibrariesDuration) = measureTimedValue {
-            scanForLibraries(decodedApkDirectory).sortedBy { it.name.lowercase() }.toTypedArray()
+        val (libraryCheckResult, detectLibrariesDuration) = measureTimedValue {
+            scanForLibraries(decodedApkDirectory)
         }
         LOGGER.debug("scanForLibraries: {} ms", detectLibrariesDuration.inWholeMilliseconds)
 
@@ -78,7 +79,7 @@ class ApkProcessor(
                 apkFileSha256 = apkFileSha256,
                 signingCheckResult = signingCheckResult,
                 manifestCheckResult = manifestCheckResult,
-                detectedLibraries = detectedLibraries,
+                libraryCheckResult = libraryCheckResult,
             )
         } finally {
             // Delete the directory (which contains the decoded apk output) recursively to clean up.
@@ -119,7 +120,7 @@ class ApkProcessor(
         return Pair(outputDir, apkInfo)
     }
 
-    private suspend fun scanForLibraries(outputDir: File): List<LibraryInformation> {
+    private suspend fun scanForLibraries(outputDir: File): LibraryCheckResult {
         val libraryInformationSet = mutableSetOf<LibraryInformation>()
 
         var totalProcessingDuration = 0L
@@ -144,7 +145,11 @@ class ApkProcessor(
             totalProcessedDirectories, totalProcessingDuration, totalProcessingDuration / max(1, totalProcessedDirectories)
         )
 
-        return libraryInformationSet.sortedBy { it.name }
+        val detectedLibraries = libraryInformationSet.sortedBy { it.name.lowercase() }
+
+        return LibraryCheckResult(
+            detectedLibraries = detectedLibraries,
+        )
     }
 
     private suspend fun processSmaliDirectory(smaliDirectory: File, onProcess: (informationSet: Set<LibraryInformation>) -> Unit) = withContext(ioDispatcher) {
