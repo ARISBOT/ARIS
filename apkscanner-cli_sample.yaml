@@ -17,3 +17,5 @@ console_output:
 scan_apk:
   # Switch for enabling all verbose prints.
   verbose_all: false
+  # Print additional apk information, such as file name, sha256sum of file, etc.
+  verbose_apk_info: true

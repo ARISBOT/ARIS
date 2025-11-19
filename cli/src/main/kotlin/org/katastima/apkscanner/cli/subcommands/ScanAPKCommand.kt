@@ -116,8 +116,8 @@ class ScanAPKCommand : ApkScannerCommand() {
 
         silenceableEcho("* App name: ${scanResult.manifestCheckResult.manifest.label}")
         silenceableEcho("* App id:   ${scanResult.manifestCheckResult.manifest.appId}")
-        silenceableEcho("* File:     ${scanResult.apkFilePath}")
-        silenceableEcho("* SHA-256:  ${scanResult.apkFileSha256}")
+        verboseEchoApkInfo("* File:     ${scanResult.apkFilePath}")
+        verboseEchoApkInfo("* SHA-256:  ${scanResult.apkFileSha256}")
         silenceableEcho()
 
         printManifestResult(scanResult.manifestCheckResult)
@@ -338,9 +338,12 @@ class ScanAPKCommand : ApkScannerCommand() {
         }
     }
 
-    private fun verboseEcho(message: Any? = "", trailingNewline: Boolean = true, err: Boolean = false) {
-        if (cliConfig.verbose || cliConfig.scanApkConfig.verboseAll) {
+    private fun verboseEcho(message: Any? = "", trailingNewline: Boolean = true, err: Boolean = false, verbose: Boolean = cliConfig.scanApkConfig.verboseAll) {
+        if (cliConfig.verbose || verbose) {
             silenceableEcho(message, trailingNewline, err)
         }
     }
+
+    private fun verboseEchoApkInfo(message: Any? = "", trailingNewline: Boolean = true, err: Boolean = false) =
+        verboseEcho(message, trailingNewline, err, cliConfig.scanApkConfig.verboseApkInfo)
 }
