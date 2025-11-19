@@ -16,4 +16,5 @@ data class ScanApkConfig(
     @SerialName("verbose_detected_libraries") var verboseDetectedLibraries: Boolean = true,
     @SerialName("verbose_signature_apksig") var verboseSignatureApksig: Boolean = false,
     @SerialName("verbose_signature_certificate") var verboseSignatureCertificate: Boolean = false,
+    @SerialName("verbose_signing_block") var verboseSigningBlock: Boolean = false,
 )

@@ -20,10 +20,12 @@ scan_apk:
   # Print generic information, such as information about the scan itself, e.g.: scan date, time, etc.
   verbose_generic: false
   # Print additional apk information, such as file name, sha256sum of file, etc.
-  verbose_apk_info: true
+  verbose_apk_info: false
   # Print full information of detected libraries.
   verbose_detected_libraries: true
   # Print full information about the apksig signature verification.
   verbose_signature_apksig: false
   # Print full information about the certificate during signature verification, e.g.: issuer and subject principals, public key hashes, etc.
   verbose_signature_certificate: false
+  # Print full information about signing blocks, e.g.: all ok blocks, dangerous blocks which were checked but not found, etc.
+  verbose_signing_block: false

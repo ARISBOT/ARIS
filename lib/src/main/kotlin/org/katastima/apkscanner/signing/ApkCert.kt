@@ -86,10 +86,12 @@ class ApkCert(private val apkFile: File) {
         val androidSigningBlock = AndroidSigningBlock(apkFile)
         val allBlocks = AndroidSigningBlock.getAllBlocks()
         val blocks = androidSigningBlock.getBlockSet()
+        val badBlocks = androidSigningBlock.getBadBlockSet()
         val unknownBlocks = androidSigningBlock.getUnknownBlockSet()
 
         val signingBlockResult = SigningBlockResult(
             blocks = blocks,
+            badBlocks = badBlocks,
             blocksFormatted = blocks.associate { it.formatAsHex() to (allBlocks[it] ?: "") }.toSortedMap(),
             unknownBlocks = unknownBlocks,
             unknownBlocksFormatted = unknownBlocks.map { it.formatAsHex() }.sorted(),

@@ -304,29 +304,55 @@ class ScanAPKCommand : ApkScannerCommand() {
 
         mapOf(
             "OK" to AndroidSigningBlock.getOkBlocks(),
-            "Google" to AndroidSigningBlock.getGoogleBlocks(),
-            "Payload" to AndroidSigningBlock.getPayloadBlocks(),
         ).forEach {
-            val signingBlockMessage = formatSigningBlockGroup(signingBlockResult.blocks, it.key, it.value).trim()
-            silenceableEcho(signingBlockMessage)
+            verboseEcho(EchoType.SIGNING_BLOCK, "* ${it.key} blocks:")
+            it.value.forEach { (key, value) ->
+                val hasBlock = signingBlockResult.blocks.contains(key)
+                verboseEcho(EchoType.SIGNING_BLOCK, "  * Has \"${value}\" block (${key.formatAsHex()}): ${hasBlock.formatYesNo()}")
+            }
         }
 
+        val hasBadBlocks = signingBlockResult.badBlocks.isNotEmpty()
+
+        mapOf(
+            "Google" to AndroidSigningBlock.getGoogleBlocks(),
+            "Payload" to AndroidSigningBlock.getPayloadBlocks(),
+        ).forEach { printSigningBlock(signingBlockResult.blocks, it.key, it.value, hasBadBlocks.not()) }
+
         val unknownBlocks = signingBlockResult.unknownBlocksFormatted
-        silenceableEcho("* Unknown blocks:")
         if (unknownBlocks.isEmpty()) {
-            silenceableEcho("  * No unknown blocks")
+            verboseEcho(EchoType.SIGNING_BLOCK, "* Unknown blocks:")
+            verboseEcho(EchoType.SIGNING_BLOCK, "  * No unknown blocks")
+            verboseEcho(EchoType.SIGNING_BLOCK)
         } else {
+            silenceableEcho("* Unknown blocks:")
             unknownBlocks.forEach { silenceableEcho("  * $it") }
+            silenceableEcho()
+        }
+
+        if (hasBadBlocks.not()) {
+            silenceableEcho("No offending blocks found.")
         }
 
         silenceableEcho()
     }
 
-    private fun formatSigningBlockGroup(blocks: Set<Int>, blockType: String, blockMap: Map<Int, String>): String = buildString {
-        append("* $blockType blocks:\n")
-        blockMap.forEach {
-            val hasBlock = blocks.contains(it.key)
-            append("  * Has \"${it.value}\" block (${it.key.formatAsHex()}): ${hasBlock.formatYesNo()}\n")
+    private fun printSigningBlock(blocks: Set<Int>, blockType: String, blockMap: Map<Int, String>, verbose: Boolean) {
+        val typeMessage = "* $blockType blocks:"
+        if (verbose) {
+            verboseEcho(EchoType.SIGNING_BLOCK, typeMessage)
+        } else {
+            silenceableEcho(typeMessage)
+        }
+
+        blockMap.forEach { (key, value) ->
+            val hasBlock = blocks.contains(key)
+            val blockMessagePrefix = "  * Has \"${value}\" block (${key.formatAsHex()}):"
+            if (hasBlock) {
+                silenceableEcho("$blockMessagePrefix ${true.formatYesNo()}")
+            } else {
+                verboseEcho(EchoType.SIGNING_BLOCK, "$blockMessagePrefix ${false.formatYesNo()}")
+            }
         }
     }
 
@@ -378,6 +404,7 @@ class ScanAPKCommand : ApkScannerCommand() {
         DETECTED_LIBRARIES,
         SIGNATURE_APKSIG,
         SIGNATURE_CERTIFICATE,
+        SIGNING_BLOCK,
     }
 
     private fun verboseEcho(echoType: EchoType = EchoType.GENERIC, message: Any? = "", trailingNewline: Boolean = true, err: Boolean = false) {
@@ -387,6 +414,7 @@ class ScanAPKCommand : ApkScannerCommand() {
             EchoType.DETECTED_LIBRARIES -> cliConfig.scanApkConfig.verboseDetectedLibraries
             EchoType.SIGNATURE_APKSIG -> cliConfig.scanApkConfig.verboseSignatureApksig
             EchoType.SIGNATURE_CERTIFICATE -> cliConfig.scanApkConfig.verboseSignatureCertificate
+            EchoType.SIGNING_BLOCK -> cliConfig.scanApkConfig.verboseSigningBlock
         }
         if (cliConfig.verbose || verbose) {
             silenceableEcho(message, trailingNewline, err)

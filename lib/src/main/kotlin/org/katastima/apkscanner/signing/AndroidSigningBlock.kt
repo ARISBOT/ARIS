@@ -51,6 +51,21 @@ class AndroidSigningBlock(private val apkFile: File) {
         return blockSet
     }
 
+    fun getBadBlockSet(): Set<Int> {
+        readAndroidSigningBlock()
+
+        val blockSet: MutableSet<Int> = mutableSetOf()
+
+        val badBlocks = getGoogleBlocks() + getPayloadBlocks()
+        signingBlockValueIdMap.forEach { entry ->
+            if (badBlocks.contains(entry.key)) {
+                blockSet.add(entry.key)
+            }
+        }
+
+        return blockSet
+    }
+
     fun getUnknownBlockSet(): Set<Int> {
         readAndroidSigningBlock()
 
