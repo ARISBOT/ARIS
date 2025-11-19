@@ -51,9 +51,9 @@ class ScanAPKCommand : SuspendingCliktCommand() {
         .default(0, "no")
         .help("Store the scan result as json file")
 
-    private val jsonEncodeDefaults: Boolean by option("--json-include-defaults")
+    private val jsonExcludeDefaults: Boolean by option("--json-exclude-defaults")
         .flag(default = false, defaultForHelp = "disabled")
-        .help("Encode default values as well when storing the scan result as json file")
+        .help("Exclude default values when storing the scan result as json file. While this may result in smaller json files, the resulting json files may be interpreted differently by consumers.")
 
     private val jsonResultOutputDirectory: File by option("--output", "-o")
         .file(canBeFile = false)
@@ -313,11 +313,11 @@ class ScanAPKCommand : SuspendingCliktCommand() {
     private fun storeScanResultAsJsonIfWanted(apkFile: File, scanResult: ApkScanResult) {
         val scanResultJsonString = when (storeAsJson) {
             1 -> {
-                Json { encodeDefaults = jsonEncodeDefaults }.encodeToString(scanResult)
+                Json { encodeDefaults = jsonExcludeDefaults.not() }.encodeToString(scanResult)
             }
 
             2 -> {
-                Json { encodeDefaults = jsonEncodeDefaults; prettyPrint = true }.encodeToString(scanResult)
+                Json { encodeDefaults = jsonExcludeDefaults.not(); prettyPrint = true }.encodeToString(scanResult)
             }
 
             else -> {
