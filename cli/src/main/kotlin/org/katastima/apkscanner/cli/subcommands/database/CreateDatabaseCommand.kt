@@ -19,6 +19,7 @@ import org.katastima.apkscanner.database.CertificateDataUtil
 import org.katastima.apkscanner.database.DatabaseUtil
 import org.katastima.apkscanner.database.LibraryDataUtil
 import org.katastima.apkscanner.database.ManifestDataUtil
+import kotlin.system.measureTimeMillis
 
 class CreateDatabaseCommand : SuspendingCliktCommand("setup") {
 
@@ -55,16 +56,20 @@ class CreateDatabaseCommand : SuspendingCliktCommand("setup") {
             }
         }
 
-        DatabaseUtil.dropTables(database, apkScannerConfig.databaseConfig.debug)
-        DatabaseUtil.setupDatabase(database, apkScannerConfig.databaseConfig.debug)
+        val setupTime = measureTimeMillis {
+            DatabaseUtil.dropTables(database, apkScannerConfig.databaseConfig.debug)
+            DatabaseUtil.setupDatabase(database, apkScannerConfig.databaseConfig.debug)
 
-        // Import legacy data
-        LibraryDataUtil.importLibraryData(database, apkScannerConfig)
+            // Import legacy data
+            LibraryDataUtil.importLibraryData(database, apkScannerConfig)
 
-        // Import certificates data
-        CertificateDataUtil.importCertificateData(database, apkScannerConfig)
+            // Import certificates data
+            CertificateDataUtil.importCertificateData(database, apkScannerConfig)
 
-        // Import manifest data
-        ManifestDataUtil.importManifestConfigData(database, apkScannerConfig)
+            // Import manifest data
+            ManifestDataUtil.importManifestConfigData(database, apkScannerConfig)
+        }
+
+        echo("Database set up in $setupTime ms")
     }
 }
