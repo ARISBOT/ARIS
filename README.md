@@ -12,7 +12,7 @@ SPDX-License-Identifier: EUPL-1.2
 
 ## Getting started
 
-To be written :-)
+Documentation for the APK Scanner is available [here](https://katastima.org/en/apkscanner/overview).
 
 ## Contributing
 
