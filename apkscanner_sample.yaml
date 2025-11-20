@@ -4,6 +4,7 @@
 #
 
 # Configure however you see fit and place as `apkscanner.yaml`.
+# For documentation, see: https://katastima.org/apkscanner/configuration#apk-scanner-apkscanneryaml
 
 data:
   certificate_denylist_path: "sampledata/certificate_denylist.json"

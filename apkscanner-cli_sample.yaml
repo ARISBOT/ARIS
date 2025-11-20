@@ -4,6 +4,7 @@
 #
 
 # Configure however you see fit and place as `apkscanner-cli.yaml`.
+# For documentation, see: https://katastima.org/apkscanner/configuration#cli-apkscanner-cliyaml
 
 verbose: false
 quiet: false
