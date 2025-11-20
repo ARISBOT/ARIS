@@ -137,8 +137,9 @@ class ScanAPKCommand : ApkScannerCommand() {
         silenceableEcho("  * TargetSDK: ${apkManifest.targetSdk} ($targetSdkAndroidVersion - $targetSdkAndroidVersionCode - $targetSdkAndroidCodename)")
 
         // TODO: compiler information (platformBuildVersion, compileSdkVersion) as verbose?
-        verboseEcho(EchoType.APK_INFO, "* File:     ${scanResult.apkFilePath}")
-        verboseEcho(EchoType.APK_INFO, "* SHA-256:  ${scanResult.apkFileSha256}")
+
+        verboseEcho(EchoType.APK_INFO, "* File:    ${scanResult.apkFilePath}")
+        verboseEcho(EchoType.APK_INFO, "* SHA-256: ${scanResult.apkFileSha256}")
         silenceableEcho()
 
         printManifestResult(scanResult.manifestCheckResult)
