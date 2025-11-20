@@ -41,6 +41,7 @@ import org.katastima.apkscanner.models.signing.CertificateResult
 import org.katastima.apkscanner.models.signing.SigningBlockResult
 import org.katastima.apkscanner.scanapk.ApkScanner
 import org.katastima.apkscanner.signing.AndroidSigningBlock
+import org.katastima.apkscanner.utils.AndroidApiLevels
 import java.io.File
 
 
@@ -124,9 +125,17 @@ class ScanAPKCommand : ApkScannerCommand() {
         silenceableEcho("* Name:    ${apkManifest.label}")
         silenceableEcho("* Package: ${apkManifest.appId}")
         silenceableEcho("* Version: ${apkManifest.versionName} (${apkManifest.versionCode})")
+
         silenceableEcho("* SDK:")
-        silenceableEcho("  * MinSDK:    ${apkManifest.minSdk}")
-        silenceableEcho("  * TargetSDK: ${apkManifest.targetSdk}")
+        val minSdkAndroidVersion = AndroidApiLevels.getAndroidVersionForApiLevel(apkManifest.minSdk)
+        val minSdkAndroidVersionCode = AndroidApiLevels.getAndroidVersionCodeForApiLevel(apkManifest.minSdk)
+        val minSdkAndroidCodename = AndroidApiLevels.getAndroidCodenameForApiLevel(apkManifest.minSdk)
+        silenceableEcho("  * MinSDK:    ${apkManifest.minSdk} ($minSdkAndroidVersion - $minSdkAndroidVersionCode - $minSdkAndroidCodename)")
+        val targetSdkAndroidVersion = AndroidApiLevels.getAndroidVersionForApiLevel(apkManifest.targetSdk)
+        val targetSdkAndroidVersionCode = AndroidApiLevels.getAndroidVersionCodeForApiLevel(apkManifest.targetSdk)
+        val targetSdkAndroidCodename = AndroidApiLevels.getAndroidCodenameForApiLevel(apkManifest.targetSdk)
+        silenceableEcho("  * TargetSDK: ${apkManifest.targetSdk} ($targetSdkAndroidVersion - $targetSdkAndroidVersionCode - $targetSdkAndroidCodename)")
+
         // TODO: compiler information (platformBuildVersion, compileSdkVersion) as verbose?
         verboseEcho(EchoType.APK_INFO, "* File:     ${scanResult.apkFilePath}")
         verboseEcho(EchoType.APK_INFO, "* SHA-256:  ${scanResult.apkFileSha256}")
