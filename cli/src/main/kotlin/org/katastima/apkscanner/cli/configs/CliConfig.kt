@@ -35,7 +35,11 @@ data class CliConfig(
         private val LOGGER = LoggerFactory.getLogger(CliConfig::class.java)
 
         private val yaml: Yaml by lazy {
-            val yamlConfiguration = YamlConfiguration(encodeDefaults = true, strictMode = false)
+            val yamlConfiguration = YamlConfiguration(
+                encodeDefaults = true,
+                strictMode = false,
+                decodeEnumCaseInsensitive = true,
+            )
             Yaml(configuration = yamlConfiguration)
         }
 

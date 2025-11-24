@@ -37,7 +37,11 @@ data class ApkScannerConfig(
                 val configFile = getConfigFile(configFile)
                 apkScannerConfig = if (configFile.exists()) {
                     try {
-                        val yamlConfiguration = YamlConfiguration(encodeDefaults = true, strictMode = false)
+                        val yamlConfiguration = YamlConfiguration(
+                            encodeDefaults = true,
+                            strictMode = false,
+                            decodeEnumCaseInsensitive = true,
+                        )
                         val yaml = Yaml(configuration = yamlConfiguration)
                         yaml.decodeFromSource(serializer(), configFile.source())
                     } catch (exc: Exception) {
