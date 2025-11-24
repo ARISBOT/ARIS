@@ -12,5 +12,6 @@
     <root level="WARN">
         <appender-ref ref="STDOUT"/>
     </root>
+    <logger name="brut.androlib" level="WARN"/>
     <logger name="Exposed" level="INFO"/>
 </configuration>
