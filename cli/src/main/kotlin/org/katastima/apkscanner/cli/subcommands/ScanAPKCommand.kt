@@ -109,8 +109,11 @@ class ScanAPKCommand : ApkScannerCommand() {
     private fun printScanResult(apkFile: File, scanResult: ApkScanResult) {
         storeScanResultAsJsonIfWanted(apkFile, scanResult)
 
-        silenceableEcho("------------------------------------------------------------------------------")
-        silenceableEcho()
+        // Add separator when scanning multiple apk files.
+        if (apkFiles.size > 1) {
+            silenceableEcho("------------------------------------------------------------------------------")
+            silenceableEcho()
+        }
 
         verboseEcho(message = "Scan has completed:")
         verboseEcho(message = "-------------------")
