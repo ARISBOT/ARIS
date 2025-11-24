@@ -96,11 +96,12 @@ class ScanAPKCommand : ApkScannerCommand() {
             backgroundDispatcher = Dispatchers.Default,
             ioDispatcher = Dispatchers.IO,
         ).use {
-            verboseEcho(EchoType.GENERIC, "Scanning ${apkFiles.size} APK(s):")
+            val forcePrintApkScanList = apkFiles.size > 1
+            verboseEcho(EchoType.GENERIC, "Scanning ${apkFiles.size} APK(s):", forcePrint = forcePrintApkScanList)
             apkFiles.forEach { apkFile ->
-                verboseEcho(EchoType.GENERIC, "* ${apkFile.getApkFilePathForReport(apkScannerConfig)}")
+                verboseEcho(EchoType.GENERIC, "* ${apkFile.getApkFilePathForReport(apkScannerConfig)}", forcePrint = forcePrintApkScanList)
             }
-            verboseEcho(EchoType.GENERIC)
+            verboseEcho(EchoType.GENERIC, forcePrint = forcePrintApkScanList)
 
             it.scanMulti(apkFiles, this::printScanResult)
         }
@@ -435,8 +436,14 @@ class ScanAPKCommand : ApkScannerCommand() {
         SIGNING_BLOCK,
     }
 
-    private fun verboseEcho(echoType: EchoType = EchoType.GENERIC, message: Any? = "", trailingNewline: Boolean = true, err: Boolean = false) {
-        val verbose = cliConfig.scanApkConfig.verboseAll || when (echoType) {
+    private fun verboseEcho(
+        echoType: EchoType = EchoType.GENERIC,
+        message: Any? = "",
+        trailingNewline: Boolean = true,
+        err: Boolean = false,
+        forcePrint: Boolean = false,
+    ) {
+        val verbose = forcePrint || cliConfig.scanApkConfig.verboseAll || when (echoType) {
             EchoType.GENERIC -> cliConfig.scanApkConfig.verboseGeneric
             EchoType.APK_INFO -> cliConfig.scanApkConfig.verboseApkInfo
             EchoType.DETECTED_LIBRARIES -> cliConfig.scanApkConfig.verboseDetectedLibraries
