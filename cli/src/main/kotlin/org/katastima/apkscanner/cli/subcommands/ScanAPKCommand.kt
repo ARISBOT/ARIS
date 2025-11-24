@@ -96,11 +96,11 @@ class ScanAPKCommand : ApkScannerCommand() {
             backgroundDispatcher = Dispatchers.Default,
             ioDispatcher = Dispatchers.IO,
         ).use {
-            silenceableEcho("Scanning ${apkFiles.size} APK(s):")
+            verboseEcho(EchoType.GENERIC, "Scanning ${apkFiles.size} APK(s):")
             apkFiles.forEach { apkFile ->
-                silenceableEcho("* ${apkFile.getApkFilePathForReport(apkScannerConfig)}")
+                verboseEcho(EchoType.GENERIC, "* ${apkFile.getApkFilePathForReport(apkScannerConfig)}")
             }
-            silenceableEcho()
+            verboseEcho(EchoType.GENERIC)
 
             it.scanMulti(apkFiles, this::printScanResult)
         }
