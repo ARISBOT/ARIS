@@ -217,7 +217,8 @@ class ScanAPKCommand : ApkScannerCommand() {
             }
             silenceableEcho()
 
-            silenceableEcho("${offendingLibraries.size} offending ${if (offendingLibraries.size == 1) "library" else "libraries"} found.")
+            val offendingLibrariesFoundMessage = "${offendingLibraries.size} offending ${if (offendingLibraries.size == 1) "library" else "libraries"} found."
+            silenceableEcho(offendingLibrariesFoundMessage.formatYellow(cliConfig.consoleOutputConfig))
         }
         silenceableEcho()
     }
