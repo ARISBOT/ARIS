@@ -248,10 +248,10 @@ class ScanAPKCommand : ApkScannerCommand() {
                     silenceableEcho("    * Name: ${denyListMatch.name}")
                     silenceableEcho("      * Description: ${denyListMatch.description.ifEmpty { "-" }}")
                     silenceableEcho("      * Source URL:  ${denyListMatch.sourceUrl.ifEmpty { "-" }}")
-                    silenceableEcho("      * DN:          ${denyListMatch.dn.ifEmpty { "-" }}")
-                    silenceableEcho("      * SHA-256:     ${denyListMatch.sha256.ifEmpty { "-" }}")
-                    silenceableEcho("      * SHA-1:       ${denyListMatch.sha1.ifEmpty { "-" }}")
-                    silenceableEcho("      * MD5:         ${denyListMatch.md5.ifEmpty { "-" }}")
+                    verboseEcho(EchoType.SIGNATURE_CERTIFICATE, "      * DN:          ${denyListMatch.dn.ifEmpty { "-" }}")
+                    verboseEcho(EchoType.SIGNATURE_CERTIFICATE, "      * SHA-256:     ${denyListMatch.sha256.ifEmpty { "-" }}")
+                    verboseEcho(EchoType.SIGNATURE_CERTIFICATE, "      * SHA-1:       ${denyListMatch.sha1.ifEmpty { "-" }}")
+                    verboseEcho(EchoType.SIGNATURE_CERTIFICATE, "      * MD5:         ${denyListMatch.md5.ifEmpty { "-" }}")
                 }
             }
 
@@ -301,7 +301,7 @@ class ScanAPKCommand : ApkScannerCommand() {
                 silenceableEcho("  * Issuer does NOT match subject")
             }
             silenceableEcho("  * Issuer:")
-            silenceableEcho("    * Principal: ${certificateResult.issuerPrincipal}")
+            silenceableEcho("    * ${certificateResult.issuerPrincipal}")
             if (certificateResult.issuerContainsControlCharacters) {
                 silenceableEcho("    * Contains Control Characters: ${true.formatYesNo()}".formatRed(cliConfig.consoleOutputConfig))
             } else {
@@ -314,7 +314,7 @@ class ScanAPKCommand : ApkScannerCommand() {
         }
 
         silenceableEcho("  * Subject:")
-        silenceableEcho("    * Principal: ${certificateResult.subjectPrincipal}")
+        silenceableEcho("    * ${certificateResult.subjectPrincipal}")
         if (certificateResult.subjectContainsControlCharacters) {
             silenceableEcho("    * Contains Control Characters: ${true.formatYesNo()}".formatRed(cliConfig.consoleOutputConfig))
         } else {
