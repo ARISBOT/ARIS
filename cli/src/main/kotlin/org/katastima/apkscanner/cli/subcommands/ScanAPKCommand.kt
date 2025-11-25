@@ -11,7 +11,6 @@ import com.github.ajalt.clikt.output.MordantHelpFormatter
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.help
 import com.github.ajalt.clikt.parameters.arguments.multiple
-import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.help
 import com.github.ajalt.clikt.parameters.options.nullableFlag
 import com.github.ajalt.clikt.parameters.options.option
@@ -61,9 +60,8 @@ class ScanAPKCommand : ApkScannerCommand() {
         .nullableFlag("--json-include-defaults")
         .help("Exclude default values when storing the scan result as json file. While this may result in smaller json files, the resulting json files may be interpreted differently by consumers.")
 
-    private val jsonResultOutputDirectory: File by option("--output", "-o")
+    private val jsonResultOutputDirectory: File? by option("--output", "-o")
         .file(canBeFile = false)
-        .default(File("output").absoluteFile)
         .help("A directory where scan output should be stored. The directory will be created, if it does not already exist.")
 
     override val printHelpOnEmptyArgs = true
@@ -420,8 +418,10 @@ class ScanAPKCommand : ApkScannerCommand() {
                 ""
             }
         }
+
         if (scanResultJsonString.isNotEmpty()) {
-            val resultOutputDirectory = File(jsonResultOutputDirectory, scanStartedAt.format(localDateTimeFormatter))
+            val jsonOutputDirectory = jsonResultOutputDirectory ?: File(cliConfig.scanApkConfig.jsonOutputDirectory).absoluteFile
+            val resultOutputDirectory = File(jsonOutputDirectory, scanStartedAt.format(localDateTimeFormatter))
             resultOutputDirectory.mkdirs()
 
             val resultOutputFile = File(resultOutputDirectory, "apk-scanner_scan-apk_${apkFile.name}.json")
