@@ -18,6 +18,7 @@ data class ScanApkConfig(
     @SerialName("verbose_signature_certificate") var verboseSignatureCertificate: Boolean = false,
     @SerialName("verbose_signing_block") var verboseSigningBlock: Boolean = false,
     @SerialName("store_as_json") var storeAsJson: OutputStoreType = OutputStoreType.NO,
+    @SerialName("json_exclude_defaults") var jsonExcludeDefaults: Boolean = false,
 )
 
 @Serializable

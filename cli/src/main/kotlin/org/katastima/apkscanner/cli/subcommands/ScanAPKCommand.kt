@@ -12,8 +12,8 @@ import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.help
 import com.github.ajalt.clikt.parameters.arguments.multiple
 import com.github.ajalt.clikt.parameters.options.default
-import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.help
+import com.github.ajalt.clikt.parameters.options.nullableFlag
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.choice
 import com.github.ajalt.clikt.parameters.types.file
@@ -57,8 +57,8 @@ class ScanAPKCommand : ApkScannerCommand() {
         .choice(Pair("no", OutputStoreType.NO), Pair("yes", OutputStoreType.YES), Pair("pretty", OutputStoreType.PRETTY))
         .help("Store the scan result as json file")
 
-    private val jsonExcludeDefaults: Boolean by option("--json-exclude-defaults")
-        .flag(default = false, defaultForHelp = "disabled")
+    private val jsonExcludeDefaults: Boolean? by option("--json-exclude-defaults")
+        .nullableFlag("--json-include-defaults")
         .help("Exclude default values when storing the scan result as json file. While this may result in smaller json files, the resulting json files may be interpreted differently by consumers.")
 
     private val jsonResultOutputDirectory: File by option("--output", "-o")
@@ -402,15 +402,17 @@ class ScanAPKCommand : ApkScannerCommand() {
     }.formatBold(cliConfig.consoleOutputConfig)
 
     private fun storeScanResultAsJsonIfWanted(apkFile: File, scanResult: ApkScanResult) {
+        val excludeDefaults = jsonExcludeDefaults ?: cliConfig.scanApkConfig.jsonExcludeDefaults
+
         val scanResultJsonString = when (storeAsJson ?: cliConfig.scanApkConfig.storeAsJson) {
             OutputStoreType.YES -> {
                 @Suppress("JSON_FORMAT_REDUNDANT")
-                Json { encodeDefaults = jsonExcludeDefaults.not() }.encodeToString(scanResult)
+                Json { encodeDefaults = excludeDefaults.not() }.encodeToString(scanResult)
             }
 
             OutputStoreType.PRETTY -> {
                 @Suppress("JSON_FORMAT_REDUNDANT")
-                Json { encodeDefaults = jsonExcludeDefaults.not(); prettyPrint = true }.encodeToString(scanResult)
+                Json { encodeDefaults = excludeDefaults.not(); prettyPrint = true }.encodeToString(scanResult)
             }
 
             else -> {

@@ -33,3 +33,6 @@ scan_apk:
 
   # Store output result as json file. [no, yes, pretty]
   store_as_json: "no"
+  # Exclude default values when storing the scan result as json file.
+  # While this may result in smaller json files, the resulting json files may be interpreted differently by consumers.
+  json_exclude_defaults: false
