@@ -17,4 +17,17 @@ data class ScanApkConfig(
     @SerialName("verbose_signature_apksig") var verboseSignatureApksig: Boolean = false,
     @SerialName("verbose_signature_certificate") var verboseSignatureCertificate: Boolean = false,
     @SerialName("verbose_signing_block") var verboseSigningBlock: Boolean = false,
+    @SerialName("store_as_json") var storeAsJson: OutputStoreType = OutputStoreType.NO,
 )
+
+@Serializable
+enum class OutputStoreType {
+    @SerialName("no")
+    NO,
+
+    @SerialName("yes")
+    YES,
+
+    @SerialName("pretty")
+    PRETTY,
+}

@@ -30,3 +30,6 @@ scan_apk:
   verbose_signature_certificate: false
   # Print full information about signing blocks, e.g.: all ok blocks, dangerous blocks which were checked but not found, etc.
   verbose_signing_block: false
+
+  # Store output result as json file. [no, yes, pretty]
+  store_as_json: "no"

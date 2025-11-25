@@ -24,6 +24,7 @@ import kotlinx.datetime.format
 import kotlinx.datetime.format.char
 import kotlinx.serialization.json.Json
 import org.katastima.apkscanner.cli.ApkScannerCommand
+import org.katastima.apkscanner.cli.configs.OutputStoreType
 import org.katastima.apkscanner.cli.extensions.formatBold
 import org.katastima.apkscanner.cli.extensions.formatGreen
 import org.katastima.apkscanner.cli.extensions.formatRed
@@ -52,9 +53,8 @@ class ScanAPKCommand : ApkScannerCommand() {
         .help("A single or multiple APK files which should get scanned")
         .multiple(true)
 
-    private val storeAsJson: Int by option("--json", "-j")
-        .choice(Pair("no", 0), Pair("yes", 1), Pair("pretty", 2))
-        .default(0, "no")
+    private val storeAsJson: OutputStoreType? by option("--json", "-j")
+        .choice(Pair("no", OutputStoreType.NO), Pair("yes", OutputStoreType.YES), Pair("pretty", OutputStoreType.PRETTY))
         .help("Store the scan result as json file")
 
     private val jsonExcludeDefaults: Boolean by option("--json-exclude-defaults")
@@ -402,13 +402,13 @@ class ScanAPKCommand : ApkScannerCommand() {
     }.formatBold(cliConfig.consoleOutputConfig)
 
     private fun storeScanResultAsJsonIfWanted(apkFile: File, scanResult: ApkScanResult) {
-        val scanResultJsonString = when (storeAsJson) {
-            1 -> {
+        val scanResultJsonString = when (storeAsJson ?: cliConfig.scanApkConfig.storeAsJson) {
+            OutputStoreType.YES -> {
                 @Suppress("JSON_FORMAT_REDUNDANT")
                 Json { encodeDefaults = jsonExcludeDefaults.not() }.encodeToString(scanResult)
             }
 
-            2 -> {
+            OutputStoreType.PRETTY -> {
                 @Suppress("JSON_FORMAT_REDUNDANT")
                 Json { encodeDefaults = jsonExcludeDefaults.not(); prettyPrint = true }.encodeToString(scanResult)
             }
