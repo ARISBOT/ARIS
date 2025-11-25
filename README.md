@@ -16,10 +16,16 @@ Documentation for the APK Scanner is available [here](https://katastima.org/en/a
 
 ## Contributing
 
-The following tools are required to ensure the project stays REUSE complaint.
+The following tools are required to ensure the project stays [REUSE](https://reuse.software/) compliant.
 
 - [`reuse`](https://github.com/fsfe/reuse-tool)
   - `$ pipx install reuse`
   - `$ pipx ensurepath`
 - [`pre-commit`](https://pre-commit.com/)
   - `$ pre-commit install`
+
+## Licensing
+
+This repository is [REUSE](https://reuse.software/) compliant.
+
+Generally, all "APK Scanner" specific source code is licensed under [EUPL-1.2](https://eupl.eu/).
