@@ -14,8 +14,7 @@ plugins {
     alias(libs.plugins.shadowGradlePlugin)
 
     `maven-publish`
-    // TODO: set up signing
-    //`signing`
+    signing
 }
 
 java {
@@ -99,4 +98,8 @@ publishing {
             }
         }
     }
+}
+
+signing {
+    sign(publishing.publications["maven"])
 }
