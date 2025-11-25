@@ -55,3 +55,4 @@ bin/
 
 /output
 /sampledata/*.exported
+/*.json

@@ -38,5 +38,7 @@ scan_apk:
   json_exclude_defaults: false
   # A directory where the scan output should be stored. The directory will be created, if it does not already exist.
   json_output_directory: ""
+  # Store the scan output in a subdirectory within the output directory.
+  json_output_subdirectory: false
   # Store the scan output next to the APK file(s) (suffixed with '.json') instead of writing to a file within the specified output directory.
   json_output_with_apk: false

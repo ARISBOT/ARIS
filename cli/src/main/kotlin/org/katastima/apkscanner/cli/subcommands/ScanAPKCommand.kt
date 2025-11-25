@@ -20,6 +20,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.format
+import kotlinx.datetime.format.DateTimeFormat
 import kotlinx.datetime.format.char
 import kotlinx.serialization.json.Json
 import org.katastima.apkscanner.cli.ApkScannerCommand
@@ -64,6 +65,10 @@ class ScanAPKCommand : ApkScannerCommand() {
         .file(canBeFile = false)
         .help("A directory where the scan output should be stored. The directory will be created, if it does not already exist.")
 
+    private val jsonOutputSubdirectory: Boolean? by option("--output-subdirectory")
+        .nullableFlag()
+        .help("Store the scan output in a subdirectory within the output directory.")
+
     private val outputResultWithApk: Boolean? by option("--output-with-apk")
         .nullableFlag()
         .help("Store the scan output next to the APK file(s) (suffixed with '.json') instead of writing to a file within the specified output directory.")
@@ -72,12 +77,14 @@ class ScanAPKCommand : ApkScannerCommand() {
     override val printHelpOnEmptyArgs = true
 
     private val scanStartedAt: LocalDateTime = nowAsLocalDate()
-    private val localDateTimeFormatter = LocalDateTime.Format {
-        date(LocalDate.Formats.ISO_BASIC)
-        char('_')
-        hour(); minute(); second()
-        char('_')
-        secondFraction(fixedLength = 3)
+    private val localDateTimeFormatter: DateTimeFormat<LocalDateTime> by lazy {
+        LocalDateTime.Format {
+            date(LocalDate.Formats.ISO_BASIC)
+            char('_')
+            hour(); minute(); second()
+            char('_')
+            secondFraction(fixedLength = 3)
+        }
     }
 
     init {
@@ -111,8 +118,6 @@ class ScanAPKCommand : ApkScannerCommand() {
     }
 
     private fun printScanResult(apkFile: File, scanResult: ApkScanResult) {
-        storeScanResultAsJsonIfWanted(apkFile, scanResult)
-
         // Add separator when scanning multiple apk files.
         if (apkFiles.size > 1) {
             silenceableEcho("------------------------------------------------------------------------------")
@@ -124,6 +129,8 @@ class ScanAPKCommand : ApkScannerCommand() {
         verboseEcho(message = "* Date (UTC): ${scanResult.scanDateUTC}")
         verboseEcho(message = "* Duration: ${scanResult.scanDurationMs} ms")
         verboseEcho()
+
+        storeScanResultAsJsonIfWanted(apkFile, scanResult)
 
         silenceableEcho("Scanned APK:")
         silenceableEcho("------------")
@@ -430,14 +437,20 @@ class ScanAPKCommand : ApkScannerCommand() {
                 apkFile.absoluteFile.parentFile
             } else {
                 val jsonOutputDirectory = jsonResultOutputDirectory ?: File(cliConfig.scanApkConfig.jsonOutputDirectory).absoluteFile
-                val resultOutputDirectory = File(jsonOutputDirectory, scanStartedAt.format(localDateTimeFormatter))
-                resultOutputDirectory.mkdirs()
-
-                resultOutputDirectory
+                if (jsonOutputSubdirectory ?: cliConfig.scanApkConfig.jsonOutputSubdirectory) {
+                    val resultOutputDirectory = File(jsonOutputDirectory, scanStartedAt.format(localDateTimeFormatter))
+                    resultOutputDirectory.mkdirs()
+                    resultOutputDirectory
+                } else {
+                    jsonOutputDirectory
+                }
             }
 
             val resultOutputFile = File(resultOutputDirectory, resultOutputName)
-            verboseEcho(EchoType.GENERIC, "Writing scan result output to: '${resultOutputFile.absolutePath}'.")
+
+            verboseEcho(EchoType.GENERIC, "Writing scan result output to: ${resultOutputFile.absolutePath}")
+            verboseEcho(EchoType.GENERIC)
+
             resultOutputFile.writeText(scanResultJsonString)
         }
     }
