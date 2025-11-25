@@ -19,7 +19,7 @@ data class ScanApkConfig(
     @SerialName("verbose_signing_block") var verboseSigningBlock: Boolean = false,
     @SerialName("store_as_json") var storeAsJson: OutputStoreType = OutputStoreType.NO,
     @SerialName("json_exclude_defaults") var jsonExcludeDefaults: Boolean = false,
-    @SerialName("json_output_directory") var jsonOutputDirectory: String = "output",
+    @SerialName("json_output_directory") var jsonOutputDirectory: String = "",
     @SerialName("json_output_with_apk") var jsonOutputWithApk: Boolean = false,
 )
 

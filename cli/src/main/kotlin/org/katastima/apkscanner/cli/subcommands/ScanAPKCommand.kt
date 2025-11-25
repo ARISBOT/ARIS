@@ -425,17 +425,18 @@ class ScanAPKCommand : ApkScannerCommand() {
         }
 
         if (scanResultJsonString.isNotEmpty()) {
-            val resultOutputFile: File = if (outputResultWithApk ?: cliConfig.scanApkConfig.jsonOutputWithApk) {
-                val parentDirectory = apkFile.absoluteFile.parentFile
-
-                File(parentDirectory, "${apkFile.name}.json")
+            val resultOutputName = "${apkFile.name}.json"
+            val resultOutputDirectory: File = if (outputResultWithApk ?: cliConfig.scanApkConfig.jsonOutputWithApk) {
+                apkFile.absoluteFile.parentFile
             } else {
                 val jsonOutputDirectory = jsonResultOutputDirectory ?: File(cliConfig.scanApkConfig.jsonOutputDirectory).absoluteFile
                 val resultOutputDirectory = File(jsonOutputDirectory, scanStartedAt.format(localDateTimeFormatter))
                 resultOutputDirectory.mkdirs()
 
-                File(resultOutputDirectory, "apk-scanner_scan-apk_${apkFile.name}.json")
+                resultOutputDirectory
             }
+
+            val resultOutputFile = File(resultOutputDirectory, resultOutputName)
             verboseEcho(EchoType.GENERIC, "Writing scan result output to: '${resultOutputFile.absolutePath}'.")
             resultOutputFile.writeText(scanResultJsonString)
         }
