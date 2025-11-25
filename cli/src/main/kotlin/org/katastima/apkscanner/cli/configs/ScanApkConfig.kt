@@ -20,6 +20,7 @@ data class ScanApkConfig(
     @SerialName("store_as_json") var storeAsJson: OutputStoreType = OutputStoreType.NO,
     @SerialName("json_exclude_defaults") var jsonExcludeDefaults: Boolean = false,
     @SerialName("json_output_directory") var jsonOutputDirectory: String = "output",
+    @SerialName("json_output_with_apk") var jsonOutputWithApk: Boolean = false,
 )
 
 @Serializable

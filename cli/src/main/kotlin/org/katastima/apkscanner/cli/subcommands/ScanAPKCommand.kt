@@ -62,7 +62,12 @@ class ScanAPKCommand : ApkScannerCommand() {
 
     private val jsonResultOutputDirectory: File? by option("--output", "-o")
         .file(canBeFile = false)
-        .help("A directory where scan output should be stored. The directory will be created, if it does not already exist.")
+        .help("A directory where the scan output should be stored. The directory will be created, if it does not already exist.")
+
+    private val outputResultWithApk: Boolean? by option("--output-with-apk")
+        .nullableFlag()
+        .help("Store the scan output next to the APK file(s) (suffixed with '.json') instead of writing to a file within the specified output directory.")
+
 
     override val printHelpOnEmptyArgs = true
 
@@ -420,11 +425,18 @@ class ScanAPKCommand : ApkScannerCommand() {
         }
 
         if (scanResultJsonString.isNotEmpty()) {
-            val jsonOutputDirectory = jsonResultOutputDirectory ?: File(cliConfig.scanApkConfig.jsonOutputDirectory).absoluteFile
-            val resultOutputDirectory = File(jsonOutputDirectory, scanStartedAt.format(localDateTimeFormatter))
-            resultOutputDirectory.mkdirs()
+            val resultOutputFile: File = if (outputResultWithApk ?: cliConfig.scanApkConfig.jsonOutputWithApk) {
+                val parentDirectory = apkFile.absoluteFile.parentFile
 
-            val resultOutputFile = File(resultOutputDirectory, "apk-scanner_scan-apk_${apkFile.name}.json")
+                File(parentDirectory, "${apkFile.name}.json")
+            } else {
+                val jsonOutputDirectory = jsonResultOutputDirectory ?: File(cliConfig.scanApkConfig.jsonOutputDirectory).absoluteFile
+                val resultOutputDirectory = File(jsonOutputDirectory, scanStartedAt.format(localDateTimeFormatter))
+                resultOutputDirectory.mkdirs()
+
+                File(resultOutputDirectory, "apk-scanner_scan-apk_${apkFile.name}.json")
+            }
+            verboseEcho(EchoType.GENERIC, "Writing scan result output to: '${resultOutputFile.absolutePath}'.")
             resultOutputFile.writeText(scanResultJsonString)
         }
     }
