@@ -5,6 +5,11 @@
 
 package org.katastima.apkscanner.data
 
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.jsonArray
@@ -31,10 +36,16 @@ object ImportUtil {
 
     private val LOGGER = LoggerFactory.getLogger(ImportUtil::class.java)
 
-    fun importAll(database: Database, apkScannerConfig: ApkScannerConfig) {
-        importLibraryData(database, apkScannerConfig)
-        importCertificateData(database, apkScannerConfig)
-        importManifestConfigData(database, apkScannerConfig)
+    suspend fun importAll(
+        database: Database,
+        apkScannerConfig: ApkScannerConfig,
+        ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    ) = withContext(ioDispatcher) {
+        listOf(
+            async { importCertificateData(database, apkScannerConfig) },
+            async { importLibraryData(database, apkScannerConfig) },
+            async { importManifestConfigData(database, apkScannerConfig) },
+        ).awaitAll()
     }
 
     fun importCertificateData(database: Database, apkScannerConfig: ApkScannerConfig) {
