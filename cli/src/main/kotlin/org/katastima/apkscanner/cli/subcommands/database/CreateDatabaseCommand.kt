@@ -14,10 +14,8 @@ import kotlinx.coroutines.delay
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.katastima.apkscanner.cli.ApkScannerCommand
-import org.katastima.apkscanner.database.CertificateDataUtil
+import org.katastima.apkscanner.data.ImportUtil
 import org.katastima.apkscanner.database.DatabaseUtil
-import org.katastima.apkscanner.database.LibraryDataUtil
-import org.katastima.apkscanner.database.ManifestDataUtil
 import kotlin.system.measureTimeMillis
 
 class CreateDatabaseCommand : ApkScannerCommand("setup") {
@@ -59,14 +57,8 @@ class CreateDatabaseCommand : ApkScannerCommand("setup") {
             DatabaseUtil.dropTables(database, apkScannerConfig.databaseConfig.debug)
             DatabaseUtil.setupDatabase(database, apkScannerConfig.databaseConfig.debug)
 
-            // Import legacy data
-            LibraryDataUtil.importLibraryData(database, apkScannerConfig)
-
-            // Import certificates data
-            CertificateDataUtil.importCertificateData(database, apkScannerConfig)
-
-            // Import manifest data
-            ManifestDataUtil.importManifestConfigData(database, apkScannerConfig)
+            // Import all the data.
+            ImportUtil.importAll(database, apkScannerConfig)
         }
 
         silenceableEcho("Database set up in $setupTime ms")

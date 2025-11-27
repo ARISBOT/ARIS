@@ -12,113 +12,15 @@ import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.katastima.apkscanner.config.ApkScannerConfig
-import org.katastima.apkscanner.data.DataUtil
 import org.katastima.apkscanner.database.dao.LibraryEntry
 import org.katastima.apkscanner.database.dao.LibraryInformationEntry
 import org.katastima.apkscanner.database.dao.LibraryInformationTable
 import org.katastima.apkscanner.database.dao.LibraryTable
 import org.katastima.apkscanner.models.library.LegacyLibraryDefinition
 import org.katastima.apkscanner.models.library.LegacyLibraryInformation
-import org.slf4j.LoggerFactory
 import java.io.File
-import kotlin.system.measureTimeMillis
 
 object LibraryDataUtil {
-
-    private val LOGGER = LoggerFactory.getLogger(LibraryDataUtil::class.java)
-
-    fun importLibraryData(database: Database, apkScannerConfig: ApkScannerConfig) {
-        val libraryInformationContent = DataUtil.getLibraryInformationContent(apkScannerConfig.dataConfig)
-        if (libraryInformationContent.isEmpty()) {
-            LOGGER.warn("There is no library information data to import, skipping import")
-            return
-        }
-
-        val libraryDefinitionContent = DataUtil.getLibraryDefinitionContent(apkScannerConfig.dataConfig)
-        if (libraryDefinitionContent.isEmpty()) {
-            LOGGER.warn("There is no library definition data to import, skipping import")
-            return
-        }
-
-        val json = Json { ignoreUnknownKeys = true }
-
-        // Important: information needs to be imported before definitions
-        importLibraryInformation(json, database, libraryInformationContent, apkScannerConfig.databaseConfig.debug)
-        importLibraryDefinitions(json, database, libraryDefinitionContent, apkScannerConfig.databaseConfig.debug)
-    }
-
-    private fun importLibraryInformation(json: Json, database: Database, contentLines: Set<String>, debugDatabase: Boolean) {
-        val libraryInformation: MutableList<LegacyLibraryInformation> = mutableListOf()
-
-        val importDuration = measureTimeMillis {
-            contentLines.forEach {
-                libraryInformation.add(json.decodeFromString<LegacyLibraryInformation>(it))
-            }
-
-            transaction(database) {
-                if (debugDatabase) {
-                    addLogger(StdOutSqlLogger)
-                }
-
-                libraryInformation.sortedBy { it.id }.forEach {
-                    LibraryInformationEntry.new {
-                        libraryId = it.id
-                        name = ""
-                        details = it.details
-                        type = ""
-                        permissions = emptyList()
-                        url = ""
-                        modWarningId = it.modWarningId
-                        antiFeatures = it.antiFeatures.asList()
-                        license = it.license
-                        emphasize = it.emphasize
-                    }
-                }
-            }
-        }
-        LOGGER.info("Took {} ms to import {} library information entries", importDuration, libraryInformation.size)
-    }
-
-    private fun importLibraryDefinitions(json: Json, database: Database, contentLines: Set<String>, debugDatabase: Boolean) {
-        val libraryDefinitions: MutableList<LegacyLibraryDefinition> = mutableListOf()
-
-        val importDuration = measureTimeMillis {
-            contentLines.forEach {
-                libraryDefinitions.add(json.decodeFromString<LegacyLibraryDefinition>(it))
-            }
-
-            transaction(database) {
-                if (debugDatabase) {
-                    addLogger(StdOutSqlLogger)
-                }
-
-                libraryDefinitions
-                    .sortedBy { it.id }
-                    .forEach {
-                        LibraryInformationEntry
-                            .find { LibraryInformationTable.libraryId eq it.id }
-                            .forEach { foundDefinition ->
-                                val permissionSet = hashSetOf<String>()
-                                permissionSet.addAll(foundDefinition.permissions)
-                                permissionSet.addAll(it.perms)
-
-                                foundDefinition.apply {
-                                    name = it.name
-                                    type = it.type
-                                    permissions = permissionSet.sorted()
-                                    url = it.url
-                                }
-
-                                LibraryEntry.new {
-                                    path = it.path
-                                    libraryInformationEntry = foundDefinition
-                                }
-                            }
-                    }
-            }
-        }
-        LOGGER.info("Took {} ms to import {} library definitions", importDuration, libraryDefinitions.size)
-    }
 
     fun exportLibraryDefinitions(database: Database, apkScannerConfig: ApkScannerConfig): Pair<List<LegacyLibraryInformation>, List<LegacyLibraryDefinition>> {
         val libraryDefinitionsFile = File(apkScannerConfig.dataConfig.libraryDefinitionPath)
