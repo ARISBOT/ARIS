@@ -6,16 +6,24 @@
 package org.katastima.apkscanner.cli.subcommands.database
 
 import com.github.ajalt.clikt.core.Context
+import com.github.ajalt.clikt.parameters.options.help
+import com.github.ajalt.clikt.parameters.options.option
+import com.github.ajalt.clikt.parameters.types.file
 import org.katastima.apkscanner.cli.ApkScannerCommand
 import org.katastima.apkscanner.data.ExportUtil
 import org.katastima.apkscanner.database.DatabaseUtil
 import org.katastima.apkscanner.internal.RepositoryUtil
+import java.io.File
 
 class ExportManifestConfigCommand : ApkScannerCommand("export-manifest-config") {
 
     override fun help(context: Context): String = """
         Exports manifest config to the specified export paths in the data config section.
         """.trimIndent()
+
+    private val outputFile: File? by option("--output", "-o")
+        .file(canBeFile = false)
+        .help("Write manifest config export to the given path instead of using the path specified in the data config section.")
 
     override suspend fun run() {
         val apkScannerConfig = cliConfig.apkScannerConfig
@@ -24,7 +32,7 @@ class ExportManifestConfigCommand : ApkScannerCommand("export-manifest-config") 
         DatabaseUtil.setupDatabase(database, apkScannerConfig.databaseConfig.debug)
 
         val manifestRepository = RepositoryUtil.getManifestRepository(database, apkScannerConfig)
-        val exportPath = apkScannerConfig.dataConfig.manifestConfigExportPath
+        val exportPath = outputFile?.absolutePath ?: apkScannerConfig.dataConfig.manifestConfigExportPath
         val exportedManifestConfig = ExportUtil.exportManifestConfig(manifestRepository, exportPath)
         silenceableEcho("Exported manifest config (${exportedManifestConfig.getGroupAndCountString()}) to: $exportPath")
     }
