@@ -11,15 +11,11 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
-import org.jetbrains.exposed.v1.core.StdOutSqlLogger
 import org.jetbrains.exposed.v1.jdbc.Database
-import org.jetbrains.exposed.v1.jdbc.selectAll
-import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.katastima.apkscanner.config.ApkScannerConfig
+import org.katastima.apkscanner.data.certificate.CertificateRepository
 import org.katastima.apkscanner.data.library.LibraryRepository
 import org.katastima.apkscanner.data.manifest.ManifestRepository
-import org.katastima.apkscanner.database.dao.SigningCertificateDenylistEntity
-import org.katastima.apkscanner.database.dao.SigningCertificateDenylistTable
 import org.katastima.apkscanner.internal.RepositoryUtil
 import org.katastima.apkscanner.models.library.LegacyLibraryDefinition
 import org.katastima.apkscanner.models.library.LegacyLibraryInformation
@@ -37,9 +33,8 @@ object ExportUtil {
         listOf(
             async {
                 exportCertificateDenylist(
-                    database,
+                    RepositoryUtil.getCertificateRepository(database, apkScannerConfig),
                     apkScannerConfig.dataConfig.certificateDenylistExportPath,
-                    apkScannerConfig.databaseConfig.debug,
                 )
             },
             async {
@@ -58,30 +53,14 @@ object ExportUtil {
         ).awaitAll()
     }
 
-    fun exportCertificateDenylist(database: Database, exportFile: File, debugDatabase: Boolean = false): List<SigningCertificate> {
-        return exportCertificateDenylist(database, exportFile.absolutePath, debugDatabase)
-    }
-
-    fun exportCertificateDenylist(database: Database, exportFilePath: String, debugDatabase: Boolean = false): List<SigningCertificate> {
-        var denylist: MutableList<SigningCertificate> = mutableListOf()
-
-        // Get all deny list entries and store it in the list.
-        transaction(database) {
-            if (debugDatabase) {
-                addLogger(StdOutSqlLogger)
-            }
-
-            SigningCertificateDenylistTable
-                .selectAll()
-                .sortedBy { SigningCertificateDenylistTable.name }
-                .map { SigningCertificateDenylistEntity.wrapRow(it) }
-                .forEach {
-                    val signingCertificate = it.toSigningCertificate()
-                    denylist.add(signingCertificate)
-                }
-        }
+    suspend fun exportCertificateDenylist(
+        certificateRepository: CertificateRepository,
+        exportFilePath: String,
+        ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    ): List<SigningCertificate> = withContext(ioDispatcher) {
+        val databaseDenyList = certificateRepository.getAll()
         // Sort the deny entry list by name, ignoring case.
-        denylist = denylist.sortedBy { it.name.lowercase() }.toMutableList()
+        val denylist: MutableList<SigningCertificate> = databaseDenyList.sortedBy { it.name.lowercase() }.toMutableList()
 
         // If there is a template item, move it to the bottom of the list.
         val templateItem = denylist.find { it.name == "TEMPLATE_ENTRY" }
@@ -99,21 +78,7 @@ object ExportUtil {
             bufferedWriter.write(json.encodeToString(denylist))
         }
 
-        return denylist
-    }
-
-    suspend fun exportLibraryData(
-        libraryRepository: LibraryRepository,
-        definitionExportFile: File,
-        informationExportFile: File,
-        ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
-    ): Pair<List<LegacyLibraryInformation>, List<LegacyLibraryDefinition>> {
-        return exportLibraryData(
-            libraryRepository,
-            definitionExportFile.absolutePath,
-            informationExportFile.absolutePath,
-            ioDispatcher,
-        )
+        return@withContext denylist
     }
 
     suspend fun exportLibraryData(
@@ -143,14 +108,6 @@ object ExportUtil {
         }
 
         return@withContext Pair(legacyInformationList, legacyDefinitionList)
-    }
-
-    suspend fun exportManifestConfig(
-        manifestRepository: ManifestRepository,
-        exportFile: File,
-        ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
-    ): ManifestConfig {
-        return exportManifestConfig(manifestRepository, exportFile.absolutePath, ioDispatcher)
     }
 
     suspend fun exportManifestConfig(

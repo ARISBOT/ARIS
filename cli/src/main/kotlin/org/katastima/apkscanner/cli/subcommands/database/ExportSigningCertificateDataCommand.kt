@@ -12,6 +12,7 @@ import com.github.ajalt.clikt.parameters.types.file
 import org.katastima.apkscanner.cli.ApkScannerCommand
 import org.katastima.apkscanner.data.ExportUtil
 import org.katastima.apkscanner.database.DatabaseUtil
+import org.katastima.apkscanner.internal.RepositoryUtil
 import java.io.File
 
 class ExportSigningCertificateDataCommand : ApkScannerCommand("export-signing-certificate-data") {
@@ -31,7 +32,10 @@ class ExportSigningCertificateDataCommand : ApkScannerCommand("export-signing-ce
         DatabaseUtil.setupDatabase(database, apkScannerConfig.databaseConfig.debug)
 
         val denylistExportPath = outputFile?.absolutePath ?: apkScannerConfig.dataConfig.certificateDenylistExportPath
-        val exportedListData = ExportUtil.exportCertificateDenylist(database, denylistExportPath)
+        val exportedListData = ExportUtil.exportCertificateDenylist(
+            RepositoryUtil.getCertificateRepository(database, apkScannerConfig),
+            denylistExportPath,
+        )
         silenceableEcho("Exported ${exportedListData.size} denied signing certificates to: $denylistExportPath")
     }
 }
