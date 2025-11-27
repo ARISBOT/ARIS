@@ -28,10 +28,10 @@ class ExportSigningCertificateDataCommand : ApkScannerCommand("export-signing-ce
         val apkScannerConfig = cliConfig.apkScannerConfig
 
         val denylistExportPath = outputFile?.absolutePath ?: apkScannerConfig.dataConfig.certificateDenylistExportPath
-        val exportedListData = ExportUtil.exportCertificateDenylist(
+        val exportResult = ExportUtil.exportCertificateDenylist(
             RepositoryUtil.getCertificateRepository(apkScannerConfig),
             denylistExportPath,
         )
-        silenceableEcho("Exported ${exportedListData.size} denied signing certificates to: $denylistExportPath")
+        silenceableEcho(exportResult.first)
     }
 }

@@ -22,6 +22,10 @@ import org.katastima.apkscanner.models.manifest.config.ManifestConfig
 import org.katastima.apkscanner.models.signing.SigningCertificate
 import java.io.File
 
+typealias ExportResultCertificateData = Pair<String, List<SigningCertificate>>
+typealias ExportResultLibraryData = Triple<String, List<LegacyLibraryInformation>, List<LegacyLibraryDefinition>>
+typealias ExportResultManifestData = Pair<String, ManifestConfig>
+
 object ExportUtil {
 
     suspend fun exportAll(
@@ -55,7 +59,7 @@ object ExportUtil {
         certificateRepository: CertificateRepository,
         exportFilePath: String,
         ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
-    ): List<SigningCertificate> = withContext(ioDispatcher) {
+    ): ExportResultCertificateData = withContext(ioDispatcher) {
         val databaseDenyList = certificateRepository.getAll()
         // Sort the deny entry list by name, ignoring case.
         val denylist: MutableList<SigningCertificate> = databaseDenyList.sortedBy { it.name.lowercase() }.toMutableList()
@@ -75,8 +79,9 @@ object ExportUtil {
             }
             bufferedWriter.write(json.encodeToString(denylist))
         }
+        val exportMessage = "Exported ${denylist.size} denied signing certificates to: ${denylistPath.absolutePath}"
 
-        return@withContext denylist
+        return@withContext ExportResultCertificateData(exportMessage, denylist)
     }
 
     suspend fun exportLibraryData(
@@ -84,7 +89,9 @@ object ExportUtil {
         definitionExportFilePath: String,
         informationExportFilePath: String,
         ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
-    ): Pair<List<LegacyLibraryInformation>, List<LegacyLibraryDefinition>> = withContext(ioDispatcher) {
+    ): ExportResultLibraryData = withContext(ioDispatcher) {
+        val exportResultStringBuilder = StringBuilder()
+
         val libraryDefinitionsFile = getExportFileAndCreateParentDirectory(definitionExportFilePath)
         val legacyDefinitionList = libraryRepository.getAllDefinitionEntries()
         libraryDefinitionsFile.outputStream().bufferedWriter().use { bufferedWriter ->
@@ -94,6 +101,8 @@ object ExportUtil {
                 bufferedWriter.newLine()
             }
         }
+        exportResultStringBuilder.append("Exported ${legacyDefinitionList.size} library definitions to: ${libraryDefinitionsFile.absolutePath}")
+        exportResultStringBuilder.append("\n")
 
         val legacyInformationList = libraryRepository.getAllInformationEntries()
         val libraryInformationFile = getExportFileAndCreateParentDirectory(informationExportFilePath)
@@ -104,15 +113,20 @@ object ExportUtil {
                 bufferedWriter.newLine()
             }
         }
+        exportResultStringBuilder.append("Exported ${legacyInformationList.size} library information entries to: ${libraryInformationFile.absolutePath}")
 
-        return@withContext Pair(legacyInformationList, legacyDefinitionList)
+        return@withContext ExportResultLibraryData(
+            exportResultStringBuilder.toString(),
+            legacyInformationList,
+            legacyDefinitionList,
+        )
     }
 
     suspend fun exportManifestConfig(
         manifestRepository: ManifestRepository,
         exportFilePath: String,
         ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
-    ): ManifestConfig = withContext(ioDispatcher) {
+    ): ExportResultManifestData = withContext(ioDispatcher) {
         val manifestConfig = manifestRepository.getManifestConfig()
 
         val exportFile = getExportFileAndCreateParentDirectory(exportFilePath)
@@ -123,8 +137,9 @@ object ExportUtil {
             }
             bufferedWriter.write(json.encodeToString(manifestConfig))
         }
+        val exportMessage = "Exported manifest config (${manifestConfig.getGroupAndCountString()}) to: ${exportFile.absolutePath}"
 
-        return@withContext manifestConfig
+        return@withContext ExportResultManifestData(exportMessage, manifestConfig)
     }
 
     private fun getExportFileAndCreateParentDirectory(filePath: String): File {

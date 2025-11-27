@@ -34,13 +34,11 @@ class ExportLibraryDefinitionsCommand : ApkScannerCommand("export-library-defini
         val definitionExportPath = outputDefinitionFile?.absolutePath ?: apkScannerConfig.dataConfig.libraryDefinitionExportPath
         val informationExportPath = outputInfoFile?.absolutePath ?: apkScannerConfig.dataConfig.libraryInformationExportPath
 
-        val exportedData = ExportUtil.exportLibraryData(
+        val exportResult = ExportUtil.exportLibraryData(
             RepositoryUtil.getLibraryRepository(apkScannerConfig),
             definitionExportPath,
             informationExportPath,
         )
-
-        silenceableEcho("Exported ${exportedData.second.size} library definitions to: $definitionExportPath")
-        silenceableEcho("Exported ${exportedData.first.size} library information entries to: $informationExportPath")
+        silenceableEcho(exportResult.first)
     }
 }

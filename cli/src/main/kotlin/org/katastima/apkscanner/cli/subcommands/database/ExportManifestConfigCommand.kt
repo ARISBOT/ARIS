@@ -29,7 +29,7 @@ class ExportManifestConfigCommand : ApkScannerCommand("export-manifest-config") 
 
         val manifestRepository = RepositoryUtil.getManifestRepository(apkScannerConfig)
         val exportPath = outputFile?.absolutePath ?: apkScannerConfig.dataConfig.manifestConfigExportPath
-        val exportedManifestConfig = ExportUtil.exportManifestConfig(manifestRepository, exportPath)
-        silenceableEcho("Exported manifest config (${exportedManifestConfig.getGroupAndCountString()}) to: $exportPath")
+        val exportResult = ExportUtil.exportManifestConfig(manifestRepository, exportPath)
+        silenceableEcho(exportResult.first)
     }
 }
