@@ -12,6 +12,7 @@ import com.github.ajalt.clikt.parameters.types.file
 import org.katastima.apkscanner.cli.ApkScannerCommand
 import org.katastima.apkscanner.data.ExportUtil
 import org.katastima.apkscanner.database.DatabaseUtil
+import org.katastima.apkscanner.internal.RepositoryUtil
 import java.io.File
 
 class ExportLibraryDefinitionsCommand : ApkScannerCommand("export-library-definitions") {
@@ -38,10 +39,9 @@ class ExportLibraryDefinitionsCommand : ApkScannerCommand("export-library-defini
         val informationExportPath = outputInfoFile?.absolutePath ?: apkScannerConfig.dataConfig.libraryInformationExportPath
 
         val exportedData = ExportUtil.exportLibraryData(
-            database,
+            RepositoryUtil.getLibraryRepository(database, apkScannerConfig),
             definitionExportPath,
             informationExportPath,
-            apkScannerConfig.databaseConfig.debug,
         )
 
         silenceableEcho("Exported ${exportedData.second.size} library definitions to: $definitionExportPath")

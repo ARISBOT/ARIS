@@ -9,6 +9,7 @@ import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.IntIdTable
 import org.jetbrains.exposed.v1.dao.IntEntity
 import org.jetbrains.exposed.v1.dao.IntEntityClass
+import org.katastima.apkscanner.models.library.LegacyLibraryDefinition
 import org.katastima.apkscanner.models.library.Library
 
 object LibraryTable : IntIdTable("libraries") {
@@ -33,6 +34,17 @@ class LibraryEntry(id: EntityID<Int>) : IntEntity(id) {
         return Library(
             path = this.path,
             libraryInformation = libraryInformationEntry.toLibraryInformation(),
+        )
+    }
+
+    fun toLegacyLibraryDefinition(): LegacyLibraryDefinition {
+        return LegacyLibraryDefinition(
+            id = libraryInformationEntry.libraryId,
+            path = this.path,
+            name = libraryInformationEntry.name,
+            type = libraryInformationEntry.type,
+            perms = libraryInformationEntry.permissions.toTypedArray(),
+            url = libraryInformationEntry.url,
         )
     }
 }

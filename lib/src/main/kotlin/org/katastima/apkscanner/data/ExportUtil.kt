@@ -12,16 +12,12 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.v1.core.StdOutSqlLogger
-import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.katastima.apkscanner.config.ApkScannerConfig
+import org.katastima.apkscanner.data.library.LibraryRepository
 import org.katastima.apkscanner.data.manifest.ManifestRepository
-import org.katastima.apkscanner.database.dao.LibraryEntry
-import org.katastima.apkscanner.database.dao.LibraryInformationEntry
-import org.katastima.apkscanner.database.dao.LibraryInformationTable
-import org.katastima.apkscanner.database.dao.LibraryTable
 import org.katastima.apkscanner.database.dao.SigningCertificateDenylistEntity
 import org.katastima.apkscanner.database.dao.SigningCertificateDenylistTable
 import org.katastima.apkscanner.internal.RepositoryUtil
@@ -48,10 +44,9 @@ object ExportUtil {
             },
             async {
                 exportLibraryData(
-                    database,
+                    RepositoryUtil.getLibraryRepository(database, apkScannerConfig),
                     apkScannerConfig.dataConfig.libraryDefinitionExportPath,
                     apkScannerConfig.dataConfig.libraryInformationExportPath,
-                    apkScannerConfig.databaseConfig.debug,
                 )
             },
             async {
@@ -107,67 +102,28 @@ object ExportUtil {
         return denylist
     }
 
-    fun exportLibraryData(
-        database: Database,
+    suspend fun exportLibraryData(
+        libraryRepository: LibraryRepository,
         definitionExportFile: File,
         informationExportFile: File,
-        debugDatabase: Boolean = false,
+        ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
     ): Pair<List<LegacyLibraryInformation>, List<LegacyLibraryDefinition>> {
-        return exportLibraryData(database, definitionExportFile.absolutePath, informationExportFile.absolutePath, debugDatabase)
+        return exportLibraryData(
+            libraryRepository,
+            definitionExportFile.absolutePath,
+            informationExportFile.absolutePath,
+            ioDispatcher,
+        )
     }
 
-    fun exportLibraryData(
-        database: Database,
+    suspend fun exportLibraryData(
+        libraryRepository: LibraryRepository,
         definitionExportFilePath: String,
         informationExportFilePath: String,
-        debugDatabase: Boolean = false,
-    ): Pair<List<LegacyLibraryInformation>, List<LegacyLibraryDefinition>> {
+        ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    ): Pair<List<LegacyLibraryInformation>, List<LegacyLibraryDefinition>> = withContext(ioDispatcher) {
         val libraryDefinitionsFile = getExportFileAndCreateParentDirectory(definitionExportFilePath)
-        val libraryInformationFile = getExportFileAndCreateParentDirectory(informationExportFilePath)
-
-        val legacyInformationList: MutableList<LegacyLibraryInformation> = mutableListOf()
-        val legacyDefinitionList: MutableList<LegacyLibraryDefinition> = mutableListOf()
-
-        transaction(database) {
-            if (debugDatabase) {
-                addLogger(StdOutSqlLogger)
-            }
-
-            LibraryInformationEntry
-                .all()
-                .sortedBy { LibraryInformationTable.libraryId }
-                .forEach { libraryInformationEntry ->
-                    val legacyInformation = LegacyLibraryInformation(
-                        id = libraryInformationEntry.libraryId,
-                        emphasize = libraryInformationEntry.emphasize,
-                        details = libraryInformationEntry.details,
-                        modWarningId = libraryInformationEntry.modWarningId,
-                        antiFeatures = libraryInformationEntry.antiFeatures.toTypedArray(),
-                        license = libraryInformationEntry.license,
-                    )
-                    legacyInformationList.add(legacyInformation)
-
-                    transaction {
-                        LibraryTable
-                            .selectAll()
-                            .where { LibraryTable.libraryInformationEntry eq libraryInformationEntry.id }
-                            .sortedBy { LibraryTable.libraryInformationEntry.name }
-                            .map { LibraryEntry.wrapRow(it) }
-                            .forEach { libraryEntry ->
-                                val legacyDefinition = LegacyLibraryDefinition(
-                                    id = libraryInformationEntry.libraryId,
-                                    path = libraryEntry.path,
-                                    name = libraryInformationEntry.name,
-                                    type = libraryInformationEntry.type,
-                                    perms = libraryInformationEntry.permissions.toTypedArray(),
-                                    url = libraryInformationEntry.url,
-                                )
-                                legacyDefinitionList.add(legacyDefinition)
-                            }
-                    }
-                }
-        }
-
+        val legacyDefinitionList = libraryRepository.getAllDefinitionEntries()
         libraryDefinitionsFile.outputStream().bufferedWriter().use { bufferedWriter ->
             val json = Json { encodeDefaults = true }
             legacyDefinitionList.forEach { entry ->
@@ -176,6 +132,8 @@ object ExportUtil {
             }
         }
 
+        val legacyInformationList = libraryRepository.getAllInformationEntries()
+        val libraryInformationFile = getExportFileAndCreateParentDirectory(informationExportFilePath)
         libraryInformationFile.outputStream().bufferedWriter().use { bufferedWriter ->
             val json = Json { encodeDefaults = true }
             legacyInformationList.forEach { entry ->
@@ -184,7 +142,7 @@ object ExportUtil {
             }
         }
 
-        return Pair(legacyInformationList, legacyDefinitionList)
+        return@withContext Pair(legacyInformationList, legacyDefinitionList)
     }
 
     suspend fun exportManifestConfig(
