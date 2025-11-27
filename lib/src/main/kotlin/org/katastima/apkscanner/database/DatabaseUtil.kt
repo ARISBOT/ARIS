@@ -12,12 +12,12 @@ import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.katastima.apkscanner.config.DatabaseConfig
 import org.katastima.apkscanner.config.DatabaseMode
 import org.katastima.apkscanner.config.DatabaseType
-import org.katastima.apkscanner.database.dao.LibraryInformationTable
-import org.katastima.apkscanner.database.dao.LibraryTable
-import org.katastima.apkscanner.database.dao.ManifestFilterConfigTable
-import org.katastima.apkscanner.database.dao.ManifestFlagConfigTable
-import org.katastima.apkscanner.database.dao.ManifestPermissionConfigTable
-import org.katastima.apkscanner.database.dao.SigningCertificateDenylistTable
+import org.katastima.apkscanner.database.dao.certificate.SigningCertificateDenylistTable
+import org.katastima.apkscanner.database.dao.library.LibraryInformationTable
+import org.katastima.apkscanner.database.dao.library.LibraryTable
+import org.katastima.apkscanner.database.dao.manifest.ManifestFilterConfigTable
+import org.katastima.apkscanner.database.dao.manifest.ManifestFlagConfigTable
+import org.katastima.apkscanner.database.dao.manifest.ManifestPermissionConfigTable
 import org.slf4j.LoggerFactory
 import java.io.File
 

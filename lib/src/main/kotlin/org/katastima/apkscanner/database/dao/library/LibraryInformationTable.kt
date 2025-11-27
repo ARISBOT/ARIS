@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: EUPL-1.2
  */
 
-package org.katastima.apkscanner.database.dao
+package org.katastima.apkscanner.database.dao.library
 
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.IntIdTable

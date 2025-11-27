@@ -11,8 +11,8 @@ import org.jetbrains.exposed.v1.core.StdOutSqlLogger
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
-import org.katastima.apkscanner.database.dao.SigningCertificateDenylistEntity
-import org.katastima.apkscanner.database.dao.SigningCertificateDenylistTable
+import org.katastima.apkscanner.database.dao.certificate.SigningCertificateDenylistEntity
+import org.katastima.apkscanner.database.dao.certificate.SigningCertificateDenylistTable
 import org.katastima.apkscanner.models.signing.SigningCertificate
 
 class CertificateDatabaseRepository(
