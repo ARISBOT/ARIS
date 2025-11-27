@@ -46,6 +46,8 @@ class ManifestDatabaseRepository(
         )
     }
 
+    /** Flags */
+
     override suspend fun getAllFlagGroups(): List<ManifestFlagConfigEntry> = dbQuery {
         return@dbQuery ManifestFlagConfigEntity
             .all()
@@ -66,10 +68,10 @@ class ManifestDatabaseRepository(
     }
 
     override suspend fun addFlagGroup(manifestFlagGroup: ManifestFlagConfigEntry): Result<Long> = dbQuery {
-        val hasFlagGroupWithName = ManifestFlagConfigEntity
+        val hasEntityWithName = ManifestFlagConfigEntity
             .find { ManifestFlagConfigTable.name eq manifestFlagGroup.name }
             .empty().not()
-        if (hasFlagGroupWithName) {
+        if (hasEntityWithName) {
             return@dbQuery Result.failure(kotlin.RuntimeException("Manifest flag group with name (${manifestFlagGroup.name}) already exists!"))
         }
 
@@ -116,6 +118,8 @@ class ManifestDatabaseRepository(
         }
     }
 
+    /** IntentFilters */
+
     override suspend fun getAllIntentFilterGroups(): List<ManifestFilterConfigEntry> = dbQuery {
         return@dbQuery ManifestFilterConfigEntity
             .all()
@@ -134,6 +138,59 @@ class ManifestDatabaseRepository(
             .all()
             .fold(0) { count, entity -> count + entity.filters.count() }
     }
+
+    override suspend fun addIntentFilterGroup(intentFilterGroup: ManifestFilterConfigEntry): Result<Long> = dbQuery {
+        val hasEntityWithName = ManifestFilterConfigEntity
+            .find { ManifestFilterConfigTable.name eq intentFilterGroup.name }
+            .empty().not()
+        if (hasEntityWithName) {
+            return@dbQuery Result.failure(kotlin.RuntimeException("Manifest intent filter group with name (${intentFilterGroup.name}) already exists!"))
+        }
+
+        try {
+            val newEntity = ManifestFilterConfigEntity.new {
+                name = intentFilterGroup.name
+                description = intentFilterGroup.description
+                filters = intentFilterGroup.filters.toList()
+            }
+            return@dbQuery Result.success(newEntity.id.value.toLong())
+        } catch (exc: Exception) {
+            return@dbQuery Result.failure(exc)
+        }
+    }
+
+    override suspend fun updateIntentFilterGroup(intentFilterGroup: ManifestFilterConfigEntry): Result<Long> = dbQuery {
+        try {
+            val updatedEntity = ManifestFilterConfigEntity
+                .findSingleByAndUpdate(ManifestFilterConfigTable.name eq intentFilterGroup.name) {
+                    it.description = intentFilterGroup.description
+                    it.filters = intentFilterGroup.filters.toList()
+                }
+            if (updatedEntity == null) {
+                return@dbQuery Result.failure(kotlin.RuntimeException("Manifest intent filter group with name (${intentFilterGroup.name}) does not exist!"))
+            }
+            return@dbQuery Result.success(updatedEntity.id.value.toLong())
+        } catch (exc: Exception) {
+            return@dbQuery Result.failure(exc)
+        }
+    }
+
+    override suspend fun deleteIntentFilterGroup(intentFilterGroup: ManifestFilterConfigEntry): Result<Long> = dbQuery {
+        try {
+            val deletedEntity = ManifestFilterConfigEntity
+                .findSingleByAndUpdate(ManifestFilterConfigTable.name eq intentFilterGroup.name) {
+                    it.delete()
+                }
+            if (deletedEntity == null) {
+                return@dbQuery Result.failure(kotlin.RuntimeException("Manifest intent filter group with name (${intentFilterGroup.name}) does not exist!"))
+            }
+            return@dbQuery Result.success(deletedEntity.id.value.toLong())
+        } catch (exc: Exception) {
+            return@dbQuery Result.failure(exc)
+        }
+    }
+
+    /** Permissions */
 
     override suspend fun getAllPermissionGroups(): List<ManifestPermissionConfigEntry> = dbQuery {
         return@dbQuery ManifestPermissionConfigEntity

@@ -23,6 +23,9 @@ interface ManifestRepository {
     suspend fun getAllIntentFilterGroups(): List<ManifestFilterConfigEntry>
     suspend fun countAllIntentFilterGroups(): Long
     suspend fun countAllIntentFilters(): Long
+    suspend fun addIntentFilterGroup(intentFilterGroup: ManifestFilterConfigEntry): Result<Long>
+    suspend fun updateIntentFilterGroup(intentFilterGroup: ManifestFilterConfigEntry): Result<Long>
+    suspend fun deleteIntentFilterGroup(intentFilterGroup: ManifestFilterConfigEntry): Result<Long>
 
     suspend fun getAllPermissionGroups(): List<ManifestPermissionConfigEntry>
     suspend fun countAllPermissionGroups(): Long

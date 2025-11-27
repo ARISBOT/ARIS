@@ -76,6 +76,18 @@ class ManifestFileRepository(
         return@withContext getAllIntentFilterGroups().fold(0) { count, entity -> count + entity.filters.count() }
     }
 
+    override suspend fun addIntentFilterGroup(intentFilterGroup: ManifestFilterConfigEntry): Result<Long> = withContext(ioDispatcher) {
+        return@withContext Result.failure(RuntimeException("Not implemented yet"))
+    }
+
+    override suspend fun updateIntentFilterGroup(intentFilterGroup: ManifestFilterConfigEntry): Result<Long> = withContext(ioDispatcher) {
+        return@withContext Result.failure(RuntimeException("Not implemented yet"))
+    }
+
+    override suspend fun deleteIntentFilterGroup(intentFilterGroup: ManifestFilterConfigEntry): Result<Long> = withContext(ioDispatcher) {
+        return@withContext Result.failure(RuntimeException("Not implemented yet"))
+    }
+
     override suspend fun getAllPermissionGroups(): List<ManifestPermissionConfigEntry> = withContext(ioDispatcher) {
         return@withContext manifestConfig.dangerousPermissions.entries.toList()
     }
