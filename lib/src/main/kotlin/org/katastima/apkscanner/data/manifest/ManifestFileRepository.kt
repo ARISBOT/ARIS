@@ -40,6 +40,8 @@ class ManifestFileRepository(
         return@withContext manifestConfig
     }
 
+    /** Flags */
+
     override suspend fun getAllFlagGroups(): List<ManifestFlagConfigEntry> = withContext(ioDispatcher) {
         return@withContext manifestConfig.dangerousFlags.entries.toList()
     }
@@ -63,6 +65,8 @@ class ManifestFileRepository(
     override suspend fun deleteFlagGroup(manifestFlagGroup: ManifestFlagConfigEntry): Result<Long> = withContext(ioDispatcher) {
         return@withContext Result.failure(RuntimeException("Not implemented yet"))
     }
+
+    /** IntentFilters */
 
     override suspend fun getAllIntentFilterGroups(): List<ManifestFilterConfigEntry> = withContext(ioDispatcher) {
         return@withContext manifestConfig.dangerousFilters.entries.toList()
@@ -88,6 +92,8 @@ class ManifestFileRepository(
         return@withContext Result.failure(RuntimeException("Not implemented yet"))
     }
 
+    /** Permissions */
+
     override suspend fun getAllPermissionGroups(): List<ManifestPermissionConfigEntry> = withContext(ioDispatcher) {
         return@withContext manifestConfig.dangerousPermissions.entries.toList()
     }
@@ -98,6 +104,18 @@ class ManifestFileRepository(
 
     override suspend fun countAllPermissions(): Long = withContext(ioDispatcher) {
         return@withContext getAllPermissionGroups().fold(0) { count, entity -> count + entity.permissions.count() }
+    }
+
+    override suspend fun addPermissionGroup(permissionGroup: ManifestPermissionConfigEntry): Result<Long> = withContext(ioDispatcher) {
+        return@withContext Result.failure(RuntimeException("Not implemented yet"))
+    }
+
+    override suspend fun updatePermissionGroup(permissionGroup: ManifestPermissionConfigEntry): Result<Long> = withContext(ioDispatcher) {
+        return@withContext Result.failure(RuntimeException("Not implemented yet"))
+    }
+
+    override suspend fun deletePermissionGroup(permissionGroup: ManifestPermissionConfigEntry): Result<Long> = withContext(ioDispatcher) {
+        return@withContext Result.failure(RuntimeException("Not implemented yet"))
     }
 
     companion object {

@@ -30,4 +30,7 @@ interface ManifestRepository {
     suspend fun getAllPermissionGroups(): List<ManifestPermissionConfigEntry>
     suspend fun countAllPermissionGroups(): Long
     suspend fun countAllPermissions(): Long
+    suspend fun addPermissionGroup(permissionGroup: ManifestPermissionConfigEntry): Result<Long>
+    suspend fun updatePermissionGroup(permissionGroup: ManifestPermissionConfigEntry): Result<Long>
+    suspend fun deletePermissionGroup(permissionGroup: ManifestPermissionConfigEntry): Result<Long>
 }

@@ -211,6 +211,59 @@ class ManifestDatabaseRepository(
             .fold(0) { count, entity -> count + entity.permissions.count() }
     }
 
+    override suspend fun addPermissionGroup(permissionGroup: ManifestPermissionConfigEntry): Result<Long> = dbQuery {
+        val hasEntityWithName = ManifestPermissionConfigEntity
+            .find { ManifestPermissionConfigTable.name eq permissionGroup.name }
+            .empty().not()
+        if (hasEntityWithName) {
+            return@dbQuery Result.failure(kotlin.RuntimeException("Manifest permission group with name (${permissionGroup.name}) already exists!"))
+        }
+
+        try {
+            val newEntity = ManifestPermissionConfigEntity.new {
+                name = permissionGroup.name
+                description = permissionGroup.description
+                permissions = permissionGroup.permissions.toList()
+            }
+            return@dbQuery Result.success(newEntity.id.value.toLong())
+        } catch (exc: Exception) {
+            return@dbQuery Result.failure(exc)
+        }
+    }
+
+    override suspend fun updatePermissionGroup(permissionGroup: ManifestPermissionConfigEntry): Result<Long> = dbQuery {
+        try {
+            val updatedEntity = ManifestPermissionConfigEntity
+                .findSingleByAndUpdate(ManifestPermissionConfigTable.name eq permissionGroup.name) {
+                    it.description = permissionGroup.description
+                    it.permissions = permissionGroup.permissions.toList()
+                }
+            if (updatedEntity == null) {
+                return@dbQuery Result.failure(kotlin.RuntimeException("Manifest permission group with name (${permissionGroup.name}) does not exist!"))
+            }
+            return@dbQuery Result.success(updatedEntity.id.value.toLong())
+        } catch (exc: Exception) {
+            return@dbQuery Result.failure(exc)
+        }
+    }
+
+    override suspend fun deletePermissionGroup(permissionGroup: ManifestPermissionConfigEntry): Result<Long> = dbQuery {
+        try {
+            val deletedEntity = ManifestPermissionConfigEntity
+                .findSingleByAndUpdate(ManifestPermissionConfigTable.name eq permissionGroup.name) {
+                    it.delete()
+                }
+            if (deletedEntity == null) {
+                return@dbQuery Result.failure(kotlin.RuntimeException("Manifest permission group with name (${permissionGroup.name}) does not exist!"))
+            }
+            return@dbQuery Result.success(deletedEntity.id.value.toLong())
+        } catch (exc: Exception) {
+            return@dbQuery Result.failure(exc)
+        }
+    }
+
+    /** Helpers */
+
     private suspend fun <T> dbQuery(block: suspend () -> T): T = withContext(backgroundDispatcher) {
         return@withContext suspendTransaction(database) {
             if (debugDatabase) {
