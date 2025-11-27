@@ -6,9 +6,12 @@
 package org.katastima.apkscanner.manifest
 
 import brut.androlib.meta.ApkInfo
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.katastima.apkscanner.config.ApkScannerConfig
-import org.katastima.apkscanner.database.ManifestDataUtil
+import org.katastima.apkscanner.internal.RepositoryUtil
 import org.katastima.apkscanner.models.manifest.Manifest
 import org.katastima.apkscanner.models.manifest.ManifestCheckResult
 import org.katastima.apkscanner.models.manifest.config.ManifestConfig
@@ -17,9 +20,11 @@ import java.io.File
 class ManifestProcessor(
     private val apkScannerConfig: ApkScannerConfig,
     private val database: Database,
+    private val backgroundDispatcher: CoroutineDispatcher = Dispatchers.Default,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) {
 
-    fun processManifest(decodedApkInfo: ApkInfo, decodedApkDirectory: File): ManifestCheckResult {
+    suspend fun processManifest(decodedApkInfo: ApkInfo, decodedApkDirectory: File): ManifestCheckResult = withContext(ioDispatcher) {
         val manifestFile = File(decodedApkDirectory, "AndroidManifest.xml")
 
         val packageName = AndroidManifestUtil.pullPackageName(manifestFile) ?: ""
@@ -49,9 +54,9 @@ class ManifestProcessor(
             abis = abis,
             label = applicationLabel,
         )
-        val manifestConfig = ManifestDataUtil.getManifestConfig(database, apkScannerConfig)
+        val manifestConfig = RepositoryUtil.getManifestRepository(database, apkScannerConfig, backgroundDispatcher).getManifestConfig()
 
-        return ManifestCheckResult(
+        return@withContext ManifestCheckResult(
             manifest = manifest,
             dangerousFlags = checkForDangerousFlags(manifest, manifestConfig),
             dangerousFilters = checkForDangerousFilters(manifest, manifestConfig),

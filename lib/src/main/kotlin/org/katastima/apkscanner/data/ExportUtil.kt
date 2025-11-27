@@ -17,13 +17,13 @@ import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.katastima.apkscanner.config.ApkScannerConfig
-import org.katastima.apkscanner.database.ManifestDataUtil.getManifestConfig
 import org.katastima.apkscanner.database.dao.LibraryEntry
 import org.katastima.apkscanner.database.dao.LibraryInformationEntry
 import org.katastima.apkscanner.database.dao.LibraryInformationTable
 import org.katastima.apkscanner.database.dao.LibraryTable
 import org.katastima.apkscanner.database.dao.SigningCertificateDenylistEntity
 import org.katastima.apkscanner.database.dao.SigningCertificateDenylistTable
+import org.katastima.apkscanner.internal.RepositoryUtil
 import org.katastima.apkscanner.models.library.LegacyLibraryDefinition
 import org.katastima.apkscanner.models.library.LegacyLibraryInformation
 import org.katastima.apkscanner.models.manifest.config.ManifestConfig
@@ -150,8 +150,13 @@ object ExportUtil {
         return Pair(legacyInformationList, legacyDefinitionList)
     }
 
-    fun exportManifestConfig(database: Database, apkScannerConfig: ApkScannerConfig): ManifestConfig {
-        val manifestConfig = getManifestConfig(database, apkScannerConfig)
+    suspend fun exportManifestConfig(
+        database: Database,
+        apkScannerConfig: ApkScannerConfig,
+        backgroundDispatcher: CoroutineDispatcher = Dispatchers.Default,
+        ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    ): ManifestConfig = withContext(ioDispatcher) {
+        val manifestConfig = RepositoryUtil.getManifestRepository(database, apkScannerConfig, backgroundDispatcher).getManifestConfig()
 
         val manifestConfigPath = File(apkScannerConfig.dataConfig.manifestConfigPath)
         File("${manifestConfigPath.absolutePath}.exported").outputStream().bufferedWriter().use { bufferedWriter ->
@@ -162,6 +167,6 @@ object ExportUtil {
             bufferedWriter.write(json.encodeToString(manifestConfig))
         }
 
-        return manifestConfig
+        return@withContext manifestConfig
     }
 }
