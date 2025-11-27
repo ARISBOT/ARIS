@@ -13,6 +13,7 @@ import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.katastima.apkscanner.config.ApkScannerConfig
+import org.katastima.apkscanner.data.DataUtil
 import org.katastima.apkscanner.database.dao.SigningCertificateDenylistEntity
 import org.katastima.apkscanner.database.dao.SigningCertificateDenylistTable
 import org.katastima.apkscanner.models.signing.SigningCertificate
@@ -31,15 +32,15 @@ object CertificateDataUtil {
     }
 
     private fun importDenylist(json: Json, database: Database, apkScannerConfig: ApkScannerConfig) {
-        val denylistPath = File(apkScannerConfig.dataConfig.certificateDenylistPath)
-        if (!denylistPath.exists()) {
-            LOGGER.info("Certificate denylist path ({}) not specified or does not exist, skipping import", denylistPath.absolutePath)
+        val certificateConfigContent = DataUtil.getCertificateConfigContent(apkScannerConfig.dataConfig)
+        if (certificateConfigContent.isBlank()) {
+            LOGGER.warn("There is no certificate data to import, skipping import")
             return
         }
 
         val denyList: MutableList<SigningCertificate> = mutableListOf()
         val importDuration = measureTimeMillis {
-            val jsonElement = json.parseToJsonElement(denylistPath.readText())
+            val jsonElement = json.parseToJsonElement(certificateConfigContent)
             jsonElement.jsonArray.forEach { denyList.add(json.decodeFromJsonElement<SigningCertificate>(it)) }
 
             transaction(database) {
@@ -60,7 +61,7 @@ object CertificateDataUtil {
                 }
             }
         }
-        LOGGER.info("Imported {} denied certificates from: {} in {} ms", denyList.size, denylistPath.absolutePath, importDuration)
+        LOGGER.info("Imported {} denied certificates in {} ms", denyList.size, importDuration)
     }
 
     fun exportCertificateDenylist(database: Database, apkScannerConfig: ApkScannerConfig): List<SigningCertificate> {

@@ -37,6 +37,16 @@ dependencies {
     testImplementation(kotlin("test"))
 }
 
+tasks {
+    processResources {
+        from("../sampledata") {
+            include("*.json")
+            include("*.jsonl")
+            into("data")
+        }
+    }
+}
+
 publishing {
     publications {
         create<MavenPublication>("maven") {

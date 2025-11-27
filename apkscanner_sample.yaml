@@ -7,10 +7,11 @@
 # For documentation, see: https://katastima.org/apkscanner/configuration#apk-scanner-apkscanneryaml
 
 data:
-  certificate_denylist_path: "sampledata/certificate_denylist.json"
-  library_definition_path: "sampledata/libsmali.jsonl"
-  library_information_path: "sampledata/libinfo.jsonl"
-  manifest_config_path: "sampledata/manifest_config.json"
+  use_default_data: true
+  certificate_denylist_path: ""
+  library_definition_path: ""
+  library_information_path: ""
+  manifest_config_path: ""
 database:
   debug: false
   type: "h2"

@@ -10,6 +10,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class DataConfig(
+    @SerialName("use_default_data") val useDefaultData: Boolean = true,
     @SerialName("certificate_denylist_path") val certificateDenylistPath: String = "",
     @SerialName("library_definition_path") val libraryDefinitionPath: String = "",
     @SerialName("library_information_path") val libraryInformationPath: String = "",

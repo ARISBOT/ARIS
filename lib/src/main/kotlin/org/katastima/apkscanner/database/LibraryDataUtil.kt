@@ -12,6 +12,7 @@ import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.katastima.apkscanner.config.ApkScannerConfig
+import org.katastima.apkscanner.data.DataUtil
 import org.katastima.apkscanner.database.dao.LibraryEntry
 import org.katastima.apkscanner.database.dao.LibraryInformationEntry
 import org.katastima.apkscanner.database.dao.LibraryInformationTable
@@ -27,38 +28,35 @@ object LibraryDataUtil {
     private val LOGGER = LoggerFactory.getLogger(LibraryDataUtil::class.java)
 
     fun importLibraryData(database: Database, apkScannerConfig: ApkScannerConfig) {
-        val dataConfig = apkScannerConfig.dataConfig
-
-        val libraryInformationFile = File(dataConfig.libraryInformationPath)
-        if (!libraryInformationFile.exists()) {
-            LOGGER.warn("Library information path ({}) not specified or does not exist, skipping import", libraryInformationFile.absolutePath)
+        val libraryInformationContent = DataUtil.getLibraryInformationContent(apkScannerConfig.dataConfig)
+        if (libraryInformationContent.isEmpty()) {
+            LOGGER.warn("There is no library information data to import, skipping import")
             return
         }
 
-        val libraryDefinitionFile = File(dataConfig.libraryDefinitionPath)
-        if (!libraryDefinitionFile.exists()) {
-            LOGGER.warn("Library definition path ({}) not specified or does not exist, skipping import", libraryDefinitionFile.absolutePath)
+        val libraryDefinitionContent = DataUtil.getLibraryDefinitionContent(apkScannerConfig.dataConfig)
+        if (libraryDefinitionContent.isEmpty()) {
+            LOGGER.warn("There is no library definition data to import, skipping import")
             return
         }
 
         val json = Json { ignoreUnknownKeys = true }
 
         // Important: information needs to be imported before definitions
-        importLibraryInformation(json, database, apkScannerConfig)
-        importLibraryDefinitions(json, database, apkScannerConfig)
+        importLibraryInformation(json, database, libraryInformationContent, apkScannerConfig.databaseConfig.debug)
+        importLibraryDefinitions(json, database, libraryDefinitionContent, apkScannerConfig.databaseConfig.debug)
     }
 
-    private fun importLibraryInformation(json: Json, database: Database, apkScannerConfig: ApkScannerConfig) {
-        val libraryInformationFile = File(apkScannerConfig.dataConfig.libraryInformationPath)
+    private fun importLibraryInformation(json: Json, database: Database, contentLines: Set<String>, debugDatabase: Boolean) {
         val libraryInformation: MutableList<LegacyLibraryInformation> = mutableListOf()
 
         val importDuration = measureTimeMillis {
-            libraryInformationFile.readLines().forEach {
+            contentLines.forEach {
                 libraryInformation.add(json.decodeFromString<LegacyLibraryInformation>(it))
             }
 
             transaction(database) {
-                if (apkScannerConfig.databaseConfig.debug) {
+                if (debugDatabase) {
                     addLogger(StdOutSqlLogger)
                 }
 
@@ -78,20 +76,19 @@ object LibraryDataUtil {
                 }
             }
         }
-        LOGGER.info("Imported {} library information entries from: {} in {} ms", libraryInformation.size, libraryInformationFile.absolutePath, importDuration)
+        LOGGER.info("Imported {} library information entries from in {} ms", libraryInformation.size, importDuration)
     }
 
-    private fun importLibraryDefinitions(json: Json, database: Database, apkScannerConfig: ApkScannerConfig) {
-        val libraryDefinitionsFile = File(apkScannerConfig.dataConfig.libraryDefinitionPath)
+    private fun importLibraryDefinitions(json: Json, database: Database, contentLines: Set<String>, debugDatabase: Boolean) {
         val libraryDefinitions: MutableList<LegacyLibraryDefinition> = mutableListOf()
 
         val importDuration = measureTimeMillis {
-            libraryDefinitionsFile.readLines().forEach {
+            contentLines.forEach {
                 libraryDefinitions.add(json.decodeFromString<LegacyLibraryDefinition>(it))
             }
 
             transaction(database) {
-                if (apkScannerConfig.databaseConfig.debug) {
+                if (debugDatabase) {
                     addLogger(StdOutSqlLogger)
                 }
 
@@ -120,7 +117,7 @@ object LibraryDataUtil {
                     }
             }
         }
-        LOGGER.info("Imported {} library definitions from: {} in {} ms", libraryDefinitions.size, libraryDefinitionsFile.absolutePath, importDuration)
+        LOGGER.info("Imported {} library definitions in {} ms", libraryDefinitions.size, importDuration)
     }
 
     fun exportLibraryDefinitions(database: Database, apkScannerConfig: ApkScannerConfig): Pair<List<LegacyLibraryInformation>, List<LegacyLibraryDefinition>> {

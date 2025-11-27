@@ -12,6 +12,7 @@ import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.katastima.apkscanner.config.ApkScannerConfig
+import org.katastima.apkscanner.data.DataUtil
 import org.katastima.apkscanner.database.dao.ManifestFilterConfigEntity
 import org.katastima.apkscanner.database.dao.ManifestFilterConfigTable
 import org.katastima.apkscanner.database.dao.ManifestFlagConfigEntity
@@ -33,16 +34,16 @@ object ManifestDataUtil {
     fun importManifestConfigData(database: Database, apkScannerConfig: ApkScannerConfig): ManifestConfig {
         val json = Json { ignoreUnknownKeys = true }
 
-        val manifestConfigPath = File(apkScannerConfig.dataConfig.manifestConfigPath)
-        if (!manifestConfigPath.exists()) {
-            LOGGER.warn("Manifest config path ({}) not specified or does not exist, skipping import", manifestConfigPath.absolutePath)
+        val manifestConfigContent = DataUtil.getManifestConfigContent(apkScannerConfig.dataConfig)
+        if (manifestConfigContent.isBlank()) {
+            LOGGER.warn("There is no manifest data to import, skipping import")
             return ManifestConfig()
         }
 
         val manifestConfig: ManifestConfig
 
         val importDuration = measureTimeMillis {
-            val jsonElement = json.parseToJsonElement(manifestConfigPath.readText())
+            val jsonElement = json.parseToJsonElement(manifestConfigContent)
             manifestConfig = json.decodeFromJsonElement(jsonElement)
 
             transaction(database) {
@@ -78,7 +79,7 @@ object ManifestDataUtil {
                 }
             }
         }
-        LOGGER.info("Imported manifest config {} from: {} in {} ms", manifestConfig.getGroupAndCountString(), manifestConfigPath.absolutePath, importDuration)
+        LOGGER.info("Imported manifest config {} in {} ms", manifestConfig.getGroupAndCountString(), importDuration)
 
         return manifestConfig
     }
