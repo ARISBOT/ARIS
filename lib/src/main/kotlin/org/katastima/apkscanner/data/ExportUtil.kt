@@ -33,7 +33,7 @@ object ExportUtil {
         listOf(
             async {
                 exportCertificateDenylist(
-                    RepositoryUtil.getCertificateRepository(database, apkScannerConfig),
+                    RepositoryUtil.getCertificateRepository(apkScannerConfig),
                     apkScannerConfig.dataConfig.certificateDenylistExportPath,
                 )
             },

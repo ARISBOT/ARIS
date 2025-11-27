@@ -11,7 +11,6 @@ import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.file
 import org.katastima.apkscanner.cli.ApkScannerCommand
 import org.katastima.apkscanner.data.ExportUtil
-import org.katastima.apkscanner.database.DatabaseUtil
 import org.katastima.apkscanner.internal.RepositoryUtil
 import java.io.File
 
@@ -28,12 +27,9 @@ class ExportSigningCertificateDataCommand : ApkScannerCommand("export-signing-ce
     override suspend fun run() {
         val apkScannerConfig = cliConfig.apkScannerConfig
 
-        val database = DatabaseUtil.getDatabase(apkScannerConfig.databaseConfig)
-        DatabaseUtil.setupDatabase(database, apkScannerConfig.databaseConfig.debug)
-
         val denylistExportPath = outputFile?.absolutePath ?: apkScannerConfig.dataConfig.certificateDenylistExportPath
         val exportedListData = ExportUtil.exportCertificateDenylist(
-            RepositoryUtil.getCertificateRepository(database, apkScannerConfig),
+            RepositoryUtil.getCertificateRepository(apkScannerConfig),
             denylistExportPath,
         )
         silenceableEcho("Exported ${exportedListData.size} denied signing certificates to: $denylistExportPath")
