@@ -5,7 +5,6 @@
 
 package org.katastima.apkscanner.database
 
-import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.v1.core.StdOutSqlLogger
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.selectAll
@@ -21,7 +20,6 @@ import org.katastima.apkscanner.models.manifest.config.ManifestConfig
 import org.katastima.apkscanner.models.manifest.config.ManifestFilterConfig
 import org.katastima.apkscanner.models.manifest.config.ManifestFlagConfig
 import org.katastima.apkscanner.models.manifest.config.ManifestPermissionConfig
-import java.io.File
 
 object ManifestDataUtil {
 
@@ -56,20 +54,5 @@ object ManifestDataUtil {
                 ),
             )
         }
-    }
-
-    fun exportManifestConfig(database: Database, apkScannerConfig: ApkScannerConfig): ManifestConfig {
-        val manifestConfig = getManifestConfig(database, apkScannerConfig)
-
-        val manifestConfigPath = File(apkScannerConfig.dataConfig.manifestConfigPath)
-        File("${manifestConfigPath.absolutePath}.exported").outputStream().bufferedWriter().use { bufferedWriter ->
-            val json = Json {
-                encodeDefaults = true
-                prettyPrint = true
-            }
-            bufferedWriter.write(json.encodeToString(manifestConfig))
-        }
-
-        return manifestConfig
     }
 }

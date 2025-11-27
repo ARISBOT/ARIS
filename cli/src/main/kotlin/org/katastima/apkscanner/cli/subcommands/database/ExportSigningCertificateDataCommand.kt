@@ -7,7 +7,7 @@ package org.katastima.apkscanner.cli.subcommands.database
 
 import com.github.ajalt.clikt.core.Context
 import org.katastima.apkscanner.cli.ApkScannerCommand
-import org.katastima.apkscanner.database.CertificateDataUtil
+import org.katastima.apkscanner.data.ExportUtil
 import org.katastima.apkscanner.database.DatabaseUtil
 import java.io.File
 
@@ -26,7 +26,7 @@ class ExportSigningCertificateDataCommand : ApkScannerCommand("export-signing-ce
 
         val denylistPath = File(dataConfig.certificateDenylistPath)
         if (denylistPath.exists()) {
-            val exportedListData = CertificateDataUtil.exportCertificateDenylist(database, apkScannerConfig)
+            val exportedListData = ExportUtil.exportCertificateDenylist(database, apkScannerConfig)
             silenceableEcho("Exported ${exportedListData.size} denied signing certificates to: ${denylistPath.absolutePath}.exported")
         }
     }

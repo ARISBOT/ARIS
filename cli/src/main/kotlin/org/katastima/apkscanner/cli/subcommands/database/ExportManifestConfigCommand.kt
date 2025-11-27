@@ -7,8 +7,8 @@ package org.katastima.apkscanner.cli.subcommands.database
 
 import com.github.ajalt.clikt.core.Context
 import org.katastima.apkscanner.cli.ApkScannerCommand
+import org.katastima.apkscanner.data.ExportUtil
 import org.katastima.apkscanner.database.DatabaseUtil
-import org.katastima.apkscanner.database.ManifestDataUtil
 import java.io.File
 
 class ExportManifestConfigCommand : ApkScannerCommand("export-manifest-config") {
@@ -26,7 +26,7 @@ class ExportManifestConfigCommand : ApkScannerCommand("export-manifest-config") 
 
         val manifestConfigPath = File(dataConfig.manifestConfigPath)
         if (manifestConfigPath.exists()) {
-            val exportedManifestConfig = ManifestDataUtil.exportManifestConfig(database, apkScannerConfig)
+            val exportedManifestConfig = ExportUtil.exportManifestConfig(database, apkScannerConfig)
             silenceableEcho("Exported manifest config (${exportedManifestConfig.getGroupAndCountString()}) to: ${manifestConfigPath.absolutePath}.exported")
         }
     }
