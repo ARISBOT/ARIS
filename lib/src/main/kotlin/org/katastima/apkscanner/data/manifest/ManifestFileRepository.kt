@@ -52,6 +52,18 @@ class ManifestFileRepository(
         return@withContext getAllFlagGroups().fold(0) { count, entity -> count + entity.flags.count() }
     }
 
+    override suspend fun addFlagGroup(manifestFlagGroup: ManifestFlagConfigEntry): Result<Long> = withContext(ioDispatcher) {
+        return@withContext Result.failure(RuntimeException("Not implemented yet"))
+    }
+
+    override suspend fun updateFlagGroup(manifestFlagGroup: ManifestFlagConfigEntry): Result<Long> = withContext(ioDispatcher) {
+        return@withContext Result.failure(RuntimeException("Not implemented yet"))
+    }
+
+    override suspend fun deleteFlagGroup(manifestFlagGroup: ManifestFlagConfigEntry): Result<Long> = withContext(ioDispatcher) {
+        return@withContext Result.failure(RuntimeException("Not implemented yet"))
+    }
+
     override suspend fun getAllIntentFilterGroups(): List<ManifestFilterConfigEntry> = withContext(ioDispatcher) {
         return@withContext manifestConfig.dangerousFilters.entries.toList()
     }

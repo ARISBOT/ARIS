@@ -16,6 +16,9 @@ interface ManifestRepository {
     suspend fun getAllFlagGroups(): List<ManifestFlagConfigEntry>
     suspend fun countAllFlagGroups(): Long
     suspend fun countAllFlags(): Long
+    suspend fun addFlagGroup(manifestFlagGroup: ManifestFlagConfigEntry): Result<Long>
+    suspend fun updateFlagGroup(manifestFlagGroup: ManifestFlagConfigEntry): Result<Long>
+    suspend fun deleteFlagGroup(manifestFlagGroup: ManifestFlagConfigEntry): Result<Long>
 
     suspend fun getAllIntentFilterGroups(): List<ManifestFilterConfigEntry>
     suspend fun countAllIntentFilterGroups(): Long

@@ -9,6 +9,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jetbrains.exposed.v1.core.StdOutSqlLogger
+import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
 import org.katastima.apkscanner.database.dao.manifest.ManifestFilterConfigEntity
@@ -62,6 +63,57 @@ class ManifestDatabaseRepository(
         return@dbQuery ManifestFlagConfigEntity
             .all()
             .fold(0) { count, entity -> count + entity.flags.count() }
+    }
+
+    override suspend fun addFlagGroup(manifestFlagGroup: ManifestFlagConfigEntry): Result<Long> = dbQuery {
+        val hasFlagGroupWithName = ManifestFlagConfigEntity
+            .find { ManifestFlagConfigTable.name eq manifestFlagGroup.name }
+            .empty().not()
+        if (hasFlagGroupWithName) {
+            return@dbQuery Result.failure(kotlin.RuntimeException("Manifest flag group with name (${manifestFlagGroup.name}) already exists!"))
+        }
+
+        try {
+            val newEntity = ManifestFlagConfigEntity.new {
+                name = manifestFlagGroup.name
+                description = manifestFlagGroup.description
+                flags = manifestFlagGroup.flags.toList()
+            }
+            return@dbQuery Result.success(newEntity.id.value.toLong())
+        } catch (exc: Exception) {
+            return@dbQuery Result.failure(exc)
+        }
+    }
+
+    override suspend fun updateFlagGroup(manifestFlagGroup: ManifestFlagConfigEntry): Result<Long> = dbQuery {
+        try {
+            val updatedEntity = ManifestFlagConfigEntity
+                .findSingleByAndUpdate(ManifestFlagConfigTable.name eq manifestFlagGroup.name) {
+                    it.description = manifestFlagGroup.description
+                    it.flags = manifestFlagGroup.flags.toList()
+                }
+            if (updatedEntity == null) {
+                return@dbQuery Result.failure(kotlin.RuntimeException("Manifest flag group with name (${manifestFlagGroup.name}) does not exist!"))
+            }
+            return@dbQuery Result.success(updatedEntity.id.value.toLong())
+        } catch (exc: Exception) {
+            return@dbQuery Result.failure(exc)
+        }
+    }
+
+    override suspend fun deleteFlagGroup(manifestFlagGroup: ManifestFlagConfigEntry): Result<Long> = dbQuery {
+        try {
+            val deletedEntity = ManifestFlagConfigEntity
+                .findSingleByAndUpdate(ManifestFlagConfigTable.name eq manifestFlagGroup.name) {
+                    it.delete()
+                }
+            if (deletedEntity == null) {
+                return@dbQuery Result.failure(kotlin.RuntimeException("Manifest flag group with name (${manifestFlagGroup.name}) does not exist!"))
+            }
+            return@dbQuery Result.success(deletedEntity.id.value.toLong())
+        } catch (exc: Exception) {
+            return@dbQuery Result.failure(exc)
+        }
     }
 
     override suspend fun getAllIntentFilterGroups(): List<ManifestFilterConfigEntry> = dbQuery {
