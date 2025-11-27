@@ -18,7 +18,7 @@ data:
   manifest_config_export_path: "export/manifest_config.json"
 database:
   debug: false
-  type: "h2"
+  type: "none"
   mode: "default"
   path: "apkscanner"
 scan:

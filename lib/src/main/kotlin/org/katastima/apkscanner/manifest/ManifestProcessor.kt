@@ -54,7 +54,7 @@ class ManifestProcessor(
             abis = abis,
             label = applicationLabel,
         )
-        val manifestConfig = RepositoryUtil.getManifestRepository(database, apkScannerConfig, backgroundDispatcher).getManifestConfig()
+        val manifestConfig = RepositoryUtil.getManifestRepository(apkScannerConfig, backgroundDispatcher).getManifestConfig()
 
         return@withContext ManifestCheckResult(
             manifest = manifest,

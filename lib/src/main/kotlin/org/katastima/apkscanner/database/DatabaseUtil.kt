@@ -21,9 +21,12 @@ import org.katastima.apkscanner.database.dao.ManifestFlagConfigTable
 import org.katastima.apkscanner.database.dao.ManifestPermissionConfigTable
 import org.katastima.apkscanner.database.dao.SigningCertificateDenylistTable
 import org.katastima.apkscanner.models.library.LibraryInformation
+import org.slf4j.LoggerFactory
 import java.io.File
 
 object DatabaseUtil {
+
+    private val LOGGER = LoggerFactory.getLogger(DatabaseUtil::class.java)
 
     private lateinit var _database: Database
 
@@ -36,6 +39,13 @@ object DatabaseUtil {
 
     private fun connectToDatabase(databaseConfig: DatabaseConfig): Database {
         return when (databaseConfig.type) {
+            DatabaseType.NONE -> {
+                val exception = RuntimeException("There should not be any database access happening!")
+                LOGGER.error("Using H2 memory database to ensure application keeps working for now", exception)
+
+                Database.connect("jdbc:h2:mem:test", driver = "org.h2.Driver")
+            }
+
             DatabaseType.H2 -> connectToH2Database(databaseConfig)
         }
     }

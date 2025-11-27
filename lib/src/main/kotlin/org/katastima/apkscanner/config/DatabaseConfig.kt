@@ -11,13 +11,16 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class DatabaseConfig(
     val debug: Boolean = true,
-    val type: DatabaseType = DatabaseType.H2,
+    val type: DatabaseType = DatabaseType.NONE,
     val mode: DatabaseMode = DatabaseMode.DEFAULT,
     val path: String = "apkscanner",
 )
 
 @Serializable
 enum class DatabaseType {
+    @SerialName("none")
+    NONE,
+
     @SerialName("h2")
     H2,
 }

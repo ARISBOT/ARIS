@@ -46,7 +46,7 @@ object ExportUtil {
             },
             async {
                 exportManifestConfig(
-                    RepositoryUtil.getManifestRepository(database, apkScannerConfig),
+                    RepositoryUtil.getManifestRepository(apkScannerConfig),
                     apkScannerConfig.dataConfig.manifestConfigExportPath,
                 )
             },

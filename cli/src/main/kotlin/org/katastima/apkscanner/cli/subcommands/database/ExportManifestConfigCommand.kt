@@ -11,7 +11,6 @@ import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.file
 import org.katastima.apkscanner.cli.ApkScannerCommand
 import org.katastima.apkscanner.data.ExportUtil
-import org.katastima.apkscanner.database.DatabaseUtil
 import org.katastima.apkscanner.internal.RepositoryUtil
 import java.io.File
 
@@ -28,10 +27,7 @@ class ExportManifestConfigCommand : ApkScannerCommand("export-manifest-config") 
     override suspend fun run() {
         val apkScannerConfig = cliConfig.apkScannerConfig
 
-        val database = DatabaseUtil.getDatabase(apkScannerConfig.databaseConfig)
-        DatabaseUtil.setupDatabase(database, apkScannerConfig.databaseConfig.debug)
-
-        val manifestRepository = RepositoryUtil.getManifestRepository(database, apkScannerConfig)
+        val manifestRepository = RepositoryUtil.getManifestRepository(apkScannerConfig)
         val exportPath = outputFile?.absolutePath ?: apkScannerConfig.dataConfig.manifestConfigExportPath
         val exportedManifestConfig = ExportUtil.exportManifestConfig(manifestRepository, exportPath)
         silenceableEcho("Exported manifest config (${exportedManifestConfig.getGroupAndCountString()}) to: $exportPath")
