@@ -9,6 +9,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.katastima.apkscanner.config.ApkScannerConfig
 import org.katastima.apkscanner.data.certificate.CertificateRepository
+import org.katastima.apkscanner.data.library.LibraryRepository
 import org.katastima.apkscanner.models.ApkScanResult
 import org.slf4j.LoggerFactory
 import java.io.Closeable
@@ -22,6 +23,7 @@ class ApkScanner(
     apkScannerConfig: ApkScannerConfig,
     database: Database,
     certificateRepository: CertificateRepository,
+    libraryRepository: LibraryRepository,
     private val backgroundDispatcher: CoroutineDispatcher,
     private val ioDispatcher: CoroutineDispatcher,
     workingDirectory: File = createTempDirectory().toFile(),
@@ -32,6 +34,7 @@ class ApkScanner(
             apkScannerConfig = apkScannerConfig,
             database = database,
             certificateRepository = certificateRepository,
+            libraryRepository = libraryRepository,
             backgroundDispatcher = backgroundDispatcher,
             ioDispatcher = ioDispatcher,
             workingDirectory = workingDirectory,

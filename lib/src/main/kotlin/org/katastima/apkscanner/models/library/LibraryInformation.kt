@@ -53,4 +53,22 @@ data class LibraryInformation(
         result = 31 * result + license.hashCode()
         return result
     }
+
+    companion object {
+        fun fromLegacyData(
+            legacyLibraryDefinition: LegacyLibraryDefinition,
+            legacyLibraryInformation: LegacyLibraryInformation,
+        ): LibraryInformation = LibraryInformation(
+            libraryId = legacyLibraryInformation.id,
+            name = legacyLibraryDefinition.name,
+            details = legacyLibraryInformation.details,
+            type = legacyLibraryDefinition.type,
+            permissions = legacyLibraryDefinition.perms,
+            url = legacyLibraryDefinition.url,
+            modWarningId = legacyLibraryInformation.modWarningId,
+            antiFeatures = legacyLibraryInformation.antiFeatures,
+            license = legacyLibraryInformation.license,
+            emphasize = legacyLibraryInformation.emphasize,
+        )
+    }
 }

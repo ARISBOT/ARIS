@@ -9,9 +9,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
-import org.jetbrains.exposed.v1.jdbc.Database
-import org.katastima.apkscanner.config.ApkScannerConfig
-import org.katastima.apkscanner.database.DatabaseUtil
+import org.katastima.apkscanner.data.library.LibraryRepository
 import org.katastima.apkscanner.models.library.LibraryCheckResult
 import org.katastima.apkscanner.models.library.LibraryInformation
 import org.slf4j.LoggerFactory
@@ -20,8 +18,7 @@ import kotlin.math.max
 import kotlin.system.measureTimeMillis
 
 class LibraryProcessor(
-    private val apkScannerConfig: ApkScannerConfig,
-    private val database: Database,
+    private val libraryRepository: LibraryRepository,
     private val backgroundDispatcher: CoroutineDispatcher,
     private val ioDispatcher: CoroutineDispatcher,
 ) {
@@ -93,11 +90,8 @@ class LibraryProcessor(
         absoluteSmaliDirectoryPath: String,
     ): Set<LibraryInformation> = withContext(backgroundDispatcher) {
         val libraryId = absoluteDirectoryPath.replace(absoluteSmaliDirectoryPath, "")
-        return@withContext DatabaseUtil.getLibraryInformationFromLibraryPath(
-            database = database,
-            libraryPath = "${File.separator}${libraryId}",
-            debugDatabase = apkScannerConfig.databaseConfig.debug
-        )
+        val libraryPath = "${File.separator}${libraryId}"
+        return@withContext libraryRepository.getLibraryInformationForLibraryPath(libraryPath).toSet()
     }
 
     private suspend fun detectAntiFeatures(offendingLibraries: List<LibraryInformation>): Set<String> = withContext(backgroundDispatcher) {

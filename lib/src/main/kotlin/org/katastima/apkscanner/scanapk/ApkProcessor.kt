@@ -14,6 +14,7 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.katastima.apkscanner.config.ApkScannerConfig
 import org.katastima.apkscanner.data.certificate.CertificateRepository
+import org.katastima.apkscanner.data.library.LibraryRepository
 import org.katastima.apkscanner.extensions.getApkFilePathForReport
 import org.katastima.apkscanner.extensions.toSha256
 import org.katastima.apkscanner.library.LibraryProcessor
@@ -31,6 +32,7 @@ class ApkProcessor(
     private val apkScannerConfig: ApkScannerConfig,
     private val database: Database,
     private val certificateRepository: CertificateRepository,
+    private val libraryRepository: LibraryRepository,
     private val backgroundDispatcher: CoroutineDispatcher,
     private val ioDispatcher: CoroutineDispatcher,
     private val workingDirectory: File = createTempDirectory().toFile()
@@ -66,7 +68,7 @@ class ApkProcessor(
         LOGGER.debug("manifestCheckResult: {} ms", manifestCheckDuration.inWholeMilliseconds)
 
         val (libraryCheckResult, detectLibrariesDuration) = measureTimedValue {
-            val libraryProcessor = LibraryProcessor(apkScannerConfig, database, backgroundDispatcher, ioDispatcher)
+            val libraryProcessor = LibraryProcessor(libraryRepository, backgroundDispatcher, ioDispatcher)
             libraryProcessor.process(decodedApkDirectory)
         }
         LOGGER.debug("libraryCheckResult: {} ms", detectLibrariesDuration.inWholeMilliseconds)

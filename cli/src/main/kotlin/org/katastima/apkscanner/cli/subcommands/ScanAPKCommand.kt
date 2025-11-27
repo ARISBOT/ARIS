@@ -104,11 +104,13 @@ class ScanAPKCommand : ApkScannerCommand() {
         DatabaseUtil.setupDatabase(database, databaseConfig.debug)
 
         val certificateRepository = RepositoryUtil.getCertificateRepository(apkScannerConfig)
+        val libraryRepository = RepositoryUtil.getLibraryRepository(apkScannerConfig)
 
         ApkScanner(
             apkScannerConfig = apkScannerConfig,
             database = database,
             certificateRepository = certificateRepository,
+            libraryRepository = libraryRepository,
             backgroundDispatcher = Dispatchers.Default,
             ioDispatcher = Dispatchers.IO,
         ).use {

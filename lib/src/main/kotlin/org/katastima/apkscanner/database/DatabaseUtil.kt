@@ -6,21 +6,18 @@
 package org.katastima.apkscanner.database
 
 import org.jetbrains.exposed.v1.core.StdOutSqlLogger
-import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.katastima.apkscanner.config.DatabaseConfig
 import org.katastima.apkscanner.config.DatabaseMode
 import org.katastima.apkscanner.config.DatabaseType
-import org.katastima.apkscanner.database.dao.LibraryEntry
 import org.katastima.apkscanner.database.dao.LibraryInformationTable
 import org.katastima.apkscanner.database.dao.LibraryTable
 import org.katastima.apkscanner.database.dao.ManifestFilterConfigTable
 import org.katastima.apkscanner.database.dao.ManifestFlagConfigTable
 import org.katastima.apkscanner.database.dao.ManifestPermissionConfigTable
 import org.katastima.apkscanner.database.dao.SigningCertificateDenylistTable
-import org.katastima.apkscanner.models.library.LibraryInformation
 import org.slf4j.LoggerFactory
 import java.io.File
 
@@ -97,24 +94,5 @@ object DatabaseUtil {
 
             SchemaUtils.drop(SigningCertificateDenylistTable)
         }
-    }
-
-    fun getLibraryInformationFromLibraryPath(database: Database, libraryPath: String, debugDatabase: Boolean = false): Set<LibraryInformation> {
-        val libraryInformationSet = mutableSetOf<LibraryInformation>()
-
-        transaction(database) {
-            if (debugDatabase) {
-                addLogger(StdOutSqlLogger)
-            }
-
-            LibraryEntry
-                .find { LibraryTable.path eq libraryPath }
-                .forEach { libraryEntry ->
-                    val libraryInformation = libraryEntry.libraryInformationEntry.toLibraryInformation()
-                    libraryInformationSet.add(libraryInformation)
-                }
-        }
-
-        return libraryInformationSet
     }
 }

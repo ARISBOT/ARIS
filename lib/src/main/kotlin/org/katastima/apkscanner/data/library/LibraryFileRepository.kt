@@ -13,6 +13,7 @@ import org.katastima.apkscanner.config.DataConfig
 import org.katastima.apkscanner.data.DataUtil
 import org.katastima.apkscanner.models.library.LegacyLibraryDefinition
 import org.katastima.apkscanner.models.library.LegacyLibraryInformation
+import org.katastima.apkscanner.models.library.LibraryInformation
 import org.slf4j.LoggerFactory
 
 class LibraryFileRepository(
@@ -22,7 +23,7 @@ class LibraryFileRepository(
 
     private val json = Json { ignoreUnknownKeys = true }
 
-    private val libraryDefinitionList: List<LegacyLibraryDefinition> by lazy {
+    private val legacyDefinitionList: List<LegacyLibraryDefinition> by lazy {
         val definitionList: MutableList<LegacyLibraryDefinition> = mutableListOf()
         try {
             val definitionContent = DataUtil.getLibraryDefinitionContent(dataConfig)
@@ -35,7 +36,7 @@ class LibraryFileRepository(
         definitionList
     }
 
-    private val libraryInformationList: List<LegacyLibraryInformation> by lazy {
+    private val legacyInformationList: List<LegacyLibraryInformation> by lazy {
         val informationList: MutableList<LegacyLibraryInformation> = mutableListOf()
         try {
             val informationContent = DataUtil.getLibraryInformationContent(dataConfig)
@@ -49,19 +50,33 @@ class LibraryFileRepository(
     }
 
     override suspend fun getAllInformationEntries(): List<LegacyLibraryInformation> = withContext(ioDispatcher) {
-        return@withContext libraryInformationList
+        return@withContext legacyInformationList
     }
 
     override suspend fun countInformationEntries(): Long = withContext(ioDispatcher) {
-        return@withContext libraryInformationList.size.toLong()
+        return@withContext legacyInformationList.size.toLong()
     }
 
     override suspend fun getAllDefinitionEntries(): List<LegacyLibraryDefinition> = withContext(ioDispatcher) {
-        return@withContext libraryDefinitionList
+        return@withContext legacyDefinitionList
     }
 
     override suspend fun countDefinitionEntries(): Long = withContext(ioDispatcher) {
-        return@withContext libraryDefinitionList.size.toLong()
+        return@withContext legacyDefinitionList.size.toLong()
+    }
+
+    override suspend fun getLibraryInformationForLibraryPath(libraryPath: String): List<LibraryInformation> = withContext(ioDispatcher) {
+        val informationList: MutableList<LibraryInformation> = mutableListOf()
+
+        val matchingLegacyDefinitions = legacyDefinitionList.filter { it.path == libraryPath }
+        matchingLegacyDefinitions.forEach { legacyLibraryDefinition ->
+            legacyInformationList
+                .filter { it.id == legacyLibraryDefinition.id }
+                .forEach { legacyLibraryInformation ->
+                    informationList.add(LibraryInformation.fromLegacyData(legacyLibraryDefinition, legacyLibraryInformation))
+                }
+        }
+        return@withContext informationList.sortedBy { it.name }
     }
 
     companion object {
