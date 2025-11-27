@@ -6,6 +6,7 @@
 package org.katastima.apkscanner.cli.subcommands.database
 
 import com.github.ajalt.clikt.core.Context
+import com.github.ajalt.clikt.core.ProgramResult
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.help
 import com.github.ajalt.clikt.parameters.options.option
@@ -14,6 +15,7 @@ import kotlinx.coroutines.delay
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.katastima.apkscanner.cli.ApkScannerCommand
+import org.katastima.apkscanner.config.DatabaseType
 import org.katastima.apkscanner.data.ImportUtil
 import org.katastima.apkscanner.database.DatabaseUtil
 import kotlin.system.measureTimeMillis
@@ -28,6 +30,12 @@ class CreateDatabaseCommand : ApkScannerCommand("setup") {
 
     override suspend fun run() {
         val apkScannerConfig = cliConfig.apkScannerConfig
+
+        if (apkScannerConfig.databaseConfig.type == DatabaseType.NONE) {
+            echo("Database type is set to 'none', not able to set up database, please check your database configuration!")
+            throw ProgramResult(1)
+        }
+
         val database = DatabaseUtil.getDatabase(apkScannerConfig.databaseConfig)
 
         if (!forceSetup) {
