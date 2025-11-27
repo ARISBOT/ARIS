@@ -9,9 +9,13 @@
 data:
   use_default_data: true
   certificate_denylist_path: ""
+  certificate_denylist_export_path: "export/certificate_denylist.json"
   library_definition_path: ""
+  library_definition_export_path: "export/libsmali.jsonl"
   library_information_path: ""
+  library_information_export_path: "export/libinfo.jsonl"
   manifest_config_path: ""
+  manifest_config_export_path: "export/manifest_config.json"
 database:
   debug: false
   type: "h2"

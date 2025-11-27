@@ -53,6 +53,7 @@ bin/
 /apkscanner.yaml
 /apkscanner-cli.yaml
 
+/export
 /output
 /sampledata/*.exported
 /*.json

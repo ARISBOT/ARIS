@@ -17,6 +17,7 @@ import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.katastima.apkscanner.config.ApkScannerConfig
+import org.katastima.apkscanner.data.manifest.ManifestRepository
 import org.katastima.apkscanner.database.dao.LibraryEntry
 import org.katastima.apkscanner.database.dao.LibraryInformationEntry
 import org.katastima.apkscanner.database.dao.LibraryInformationTable
@@ -38,18 +39,40 @@ object ExportUtil {
         ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
     ) = withContext(ioDispatcher) {
         listOf(
-            async { exportCertificateDenylist(database, apkScannerConfig) },
-            async { exportLibraryData(database, apkScannerConfig) },
-            async { exportManifestConfig(database, apkScannerConfig) },
+            async {
+                exportCertificateDenylist(
+                    database,
+                    apkScannerConfig.dataConfig.certificateDenylistExportPath,
+                    apkScannerConfig.databaseConfig.debug,
+                )
+            },
+            async {
+                exportLibraryData(
+                    database,
+                    apkScannerConfig.dataConfig.libraryDefinitionExportPath,
+                    apkScannerConfig.dataConfig.libraryInformationExportPath,
+                    apkScannerConfig.databaseConfig.debug,
+                )
+            },
+            async {
+                exportManifestConfig(
+                    RepositoryUtil.getManifestRepository(database, apkScannerConfig),
+                    apkScannerConfig.dataConfig.manifestConfigExportPath,
+                )
+            },
         ).awaitAll()
     }
 
-    fun exportCertificateDenylist(database: Database, apkScannerConfig: ApkScannerConfig): List<SigningCertificate> {
+    fun exportCertificateDenylist(database: Database, exportFile: File, debugDatabase: Boolean = false): List<SigningCertificate> {
+        return exportCertificateDenylist(database, exportFile.absolutePath, debugDatabase)
+    }
+
+    fun exportCertificateDenylist(database: Database, exportFilePath: String, debugDatabase: Boolean = false): List<SigningCertificate> {
         var denylist: MutableList<SigningCertificate> = mutableListOf()
 
         // Get all deny list entries and store it in the list.
         transaction(database) {
-            if (apkScannerConfig.databaseConfig.debug) {
+            if (debugDatabase) {
                 addLogger(StdOutSqlLogger)
             }
 
@@ -72,8 +95,8 @@ object ExportUtil {
             denylist.addLast(templateItem)
         }
 
-        val denylistPath = File(apkScannerConfig.dataConfig.certificateDenylistPath)
-        File("${denylistPath.absolutePath}.exported").outputStream().bufferedWriter().use { bufferedWriter ->
+        val denylistPath = getExportFileAndCreateParentDirectory(exportFilePath)
+        denylistPath.outputStream().bufferedWriter().use { bufferedWriter ->
             val json = Json {
                 encodeDefaults = true
                 prettyPrint = true
@@ -84,15 +107,29 @@ object ExportUtil {
         return denylist
     }
 
-    fun exportLibraryData(database: Database, apkScannerConfig: ApkScannerConfig): Pair<List<LegacyLibraryInformation>, List<LegacyLibraryDefinition>> {
-        val libraryDefinitionsFile = File(apkScannerConfig.dataConfig.libraryDefinitionPath)
-        val libraryInformationFile = File(apkScannerConfig.dataConfig.libraryInformationPath)
+    fun exportLibraryData(
+        database: Database,
+        definitionExportFile: File,
+        informationExportFile: File,
+        debugDatabase: Boolean = false,
+    ): Pair<List<LegacyLibraryInformation>, List<LegacyLibraryDefinition>> {
+        return exportLibraryData(database, definitionExportFile.absolutePath, informationExportFile.absolutePath, debugDatabase)
+    }
+
+    fun exportLibraryData(
+        database: Database,
+        definitionExportFilePath: String,
+        informationExportFilePath: String,
+        debugDatabase: Boolean = false,
+    ): Pair<List<LegacyLibraryInformation>, List<LegacyLibraryDefinition>> {
+        val libraryDefinitionsFile = getExportFileAndCreateParentDirectory(definitionExportFilePath)
+        val libraryInformationFile = getExportFileAndCreateParentDirectory(informationExportFilePath)
 
         val legacyInformationList: MutableList<LegacyLibraryInformation> = mutableListOf()
         val legacyDefinitionList: MutableList<LegacyLibraryDefinition> = mutableListOf()
 
         transaction(database) {
-            if (apkScannerConfig.databaseConfig.debug) {
+            if (debugDatabase) {
                 addLogger(StdOutSqlLogger)
             }
 
@@ -131,7 +168,7 @@ object ExportUtil {
                 }
         }
 
-        File("${libraryDefinitionsFile.absolutePath}.exported").outputStream().bufferedWriter().use { bufferedWriter ->
+        libraryDefinitionsFile.outputStream().bufferedWriter().use { bufferedWriter ->
             val json = Json { encodeDefaults = true }
             legacyDefinitionList.forEach { entry ->
                 bufferedWriter.write(json.encodeToString(entry))
@@ -139,7 +176,7 @@ object ExportUtil {
             }
         }
 
-        File("${libraryInformationFile.absolutePath}.exported").outputStream().bufferedWriter().use { bufferedWriter ->
+        libraryInformationFile.outputStream().bufferedWriter().use { bufferedWriter ->
             val json = Json { encodeDefaults = true }
             legacyInformationList.forEach { entry ->
                 bufferedWriter.write(json.encodeToString(entry))
@@ -151,15 +188,22 @@ object ExportUtil {
     }
 
     suspend fun exportManifestConfig(
-        database: Database,
-        apkScannerConfig: ApkScannerConfig,
-        backgroundDispatcher: CoroutineDispatcher = Dispatchers.Default,
+        manifestRepository: ManifestRepository,
+        exportFile: File,
+        ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    ): ManifestConfig {
+        return exportManifestConfig(manifestRepository, exportFile.absolutePath, ioDispatcher)
+    }
+
+    suspend fun exportManifestConfig(
+        manifestRepository: ManifestRepository,
+        exportFilePath: String,
         ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
     ): ManifestConfig = withContext(ioDispatcher) {
-        val manifestConfig = RepositoryUtil.getManifestRepository(database, apkScannerConfig, backgroundDispatcher).getManifestConfig()
+        val manifestConfig = manifestRepository.getManifestConfig()
 
-        val manifestConfigPath = File(apkScannerConfig.dataConfig.manifestConfigPath)
-        File("${manifestConfigPath.absolutePath}.exported").outputStream().bufferedWriter().use { bufferedWriter ->
+        val exportFile = getExportFileAndCreateParentDirectory(exportFilePath)
+        exportFile.outputStream().bufferedWriter().use { bufferedWriter ->
             val json = Json {
                 encodeDefaults = true
                 prettyPrint = true
@@ -168,5 +212,13 @@ object ExportUtil {
         }
 
         return@withContext manifestConfig
+    }
+
+    private fun getExportFileAndCreateParentDirectory(filePath: String): File {
+        val exportFile = File(filePath)
+        if (exportFile.parentFile.exists().not()) {
+            exportFile.parentFile.mkdirs()
+        }
+        return exportFile
     }
 }
