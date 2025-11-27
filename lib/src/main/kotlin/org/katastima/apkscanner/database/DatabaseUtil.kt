@@ -26,6 +26,9 @@ import java.io.File
 
 object DatabaseUtil {
 
+    private const val DRIVER_H2 = "org.h2.Driver"
+    private const val URL_H2_MEMORY = "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1"
+
     private val LOGGER = LoggerFactory.getLogger(DatabaseUtil::class.java)
 
     private lateinit var _database: Database
@@ -43,7 +46,7 @@ object DatabaseUtil {
                 val exception = RuntimeException("There should not be any database access happening!")
                 LOGGER.error("Using H2 memory database to ensure application keeps working for now", exception)
 
-                Database.connect("jdbc:h2:mem:test", driver = "org.h2.Driver")
+                Database.connect(URL_H2_MEMORY, driver = DRIVER_H2)
             }
 
             DatabaseType.H2 -> connectToH2Database(databaseConfig)
@@ -54,10 +57,10 @@ object DatabaseUtil {
         return when (databaseConfig.mode) {
             DatabaseMode.DEFAULT -> {
                 val databasePath = File(databaseConfig.path).absolutePath
-                Database.connect("jdbc:h2:${databasePath}", driver = "org.h2.Driver")
+                Database.connect("jdbc:h2:${databasePath}", driver = DRIVER_H2)
             }
 
-            DatabaseMode.MEMORY -> Database.connect("jdbc:h2:mem:test", driver = "org.h2.Driver")
+            DatabaseMode.MEMORY -> Database.connect(URL_H2_MEMORY, driver = DRIVER_H2)
         }
     }
 
