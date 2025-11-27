@@ -20,7 +20,7 @@ import org.katastima.apkscanner.extensions.toSha256
 import org.katastima.apkscanner.library.LibraryProcessor
 import org.katastima.apkscanner.manifest.ManifestProcessor
 import org.katastima.apkscanner.models.ApkScanResult
-import org.katastima.apkscanner.signing.ApkCert
+import org.katastima.apkscanner.signing.SignatureProcessor
 import org.katastima.apkscanner.utils.Randomizer
 import org.slf4j.LoggerFactory
 import java.io.Closeable
@@ -56,8 +56,8 @@ class ApkProcessor(
         LOGGER.debug("apkFileSha256: {} ms", apkFileSha256Duration.inWholeMilliseconds)
 
         val (signingCheckResult, signingCheckDuration) = measureTimedValue {
-            val apkCert = ApkCert(apkFile)
-            apkCert.verify(certificateRepository)
+            val apkCert = SignatureProcessor(apkFile)
+            apkCert.processSignature(certificateRepository)
         }
         LOGGER.debug("signingCheckResult: {} ms", signingCheckDuration.inWholeMilliseconds)
 

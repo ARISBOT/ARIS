@@ -26,12 +26,12 @@ import org.katastima.apkscanner.models.signing.SigningCheckResult
 import org.slf4j.LoggerFactory
 import java.io.File
 
-class ApkCert(
+class SignatureProcessor(
     private val apkFile: File,
     private val backgroundDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) {
 
-    suspend fun verify(certificateRepository: CertificateRepository): SigningCheckResult = withContext(backgroundDispatcher) {
+    suspend fun processSignature(certificateRepository: CertificateRepository): SigningCheckResult = withContext(backgroundDispatcher) {
         var signingCheckResult = SigningCheckResult()
 
         try {
@@ -110,6 +110,6 @@ class ApkCert(
     }
 
     companion object {
-        private val LOGGER = LoggerFactory.getLogger(ApkCert::class.java)
+        private val LOGGER = LoggerFactory.getLogger(SignatureProcessor::class.java)
     }
 }
