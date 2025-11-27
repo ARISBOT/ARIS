@@ -31,28 +31,35 @@ object ExportUtil {
     suspend fun exportAll(
         apkScannerConfig: ApkScannerConfig,
         ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
-    ) = withContext(ioDispatcher) {
+    ): String = withContext(ioDispatcher) {
+        val exportMessageBuilder = StringBuilder()
+
         listOf(
             async {
-                exportCertificateDenylist(
+                val exportResult = exportCertificateDenylist(
                     RepositoryUtil.getCertificateRepository(apkScannerConfig),
                     apkScannerConfig.dataConfig.certificateDenylistExportPath,
                 )
+                exportMessageBuilder.append(exportResult.first).append("\n")
             },
             async {
-                exportLibraryData(
+                val exportResult = exportLibraryData(
                     RepositoryUtil.getLibraryRepository(apkScannerConfig),
                     apkScannerConfig.dataConfig.libraryDefinitionExportPath,
                     apkScannerConfig.dataConfig.libraryInformationExportPath,
                 )
+                exportMessageBuilder.append(exportResult.first).append("\n")
             },
             async {
-                exportManifestConfig(
+                val exportResult = exportManifestConfig(
                     RepositoryUtil.getManifestRepository(apkScannerConfig),
                     apkScannerConfig.dataConfig.manifestConfigExportPath,
                 )
+                exportMessageBuilder.append(exportResult.first).append("\n")
             },
         ).awaitAll()
+
+        return@withContext exportMessageBuilder.toString().trim()
     }
 
     suspend fun exportCertificateDenylist(

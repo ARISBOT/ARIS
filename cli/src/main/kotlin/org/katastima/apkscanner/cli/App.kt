@@ -13,6 +13,7 @@ import org.katastima.apkscanner.cli.subcommands.config.ConfigCommand
 import org.katastima.apkscanner.cli.subcommands.config.ShowConfigCommand
 import org.katastima.apkscanner.cli.subcommands.database.CreateDatabaseCommand
 import org.katastima.apkscanner.cli.subcommands.database.DatabaseCommand
+import org.katastima.apkscanner.cli.subcommands.database.ExportAllCommand
 import org.katastima.apkscanner.cli.subcommands.database.ExportLibraryDefinitionsCommand
 import org.katastima.apkscanner.cli.subcommands.database.ExportManifestConfigCommand
 import org.katastima.apkscanner.cli.subcommands.database.ExportSigningCertificateDataCommand
@@ -33,6 +34,7 @@ suspend fun main(args: Array<String>) {
             ),
             DatabaseCommand().subcommands(
                 CreateDatabaseCommand(),
+                ExportAllCommand(),
                 ExportLibraryDefinitionsCommand(),
                 ExportManifestConfigCommand(),
                 ExportSigningCertificateDataCommand(),
