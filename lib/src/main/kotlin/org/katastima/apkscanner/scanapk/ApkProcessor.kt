@@ -11,10 +11,10 @@ import brut.androlib.meta.ApkInfo
 import brut.directory.ExtFile
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
-import org.jetbrains.exposed.v1.jdbc.Database
 import org.katastima.apkscanner.config.ApkScannerConfig
 import org.katastima.apkscanner.data.certificate.CertificateRepository
 import org.katastima.apkscanner.data.library.LibraryRepository
+import org.katastima.apkscanner.data.manifest.ManifestRepository
 import org.katastima.apkscanner.extensions.getApkFilePathForReport
 import org.katastima.apkscanner.extensions.toSha256
 import org.katastima.apkscanner.library.LibraryProcessor
@@ -30,9 +30,9 @@ import kotlin.time.measureTimedValue
 
 class ApkProcessor(
     private val apkScannerConfig: ApkScannerConfig,
-    private val database: Database,
     private val certificateRepository: CertificateRepository,
     private val libraryRepository: LibraryRepository,
+    private val manifestRepository: ManifestRepository,
     private val backgroundDispatcher: CoroutineDispatcher,
     private val ioDispatcher: CoroutineDispatcher,
     private val workingDirectory: File = createTempDirectory().toFile()
@@ -62,7 +62,7 @@ class ApkProcessor(
         LOGGER.debug("signingCheckResult: {} ms", signingCheckDuration.inWholeMilliseconds)
 
         val (manifestCheckResult, manifestCheckDuration) = measureTimedValue {
-            val manifestProcessor = ManifestProcessor(apkScannerConfig, database)
+            val manifestProcessor = ManifestProcessor(manifestRepository)
             manifestProcessor.processManifest(decodedApkInfo, decodedApkDirectory)
         }
         LOGGER.debug("manifestCheckResult: {} ms", manifestCheckDuration.inWholeMilliseconds)

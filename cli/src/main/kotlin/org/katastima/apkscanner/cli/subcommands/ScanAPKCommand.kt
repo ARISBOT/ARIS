@@ -29,7 +29,6 @@ import org.katastima.apkscanner.cli.extensions.formatBold
 import org.katastima.apkscanner.cli.extensions.formatGreen
 import org.katastima.apkscanner.cli.extensions.formatRed
 import org.katastima.apkscanner.cli.extensions.formatYellow
-import org.katastima.apkscanner.database.DatabaseUtil
 import org.katastima.apkscanner.extensions.formatAsHex
 import org.katastima.apkscanner.extensions.formatVerifiedUnverified
 import org.katastima.apkscanner.extensions.formatYesNo
@@ -98,19 +97,16 @@ class ScanAPKCommand : ApkScannerCommand() {
 
     override suspend fun run() {
         val apkScannerConfig = cliConfig.apkScannerConfig
-        val databaseConfig = apkScannerConfig.databaseConfig
-        val database = DatabaseUtil.getDatabase(databaseConfig)
-        // TODO: remove once nothing uses the hardcoded database anymore.
-        DatabaseUtil.setupDatabase(database, databaseConfig.debug)
 
         val certificateRepository = RepositoryUtil.getCertificateRepository(apkScannerConfig)
         val libraryRepository = RepositoryUtil.getLibraryRepository(apkScannerConfig)
+        val manifestRepository = RepositoryUtil.getManifestRepository(apkScannerConfig)
 
         ApkScanner(
             apkScannerConfig = apkScannerConfig,
-            database = database,
             certificateRepository = certificateRepository,
             libraryRepository = libraryRepository,
+            manifestRepository = manifestRepository,
             backgroundDispatcher = Dispatchers.Default,
             ioDispatcher = Dispatchers.IO,
         ).use {

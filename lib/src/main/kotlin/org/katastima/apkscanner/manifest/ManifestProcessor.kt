@@ -9,18 +9,14 @@ import brut.androlib.meta.ApkInfo
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.jetbrains.exposed.v1.jdbc.Database
-import org.katastima.apkscanner.config.ApkScannerConfig
-import org.katastima.apkscanner.internal.RepositoryUtil
+import org.katastima.apkscanner.data.manifest.ManifestRepository
 import org.katastima.apkscanner.models.manifest.Manifest
 import org.katastima.apkscanner.models.manifest.ManifestCheckResult
 import org.katastima.apkscanner.models.manifest.config.ManifestConfig
 import java.io.File
 
 class ManifestProcessor(
-    private val apkScannerConfig: ApkScannerConfig,
-    private val database: Database,
-    private val backgroundDispatcher: CoroutineDispatcher = Dispatchers.Default,
+    private val manifestRepository: ManifestRepository,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) {
 
@@ -54,7 +50,7 @@ class ManifestProcessor(
             abis = abis,
             label = applicationLabel,
         )
-        val manifestConfig = RepositoryUtil.getManifestRepository(apkScannerConfig, backgroundDispatcher).getManifestConfig()
+        val manifestConfig = manifestRepository.getManifestConfig()
 
         return@withContext ManifestCheckResult(
             manifest = manifest,
