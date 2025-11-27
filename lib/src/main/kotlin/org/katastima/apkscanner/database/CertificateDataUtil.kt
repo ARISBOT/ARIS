@@ -61,7 +61,7 @@ object CertificateDataUtil {
                 }
             }
         }
-        LOGGER.info("Imported {} denied certificates in {} ms", denyList.size, importDuration)
+        LOGGER.info("Took {} ms to import {} denied certificates", importDuration, denyList.size)
     }
 
     fun exportCertificateDenylist(database: Database, apkScannerConfig: ApkScannerConfig): List<SigningCertificate> {

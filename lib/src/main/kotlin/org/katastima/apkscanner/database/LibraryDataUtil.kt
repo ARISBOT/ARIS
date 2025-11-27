@@ -76,7 +76,7 @@ object LibraryDataUtil {
                 }
             }
         }
-        LOGGER.info("Imported {} library information entries from in {} ms", libraryInformation.size, importDuration)
+        LOGGER.info("Took {} ms to import {} library information entries", importDuration, libraryInformation.size)
     }
 
     private fun importLibraryDefinitions(json: Json, database: Database, contentLines: Set<String>, debugDatabase: Boolean) {
@@ -117,7 +117,7 @@ object LibraryDataUtil {
                     }
             }
         }
-        LOGGER.info("Imported {} library definitions in {} ms", libraryDefinitions.size, importDuration)
+        LOGGER.info("Took {} ms to import {} library definitions", importDuration, libraryDefinitions.size)
     }
 
     fun exportLibraryDefinitions(database: Database, apkScannerConfig: ApkScannerConfig): Pair<List<LegacyLibraryInformation>, List<LegacyLibraryDefinition>> {

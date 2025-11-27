@@ -79,7 +79,7 @@ object ManifestDataUtil {
                 }
             }
         }
-        LOGGER.info("Imported manifest config {} in {} ms", manifestConfig.getGroupAndCountString(), importDuration)
+        LOGGER.info("Took {} ms to import manifest config {}", importDuration, manifestConfig.getGroupAndCountString())
 
         return manifestConfig
     }
