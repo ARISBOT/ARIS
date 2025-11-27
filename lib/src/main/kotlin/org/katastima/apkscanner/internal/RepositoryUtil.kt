@@ -7,13 +7,13 @@ package org.katastima.apkscanner.internal
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
-import org.jetbrains.exposed.v1.jdbc.Database
 import org.katastima.apkscanner.config.ApkScannerConfig
 import org.katastima.apkscanner.config.DatabaseType
 import org.katastima.apkscanner.data.certificate.CertificateDatabaseRepository
 import org.katastima.apkscanner.data.certificate.CertificateFileRepository
 import org.katastima.apkscanner.data.certificate.CertificateRepository
 import org.katastima.apkscanner.data.library.LibraryDatabaseRepository
+import org.katastima.apkscanner.data.library.LibraryFileRepository
 import org.katastima.apkscanner.data.library.LibraryRepository
 import org.katastima.apkscanner.data.manifest.ManifestDatabaseRepository
 import org.katastima.apkscanner.data.manifest.ManifestFileRepository
@@ -36,12 +36,16 @@ object RepositoryUtil {
     }
 
     fun getLibraryRepository(
-        database: Database,
         apkScannerConfig: ApkScannerConfig,
         backgroundDispatcher: CoroutineDispatcher = Dispatchers.Default,
-    ): LibraryRepository {
-        // TODO: different repo impl based on config.
-        return LibraryDatabaseRepository(database, backgroundDispatcher, apkScannerConfig.databaseConfig.debug)
+    ): LibraryRepository = when (apkScannerConfig.databaseConfig.type) {
+        DatabaseType.NONE -> LibraryFileRepository(apkScannerConfig.dataConfig)
+        else -> {
+            val database = DatabaseUtil.getDatabase(apkScannerConfig.databaseConfig)
+            DatabaseUtil.setupDatabase(database, apkScannerConfig.databaseConfig.debug)
+
+            LibraryDatabaseRepository(database, backgroundDispatcher, apkScannerConfig.databaseConfig.debug)
+        }
     }
 
     fun getManifestRepository(

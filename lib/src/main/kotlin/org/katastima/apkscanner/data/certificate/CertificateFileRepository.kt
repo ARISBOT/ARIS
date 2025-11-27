@@ -31,7 +31,7 @@ class CertificateFileRepository(
             val jsonElement = json.parseToJsonElement(certificateDataContent)
             jsonElement.jsonArray.forEach { denyList.add(json.decodeFromJsonElement<SigningCertificate>(it)) }
         } catch (exc: Exception) {
-            LOGGER.error("Could not get manifest config", exc)
+            LOGGER.error("Could not get certificate data", exc)
         }
         denyList
     }

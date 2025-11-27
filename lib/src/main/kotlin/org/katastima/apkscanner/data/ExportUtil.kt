@@ -11,7 +11,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
-import org.jetbrains.exposed.v1.jdbc.Database
 import org.katastima.apkscanner.config.ApkScannerConfig
 import org.katastima.apkscanner.data.certificate.CertificateRepository
 import org.katastima.apkscanner.data.library.LibraryRepository
@@ -26,7 +25,6 @@ import java.io.File
 object ExportUtil {
 
     suspend fun exportAll(
-        database: Database,
         apkScannerConfig: ApkScannerConfig,
         ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
     ) = withContext(ioDispatcher) {
@@ -39,7 +37,7 @@ object ExportUtil {
             },
             async {
                 exportLibraryData(
-                    RepositoryUtil.getLibraryRepository(database, apkScannerConfig),
+                    RepositoryUtil.getLibraryRepository(apkScannerConfig),
                     apkScannerConfig.dataConfig.libraryDefinitionExportPath,
                     apkScannerConfig.dataConfig.libraryInformationExportPath,
                 )
