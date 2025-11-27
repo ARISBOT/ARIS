@@ -9,7 +9,6 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import org.jetbrains.exposed.v1.core.StdOutSqlLogger
 import org.jetbrains.exposed.v1.core.eq
-import org.jetbrains.exposed.v1.core.neq
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
 import org.katastima.apkscanner.database.dao.SigningCertificateDenylistEntity
@@ -24,14 +23,14 @@ class CertificateDatabaseRepository(
 
     override suspend fun getAll(): List<SigningCertificate> = dbQuery {
         return@dbQuery SigningCertificateDenylistEntity
-            .find { SigningCertificateDenylistTable.name neq "TEMPLATE_ENTRY" }
+            .all()
             .sortedBy { SigningCertificateDenylistTable.name }
             .map { it.toSigningCertificate() }
     }
 
     override suspend fun countAll(): Long = dbQuery {
         return@dbQuery SigningCertificateDenylistEntity
-            .find { SigningCertificateDenylistTable.name neq "TEMPLATE_ENTRY" }
+            .all()
             .count()
     }
 
