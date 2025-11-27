@@ -5,13 +5,10 @@
 
 package org.katastima.apkscanner.extensions
 
-import org.jetbrains.exposed.v1.core.StdOutSqlLogger
-import org.jetbrains.exposed.v1.core.neq
-import org.jetbrains.exposed.v1.jdbc.Database
-import org.jetbrains.exposed.v1.jdbc.selectAll
-import org.jetbrains.exposed.v1.jdbc.transactions.transaction
-import org.katastima.apkscanner.database.dao.SigningCertificateDenylistEntity
-import org.katastima.apkscanner.database.dao.SigningCertificateDenylistTable
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import org.katastima.apkscanner.data.certificate.CertificateRepository
 import org.katastima.apkscanner.models.signing.SigningCertificate
 import java.security.PublicKey
 import java.security.cert.X509Certificate
@@ -19,7 +16,10 @@ import java.security.interfaces.DSAKey
 import java.security.interfaces.ECKey
 import java.security.interfaces.RSAKey
 
-fun X509Certificate.isDenyListed(database: Database, debugDatabase: Boolean = false): Set<SigningCertificate> {
+suspend fun X509Certificate.isDenyListed(
+    certificateRepository: CertificateRepository,
+    backgroundDispatcher: CoroutineDispatcher = Dispatchers.Default,
+): Set<SigningCertificate> = withContext(backgroundDispatcher) {
     val denylistMatches: MutableSet<SigningCertificate> = mutableSetOf()
 
     val encodedSha256 = encoded.toSha256()
@@ -29,36 +29,29 @@ fun X509Certificate.isDenyListed(database: Database, debugDatabase: Boolean = fa
     // e.g.: [C=US, CN=Android Debug, O=Android]
     val dnSplitList = subjectX500Principal.name.split(",").sorted()
 
-    transaction(database) {
-        if (debugDatabase) {
-            addLogger(StdOutSqlLogger)
-        }
+    certificateRepository.getAll()
+        .filter { it.name != "TEMPLATE_ENTRY" }
+        .sortedBy { it.name }
+        .forEach { denylistEntry ->
+            // If our hashes match any of theirs, add to denylist matches and skip checking DNs.
+            if (denylistEntry.sha256.contains(encodedSha256)
+                || denylistEntry.sha1.contains(encodedSha1)
+                || denylistEntry.md5.contains(encodedMd5)
+            ) {
+                denylistMatches.add(denylistEntry)
+                return@forEach
+            }
 
-        SigningCertificateDenylistTable
-            .selectAll()
-            .where { SigningCertificateDenylistTable.name neq "TEMPLATE_ENTRY" }
-            .map { SigningCertificateDenylistEntity.wrapRow(it) }
-            .forEach { denylistEntity ->
-                // If our hashes match any of theirs, add to denylist matches and skip checking DNs.
-                if (denylistEntity.sha256.contains(encodedSha256)
-                    || denylistEntity.sha1.contains(encodedSha1)
-                    || denylistEntity.md5.contains(encodedMd5)
-                ) {
-                    denylistMatches.add(denylistEntity.toSigningCertificate())
-                    return@forEach
-                }
-
-                denylistEntity.dn.forEach { dnEntry ->
-                    // e.g.: [C=US, CN=Android, L=Mountain View, O=Android, OU=Android, ST=California, emailAddress=android@android.com]
-                    val entityDnSplitList = dnEntry.split("/").filter { it.isNotBlank() }.sorted()
-                    if (entityDnSplitList == dnSplitList) {
-                        denylistMatches.add(denylistEntity.toSigningCertificate())
-                    }
+            denylistEntry.dn.forEach { dnEntry ->
+                // e.g.: [C=US, CN=Android, L=Mountain View, O=Android, OU=Android, ST=California, emailAddress=android@android.com]
+                val entityDnSplitList = dnEntry.split("/").filter { it.isNotBlank() }.sorted()
+                if (entityDnSplitList == dnSplitList) {
+                    denylistMatches.add(denylistEntry)
                 }
             }
-    }
+        }
 
-    return denylistMatches
+    return@withContext denylistMatches
 }
 
 fun PublicKey.getPublicKeySize(): Int = when (this) {

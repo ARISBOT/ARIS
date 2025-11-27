@@ -35,6 +35,7 @@ import org.katastima.apkscanner.extensions.formatVerifiedUnverified
 import org.katastima.apkscanner.extensions.formatYesNo
 import org.katastima.apkscanner.extensions.getApkFilePathForReport
 import org.katastima.apkscanner.extensions.nowAsLocalDate
+import org.katastima.apkscanner.internal.RepositoryUtil
 import org.katastima.apkscanner.models.ApkScanResult
 import org.katastima.apkscanner.models.manifest.ManifestCheckResult
 import org.katastima.apkscanner.models.signing.ApkSigResult
@@ -99,10 +100,15 @@ class ScanAPKCommand : ApkScannerCommand() {
         val apkScannerConfig = cliConfig.apkScannerConfig
         val databaseConfig = apkScannerConfig.databaseConfig
         val database = DatabaseUtil.getDatabase(databaseConfig)
+        // TODO: remove once nothing uses the hardcoded database anymore.
+        DatabaseUtil.setupDatabase(database, databaseConfig.debug)
+
+        val certificateRepository = RepositoryUtil.getCertificateRepository(apkScannerConfig)
 
         ApkScanner(
             apkScannerConfig = apkScannerConfig,
             database = database,
+            certificateRepository = certificateRepository,
             backgroundDispatcher = Dispatchers.Default,
             ioDispatcher = Dispatchers.IO,
         ).use {

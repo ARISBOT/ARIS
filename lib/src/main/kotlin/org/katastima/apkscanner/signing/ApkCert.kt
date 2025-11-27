@@ -6,7 +6,10 @@
 package org.katastima.apkscanner.signing
 
 import com.android.apksig.ApkVerifier
-import org.jetbrains.exposed.v1.jdbc.Database
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import org.katastima.apkscanner.data.certificate.CertificateRepository
 import org.katastima.apkscanner.extensions.containsControlCharacters
 import org.katastima.apkscanner.extensions.formatAsHex
 import org.katastima.apkscanner.extensions.getPublicKeySize
@@ -23,9 +26,12 @@ import org.katastima.apkscanner.models.signing.SigningCheckResult
 import org.slf4j.LoggerFactory
 import java.io.File
 
-class ApkCert(private val apkFile: File) {
+class ApkCert(
+    private val apkFile: File,
+    private val backgroundDispatcher: CoroutineDispatcher = Dispatchers.Default,
+) {
 
-    fun verify(database: Database, debugDatabase: Boolean = false): SigningCheckResult {
+    suspend fun verify(certificateRepository: CertificateRepository): SigningCheckResult = withContext(backgroundDispatcher) {
         var signingCheckResult = SigningCheckResult()
 
         try {
@@ -60,7 +66,7 @@ class ApkCert(private val apkFile: File) {
                 md5 = certificate.publicKey.encoded.toMd5(),
             )
             var certificateResult = CertificateResult(
-                denylistMatches = certificate.isDenyListed(database, debugDatabase),
+                denylistMatches = certificate.isDenyListed(certificateRepository),
                 sigAlgorithmName = certificate.sigAlgName,
                 sigAlgorithmOID = certificate.sigAlgOID,
                 issuerPrincipal = certificate.issuerX500Principal.toString(),
@@ -100,7 +106,7 @@ class ApkCert(private val apkFile: File) {
             signingBlockResult = signingBlockResult,
         )
 
-        return signingCheckResult
+        return@withContext signingCheckResult
     }
 
     companion object {

@@ -13,6 +13,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.katastima.apkscanner.config.ApkScannerConfig
+import org.katastima.apkscanner.data.certificate.CertificateRepository
 import org.katastima.apkscanner.extensions.getApkFilePathForReport
 import org.katastima.apkscanner.extensions.toSha256
 import org.katastima.apkscanner.library.LibraryProcessor
@@ -29,6 +30,7 @@ import kotlin.time.measureTimedValue
 class ApkProcessor(
     private val apkScannerConfig: ApkScannerConfig,
     private val database: Database,
+    private val certificateRepository: CertificateRepository,
     private val backgroundDispatcher: CoroutineDispatcher,
     private val ioDispatcher: CoroutineDispatcher,
     private val workingDirectory: File = createTempDirectory().toFile()
@@ -53,7 +55,7 @@ class ApkProcessor(
 
         val (signingCheckResult, signingCheckDuration) = measureTimedValue {
             val apkCert = ApkCert(apkFile)
-            apkCert.verify(database, apkScannerConfig.databaseConfig.debug)
+            apkCert.verify(certificateRepository)
         }
         LOGGER.debug("signingCheckResult: {} ms", signingCheckDuration.inWholeMilliseconds)
 
