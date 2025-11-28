@@ -106,9 +106,8 @@ class LibraryDatabaseRepository(
                                 path = it.path
                                 libraryInformationEntry = foundDefinition
                             }
+                            counter++
                         }
-
-                        counter++
                     }
             }
 
