@@ -8,6 +8,8 @@ package org.katastima.apkscanner.data.certificate
 import org.katastima.apkscanner.models.signing.SigningCertificate
 
 interface CertificateRepository {
+    suspend fun importCertificates(certificateList: List<SigningCertificate>): Result<Long>
+
     suspend fun getAll(): List<SigningCertificate>
     suspend fun countAll(): Long
 

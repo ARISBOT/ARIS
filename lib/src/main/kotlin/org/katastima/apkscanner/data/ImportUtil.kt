@@ -18,8 +18,8 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.katastima.apkscanner.config.ApkScannerConfig
+import org.katastima.apkscanner.data.certificate.CertificateRepository
 import org.katastima.apkscanner.data.manifest.ManifestRepository
-import org.katastima.apkscanner.database.dao.certificate.SigningCertificateDenylistEntity
 import org.katastima.apkscanner.database.dao.library.LibraryEntry
 import org.katastima.apkscanner.database.dao.library.LibraryInformationEntry
 import org.katastima.apkscanner.database.dao.library.LibraryInformationTable
@@ -36,24 +36,25 @@ object ImportUtil {
 
     suspend fun importAll(
         database: Database,
+        certificateRepository: CertificateRepository,
         manifestRepository: ManifestRepository,
         apkScannerConfig: ApkScannerConfig,
         ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
     ) = withContext(ioDispatcher) {
         listOf(
-            async { importCertificateData(database, apkScannerConfig) },
+            async { importCertificateData(certificateRepository, apkScannerConfig) },
             async { importLibraryData(database, apkScannerConfig) },
             async { importManifestConfigData(manifestRepository, apkScannerConfig) },
         ).awaitAll()
     }
 
-    fun importCertificateData(database: Database, apkScannerConfig: ApkScannerConfig) {
+    suspend fun importCertificateData(certificateRepository: CertificateRepository, apkScannerConfig: ApkScannerConfig) {
         val json = Json { ignoreUnknownKeys = true }
 
-        importCertificateDenylist(json, database, apkScannerConfig)
+        importCertificateDenylist(json, certificateRepository, apkScannerConfig)
     }
 
-    private fun importCertificateDenylist(json: Json, database: Database, apkScannerConfig: ApkScannerConfig) {
+    private suspend fun importCertificateDenylist(json: Json, certificateRepository: CertificateRepository, apkScannerConfig: ApkScannerConfig) {
         val certificateConfigContent = DataUtil.getCertificateConfigContent(apkScannerConfig.dataConfig)
         if (certificateConfigContent.isBlank()) {
             LOGGER.warn("There is no certificate data to import, skipping import")
@@ -63,25 +64,10 @@ object ImportUtil {
         val denyList: MutableList<SigningCertificate> = mutableListOf()
         val importDuration = measureTimeMillis {
             val jsonElement = json.parseToJsonElement(certificateConfigContent)
-            jsonElement.jsonArray.forEach { denyList.add(json.decodeFromJsonElement<SigningCertificate>(it)) }
+            val jsonArray = jsonElement.jsonArray
+            jsonArray.forEach { denyList.add(json.decodeFromJsonElement<SigningCertificate>(it)) }
 
-            transaction(database) {
-                if (apkScannerConfig.databaseConfig.debug) {
-                    addLogger(StdOutSqlLogger)
-                }
-
-                denyList.sortedBy { it.name }.forEach {
-                    SigningCertificateDenylistEntity.new {
-                        name = it.name
-                        description = it.description
-                        sourceUrl = it.sourceUrl
-                        dn = it.dn.sorted()
-                        sha256 = it.sha256.sorted()
-                        sha1 = it.sha1.sorted()
-                        md5 = it.md5.sorted()
-                    }
-                }
-            }
+            certificateRepository.importCertificates(denyList)
         }
         LOGGER.info("Took {} ms to import {} denied certificates", importDuration, denyList.size)
     }

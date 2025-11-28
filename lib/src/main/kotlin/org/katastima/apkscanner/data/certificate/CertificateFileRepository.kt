@@ -36,6 +36,10 @@ class CertificateFileRepository(
         denyList
     }
 
+    override suspend fun importCertificates(certificateList: List<SigningCertificate>): Result<Long> = withContext(ioDispatcher) {
+        return@withContext Result.failure(RuntimeException("Not implemented yet"))
+    }
+
     override suspend fun getAll(): List<SigningCertificate> = withContext(ioDispatcher) {
         return@withContext signingCertificates
     }

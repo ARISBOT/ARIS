@@ -21,6 +21,27 @@ class CertificateDatabaseRepository(
     private val debugDatabase: Boolean = false,
 ) : CertificateRepository {
 
+    override suspend fun importCertificates(certificateList: List<SigningCertificate>): Result<Long> = dbQuery {
+        var counter = 0L
+
+        certificateList.sortedBy { it.name }.forEach {
+            if (SigningCertificateDenylistEntity.find { SigningCertificateDenylistTable.name eq it.name }.empty()) {
+                SigningCertificateDenylistEntity.new {
+                    name = it.name
+                    description = it.description
+                    sourceUrl = it.sourceUrl
+                    dn = it.dn.sorted()
+                    sha256 = it.sha256.sorted()
+                    sha1 = it.sha1.sorted()
+                    md5 = it.md5.sorted()
+                }
+                counter++
+            }
+        }
+
+        return@dbQuery Result.success(counter)
+    }
+
     override suspend fun getAll(): List<SigningCertificate> = dbQuery {
         return@dbQuery SigningCertificateDenylistEntity
             .all()
