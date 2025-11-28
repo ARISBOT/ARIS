@@ -12,7 +12,7 @@ import org.jetbrains.exposed.v1.dao.IntEntityClass
 import org.katastima.apkscanner.models.manifest.config.ManifestPermissionConfigEntry
 
 object ManifestPermissionConfigTable : IntIdTable("manifest_config_permissions") {
-    val name = varchar("name", 255)
+    val name = varchar("name", 255).uniqueIndex()
     val description = text("description").default("")
     val permissions = array<String>("permissions")
 }

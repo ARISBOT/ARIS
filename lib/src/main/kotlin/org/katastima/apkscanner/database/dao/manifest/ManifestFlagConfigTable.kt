@@ -12,7 +12,7 @@ import org.jetbrains.exposed.v1.dao.IntEntityClass
 import org.katastima.apkscanner.models.manifest.config.ManifestFlagConfigEntry
 
 object ManifestFlagConfigTable : IntIdTable("manifest_config_flags") {
-    val name = varchar("name", 255)
+    val name = varchar("name", 255).uniqueIndex()
     val description = text("description").default("")
     val flags = array<String>("flags")
 }

@@ -12,7 +12,7 @@ import org.jetbrains.exposed.v1.dao.IntEntityClass
 import org.katastima.apkscanner.models.manifest.config.ManifestFilterConfigEntry
 
 object ManifestFilterConfigTable : IntIdTable("manifest_config_filters") {
-    val name = varchar("name", 255)
+    val name = varchar("name", 255).uniqueIndex()
     val description = text("description").default("")
     val filters = array<String>("filters")
 }

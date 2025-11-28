@@ -53,32 +53,38 @@ class ManifestDatabaseRepository(
 
         // Flags
         manifestConfig.dangerousFlags.entries.sortedBy { it.name }.forEach {
-            ManifestFlagConfigEntity.new {
-                name = it.name
-                description = it.description
-                flags = it.flags.sorted()
+            if (ManifestFlagConfigEntity.find { ManifestFlagConfigTable.name eq it.name }.empty()) {
+                ManifestFlagConfigEntity.new {
+                    name = it.name
+                    description = it.description
+                    flags = it.flags.sorted()
+                }
+                counter++
             }
-            counter++
         }
 
         // Filters
         manifestConfig.dangerousFilters.entries.sortedBy { it.name }.forEach {
-            ManifestFilterConfigEntity.new {
-                name = it.name
-                description = it.description
-                filters = it.filters.sorted()
+            if (ManifestFilterConfigEntity.find { ManifestFilterConfigTable.name eq it.name }.empty()) {
+                ManifestFilterConfigEntity.new {
+                    name = it.name
+                    description = it.description
+                    filters = it.filters.sorted()
+                }
+                counter++
             }
-            counter++
         }
 
         // Permissions
         manifestConfig.dangerousPermissions.entries.sortedBy { it.name }.forEach {
-            ManifestPermissionConfigEntity.new {
-                name = it.name
-                description = it.description
-                permissions = it.permissions.sorted()
+            if (ManifestPermissionConfigEntity.find { ManifestPermissionConfigTable.name eq it.name }.empty()) {
+                ManifestPermissionConfigEntity.new {
+                    name = it.name
+                    description = it.description
+                    permissions = it.permissions.sorted()
+                }
+                counter++
             }
-            counter++
         }
 
         return@dbQuery Result.success(counter)
