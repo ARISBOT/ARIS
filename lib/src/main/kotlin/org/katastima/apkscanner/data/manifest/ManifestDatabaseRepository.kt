@@ -8,8 +8,10 @@ package org.katastima.apkscanner.data.manifest
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.StdOutSqlLogger
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.lowerCase
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
 import org.katastima.apkscanner.database.dao.manifest.ManifestFilterConfigEntity
@@ -52,40 +54,46 @@ class ManifestDatabaseRepository(
         var counter = 0L
 
         // Flags
-        manifestConfig.dangerousFlags.entries.sortedBy { it.name }.forEach {
-            if (ManifestFlagConfigEntity.find { ManifestFlagConfigTable.name eq it.name }.empty()) {
-                ManifestFlagConfigEntity.new {
-                    name = it.name
-                    description = it.description
-                    flags = it.flags.sorted()
+        manifestConfig.dangerousFlags.entries
+            .sortedBy { it.name.lowercase() }
+            .forEach {
+                if (ManifestFlagConfigEntity.find { ManifestFlagConfigTable.name eq it.name }.empty()) {
+                    ManifestFlagConfigEntity.new {
+                        name = it.name
+                        description = it.description
+                        flags = it.flags.sorted()
+                    }
+                    counter++
                 }
-                counter++
             }
-        }
 
         // Filters
-        manifestConfig.dangerousFilters.entries.sortedBy { it.name }.forEach {
-            if (ManifestFilterConfigEntity.find { ManifestFilterConfigTable.name eq it.name }.empty()) {
-                ManifestFilterConfigEntity.new {
-                    name = it.name
-                    description = it.description
-                    filters = it.filters.sorted()
+        manifestConfig.dangerousFilters.entries
+            .sortedBy { it.name.lowercase() }
+            .forEach {
+                if (ManifestFilterConfigEntity.find { ManifestFilterConfigTable.name eq it.name }.empty()) {
+                    ManifestFilterConfigEntity.new {
+                        name = it.name
+                        description = it.description
+                        filters = it.filters.sorted()
+                    }
+                    counter++
                 }
-                counter++
             }
-        }
 
         // Permissions
-        manifestConfig.dangerousPermissions.entries.sortedBy { it.name }.forEach {
-            if (ManifestPermissionConfigEntity.find { ManifestPermissionConfigTable.name eq it.name }.empty()) {
-                ManifestPermissionConfigEntity.new {
-                    name = it.name
-                    description = it.description
-                    permissions = it.permissions.sorted()
+        manifestConfig.dangerousPermissions.entries
+            .sortedBy { it.name.lowercase() }
+            .forEach {
+                if (ManifestPermissionConfigEntity.find { ManifestPermissionConfigTable.name eq it.name }.empty()) {
+                    ManifestPermissionConfigEntity.new {
+                        name = it.name
+                        description = it.description
+                        permissions = it.permissions.sorted()
+                    }
+                    counter++
                 }
-                counter++
             }
-        }
 
         return@dbQuery Result.success(counter)
     }
@@ -95,7 +103,7 @@ class ManifestDatabaseRepository(
     override suspend fun getAllFlagGroups(): List<ManifestFlagConfigEntry> = dbQuery {
         return@dbQuery ManifestFlagConfigEntity
             .all()
-            .sortedBy { ManifestFlagConfigTable.name }
+            .orderBy(ManifestFlagConfigTable.name.lowerCase() to SortOrder.ASC)
             .map { it.toManifestFlagConfigEntry() }
     }
 
@@ -167,7 +175,7 @@ class ManifestDatabaseRepository(
     override suspend fun getAllIntentFilterGroups(): List<ManifestFilterConfigEntry> = dbQuery {
         return@dbQuery ManifestFilterConfigEntity
             .all()
-            .sortedBy { ManifestFilterConfigTable.name }
+            .orderBy(ManifestFilterConfigTable.name.lowerCase() to SortOrder.ASC)
             .map { it.toManifestFilterConfigEntry() }
     }
 
@@ -239,7 +247,7 @@ class ManifestDatabaseRepository(
     override suspend fun getAllPermissionGroups(): List<ManifestPermissionConfigEntry> = dbQuery {
         return@dbQuery ManifestPermissionConfigEntity
             .all()
-            .sortedBy { ManifestPermissionConfigTable.name }
+            .orderBy(ManifestPermissionConfigTable.name.lowerCase() to SortOrder.ASC)
             .map { it.toManifestPermissionConfigEntry() }
     }
 

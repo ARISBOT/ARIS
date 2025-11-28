@@ -7,8 +7,10 @@ package org.katastima.apkscanner.data.certificate
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
+import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.StdOutSqlLogger
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.lowerCase
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
 import org.katastima.apkscanner.database.dao.certificate.SigningCertificateDenylistEntity
@@ -24,20 +26,22 @@ class CertificateDatabaseRepository(
     override suspend fun importCertificates(certificateList: List<SigningCertificate>): Result<Long> = dbQuery {
         var counter = 0L
 
-        certificateList.sortedBy { it.name }.forEach {
-            if (SigningCertificateDenylistEntity.find { SigningCertificateDenylistTable.name eq it.name }.empty()) {
-                SigningCertificateDenylistEntity.new {
-                    name = it.name
-                    description = it.description
-                    sourceUrl = it.sourceUrl
-                    dn = it.dn.sorted()
-                    sha256 = it.sha256.sorted()
-                    sha1 = it.sha1.sorted()
-                    md5 = it.md5.sorted()
+        certificateList
+            .sortedBy { it.name.lowercase() }
+            .forEach {
+                if (SigningCertificateDenylistEntity.find { SigningCertificateDenylistTable.name eq it.name }.empty()) {
+                    SigningCertificateDenylistEntity.new {
+                        name = it.name
+                        description = it.description
+                        sourceUrl = it.sourceUrl
+                        dn = it.dn.sorted()
+                        sha256 = it.sha256.sorted()
+                        sha1 = it.sha1.sorted()
+                        md5 = it.md5.sorted()
+                    }
+                    counter++
                 }
-                counter++
             }
-        }
 
         return@dbQuery Result.success(counter)
     }
@@ -45,7 +49,7 @@ class CertificateDatabaseRepository(
     override suspend fun getAll(): List<SigningCertificate> = dbQuery {
         return@dbQuery SigningCertificateDenylistEntity
             .all()
-            .sortedBy { SigningCertificateDenylistTable.name }
+            .orderBy(SigningCertificateDenylistTable.name.lowerCase() to SortOrder.ASC)
             .map { it.toSigningCertificate() }
     }
 
