@@ -28,6 +28,11 @@ typealias ExportResultManifestData = Pair<String, ManifestConfig>
 
 object ExportUtil {
 
+    const val FILE_NAME_CERTIFICATE_EXPORT = "certificate_denylist.json"
+    const val FILE_NAME_LIBRARY_DEFINITION_EXPORT = "libsmali.jsonl"
+    const val FILE_NAME_LIBRARY_INFORMATION_EXPORT = "libinfo.jsonl"
+    const val FILE_NAME_MANIFEST_EXPORT = "manifest_config.json"
+
     suspend fun exportAll(
         apkScannerConfig: ApkScannerConfig,
         ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
@@ -78,14 +83,11 @@ object ExportUtil {
             denylist.addLast(templateItem)
         }
 
+        val json = Json { encodeDefaults = true; prettyPrint = true }
+        val contentJson = json.encodeToString(denylist)
+
         val denylistPath = getExportFileAndCreateParentDirectory(exportFilePath)
-        denylistPath.outputStream().bufferedWriter().use { bufferedWriter ->
-            val json = Json {
-                encodeDefaults = true
-                prettyPrint = true
-            }
-            bufferedWriter.write(json.encodeToString(denylist))
-        }
+        denylistPath.outputStream().bufferedWriter().use { it.write(contentJson) }
         val exportMessage = "Exported ${denylist.size} denied signing certificates to: ${denylistPath.absolutePath}"
 
         return@withContext ExportResultCertificateData(exportMessage, denylist)
@@ -99,10 +101,11 @@ object ExportUtil {
     ): ExportResultLibraryData = withContext(ioDispatcher) {
         val exportResultStringBuilder = StringBuilder()
 
+        val json = Json { encodeDefaults = true }
+
         val libraryDefinitionsFile = getExportFileAndCreateParentDirectory(definitionExportFilePath)
         val legacyDefinitionList = libraryRepository.getAllDefinitionEntries()
         libraryDefinitionsFile.outputStream().bufferedWriter().use { bufferedWriter ->
-            val json = Json { encodeDefaults = true }
             legacyDefinitionList.forEach { entry ->
                 bufferedWriter.write(json.encodeToString(entry))
                 bufferedWriter.newLine()
@@ -114,7 +117,6 @@ object ExportUtil {
         val legacyInformationList = libraryRepository.getAllInformationEntries()
         val libraryInformationFile = getExportFileAndCreateParentDirectory(informationExportFilePath)
         libraryInformationFile.outputStream().bufferedWriter().use { bufferedWriter ->
-            val json = Json { encodeDefaults = true }
             legacyInformationList.forEach { entry ->
                 bufferedWriter.write(json.encodeToString(entry))
                 bufferedWriter.newLine()
@@ -136,14 +138,11 @@ object ExportUtil {
     ): ExportResultManifestData = withContext(ioDispatcher) {
         val manifestConfig = manifestRepository.getManifestConfig()
 
+        val json = Json { encodeDefaults = true; prettyPrint = true }
+        val contentJson = json.encodeToString(manifestConfig)
+
         val exportFile = getExportFileAndCreateParentDirectory(exportFilePath)
-        exportFile.outputStream().bufferedWriter().use { bufferedWriter ->
-            val json = Json {
-                encodeDefaults = true
-                prettyPrint = true
-            }
-            bufferedWriter.write(json.encodeToString(manifestConfig))
-        }
+        exportFile.outputStream().bufferedWriter().use { it.write(contentJson) }
         val exportMessage = "Exported manifest config (${manifestConfig.getGroupAndCountString()}) to: ${exportFile.absolutePath}"
 
         return@withContext ExportResultManifestData(exportMessage, manifestConfig)
