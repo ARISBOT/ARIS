@@ -10,7 +10,7 @@ import org.katastima.apkscanner.models.library.LegacyLibraryInformation
 import org.katastima.apkscanner.models.library.LibraryInformation
 
 interface LibraryRepository {
-    suspend fun getAllInformationEntries(): List<LegacyLibraryInformation>
+    suspend fun getAllInformationEntries(offset: Int = -1, count: Int = -1): List<LegacyLibraryInformation>
     suspend fun countInformationEntries(): Long
 
     suspend fun getAllDefinitionEntries(): List<LegacyLibraryDefinition>

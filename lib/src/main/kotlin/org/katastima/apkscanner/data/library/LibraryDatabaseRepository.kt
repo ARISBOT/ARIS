@@ -7,12 +7,15 @@ package org.katastima.apkscanner.data.library
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
+import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.StdOutSqlLogger
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.lowerCase
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
 import org.katastima.apkscanner.database.dao.library.LibraryEntry
 import org.katastima.apkscanner.database.dao.library.LibraryInformationEntry
+import org.katastima.apkscanner.database.dao.library.LibraryInformationTable
 import org.katastima.apkscanner.database.dao.library.LibraryTable
 import org.katastima.apkscanner.models.library.LegacyLibraryDefinition
 import org.katastima.apkscanner.models.library.LegacyLibraryInformation
@@ -24,11 +27,22 @@ class LibraryDatabaseRepository(
     private val debugDatabase: Boolean = false,
 ) : LibraryRepository {
 
-    override suspend fun getAllInformationEntries(): List<LegacyLibraryInformation> = dbQuery {
-        return@dbQuery LibraryInformationEntry
+    override suspend fun getAllInformationEntries(offset: Int, count: Int): List<LegacyLibraryInformation> = dbQuery {
+        var informationEntries = LibraryInformationEntry
             .all()
-            .map { it.toLegacyLibraryInformation() }
-            .sortedBy { it.id }
+            .orderBy(LibraryInformationTable.libraryId.lowerCase() to SortOrder.ASC)
+
+        // If an offset is specified, use it.
+        if (offset > 0) {
+            informationEntries = informationEntries.offset(offset.toLong())
+        }
+
+        // If a limit is specified, limit.
+        if (count > 0) {
+            informationEntries = informationEntries.limit(count)
+        }
+
+        return@dbQuery informationEntries.map { it.toLegacyLibraryInformation() }
     }
 
     override suspend fun countInformationEntries(): Long = dbQuery {

@@ -15,6 +15,7 @@ import org.katastima.apkscanner.models.library.LegacyLibraryDefinition
 import org.katastima.apkscanner.models.library.LegacyLibraryInformation
 import org.katastima.apkscanner.models.library.LibraryInformation
 import org.slf4j.LoggerFactory
+import kotlin.math.min
 
 class LibraryFileRepository(
     private val dataConfig: DataConfig,
@@ -49,7 +50,13 @@ class LibraryFileRepository(
         informationList
     }
 
-    override suspend fun getAllInformationEntries(): List<LegacyLibraryInformation> = withContext(ioDispatcher) {
+    override suspend fun getAllInformationEntries(offset: Int, count: Int): List<LegacyLibraryInformation> = withContext(ioDispatcher) {
+        if (offset > 0 && count > 0) {
+            val toIndex = min(legacyInformationList.size, offset + count)
+            if (toIndex > offset) {
+                return@withContext legacyInformationList.subList(offset, toIndex)
+            }
+        }
         return@withContext legacyInformationList
     }
 
