@@ -13,7 +13,7 @@ interface LibraryRepository {
     suspend fun getAllInformationEntries(offset: Int = -1, count: Int = -1): List<LegacyLibraryInformation>
     suspend fun countInformationEntries(): Long
 
-    suspend fun getAllDefinitionEntries(): List<LegacyLibraryDefinition>
+    suspend fun getAllDefinitionEntries(offset: Int = -1, count: Int = -1): List<LegacyLibraryDefinition>
     suspend fun countDefinitionEntries(): Long
 
     suspend fun getLibraryInformationForLibraryPath(libraryPath: String): List<LibraryInformation>

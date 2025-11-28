@@ -11,11 +11,11 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import org.katastima.apkscanner.config.DataConfig
 import org.katastima.apkscanner.data.DataUtil
+import org.katastima.apkscanner.extensions.paginate
 import org.katastima.apkscanner.models.library.LegacyLibraryDefinition
 import org.katastima.apkscanner.models.library.LegacyLibraryInformation
 import org.katastima.apkscanner.models.library.LibraryInformation
 import org.slf4j.LoggerFactory
-import kotlin.math.min
 
 class LibraryFileRepository(
     private val dataConfig: DataConfig,
@@ -51,21 +51,15 @@ class LibraryFileRepository(
     }
 
     override suspend fun getAllInformationEntries(offset: Int, count: Int): List<LegacyLibraryInformation> = withContext(ioDispatcher) {
-        if (offset > 0 && count > 0) {
-            val toIndex = min(legacyInformationList.size, offset + count)
-            if (toIndex > offset) {
-                return@withContext legacyInformationList.subList(offset, toIndex)
-            }
-        }
-        return@withContext legacyInformationList
+        return@withContext legacyInformationList.paginate(offset, count)
     }
 
     override suspend fun countInformationEntries(): Long = withContext(ioDispatcher) {
         return@withContext legacyInformationList.size.toLong()
     }
 
-    override suspend fun getAllDefinitionEntries(): List<LegacyLibraryDefinition> = withContext(ioDispatcher) {
-        return@withContext legacyDefinitionList
+    override suspend fun getAllDefinitionEntries(offset: Int, count: Int): List<LegacyLibraryDefinition> = withContext(ioDispatcher) {
+        return@withContext legacyDefinitionList.paginate(offset, count)
     }
 
     override suspend fun countDefinitionEntries(): Long = withContext(ioDispatcher) {

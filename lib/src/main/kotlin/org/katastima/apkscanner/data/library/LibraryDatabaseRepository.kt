@@ -51,11 +51,22 @@ class LibraryDatabaseRepository(
             .count()
     }
 
-    override suspend fun getAllDefinitionEntries(): List<LegacyLibraryDefinition> = dbQuery {
-        return@dbQuery LibraryEntry
+    override suspend fun getAllDefinitionEntries(offset: Int, count: Int): List<LegacyLibraryDefinition> = dbQuery {
+        var definitionEntries = LibraryEntry
             .all()
-            .map { it.toLegacyLibraryDefinition() }
-            .sortedBy { it.path }
+            .orderBy(LibraryTable.path.lowerCase() to SortOrder.ASC)
+
+        // If an offset is specified, use it.
+        if (offset > 0) {
+            definitionEntries = definitionEntries.offset(offset.toLong())
+        }
+
+        // If a limit is specified, limit.
+        if (count > 0) {
+            definitionEntries = definitionEntries.limit(count)
+        }
+
+        return@dbQuery definitionEntries.map { it.toLegacyLibraryDefinition() }
     }
 
     override suspend fun countDefinitionEntries(): Long = dbQuery {
