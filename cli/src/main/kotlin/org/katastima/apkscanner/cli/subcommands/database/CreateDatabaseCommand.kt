@@ -67,12 +67,13 @@ class CreateDatabaseCommand : ApkScannerCommand("setup") {
             DatabaseUtil.setupDatabase(database, apkScannerConfig.databaseConfig.debug)
 
             val certificateRepository = RepositoryUtil.getCertificateRepository(apkScannerConfig)
+            val libraryRepository = RepositoryUtil.getLibraryRepository(apkScannerConfig)
             val manifestRepository = RepositoryUtil.getManifestRepository(apkScannerConfig)
 
             // Import all the data.
             ImportUtil.importAll(
-                database = database,
                 certificateRepository = certificateRepository,
+                libraryRepository = libraryRepository,
                 manifestRepository = manifestRepository,
                 apkScannerConfig = apkScannerConfig,
             )

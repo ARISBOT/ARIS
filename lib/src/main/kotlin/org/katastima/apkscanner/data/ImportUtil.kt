@@ -13,16 +13,10 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.jsonArray
-import org.jetbrains.exposed.v1.core.StdOutSqlLogger
-import org.jetbrains.exposed.v1.core.eq
-import org.jetbrains.exposed.v1.jdbc.Database
-import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.katastima.apkscanner.config.ApkScannerConfig
 import org.katastima.apkscanner.data.certificate.CertificateRepository
+import org.katastima.apkscanner.data.library.LibraryRepository
 import org.katastima.apkscanner.data.manifest.ManifestRepository
-import org.katastima.apkscanner.database.dao.library.LibraryEntry
-import org.katastima.apkscanner.database.dao.library.LibraryInformationEntry
-import org.katastima.apkscanner.database.dao.library.LibraryInformationTable
 import org.katastima.apkscanner.models.library.LegacyLibraryDefinition
 import org.katastima.apkscanner.models.library.LegacyLibraryInformation
 import org.katastima.apkscanner.models.manifest.config.ManifestConfig
@@ -35,15 +29,15 @@ object ImportUtil {
     private val LOGGER = LoggerFactory.getLogger(ImportUtil::class.java)
 
     suspend fun importAll(
-        database: Database,
         certificateRepository: CertificateRepository,
+        libraryRepository: LibraryRepository,
         manifestRepository: ManifestRepository,
         apkScannerConfig: ApkScannerConfig,
         ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
     ) = withContext(ioDispatcher) {
         listOf(
             async { importCertificateData(certificateRepository, apkScannerConfig) },
-            async { importLibraryData(database, apkScannerConfig) },
+            async { importLibraryData(libraryRepository, apkScannerConfig) },
             async { importManifestConfigData(manifestRepository, apkScannerConfig) },
         ).awaitAll()
     }
@@ -72,7 +66,7 @@ object ImportUtil {
         LOGGER.info("Took {} ms to import {} denied certificates", importDuration, denyList.size)
     }
 
-    fun importLibraryData(database: Database, apkScannerConfig: ApkScannerConfig) {
+    suspend fun importLibraryData(libraryRepository: LibraryRepository, apkScannerConfig: ApkScannerConfig) {
         val libraryInformationContent = DataUtil.getLibraryInformationContent(apkScannerConfig.dataConfig)
         if (libraryInformationContent.isEmpty()) {
             LOGGER.warn("There is no library information data to import, skipping import")
@@ -88,11 +82,11 @@ object ImportUtil {
         val json = Json { ignoreUnknownKeys = true }
 
         // Important: information needs to be imported before definitions
-        importLibraryInformation(json, database, libraryInformationContent, apkScannerConfig.databaseConfig.debug)
-        importLibraryDefinitions(json, database, libraryDefinitionContent, apkScannerConfig.databaseConfig.debug)
+        importLibraryInformation(json, libraryRepository, libraryInformationContent)
+        importLibraryDefinitions(json, libraryRepository, libraryDefinitionContent)
     }
 
-    private fun importLibraryInformation(json: Json, database: Database, contentLines: Set<String>, debugDatabase: Boolean) {
+    private suspend fun importLibraryInformation(json: Json, libraryRepository: LibraryRepository, contentLines: Set<String>) {
         val libraryInformation: MutableList<LegacyLibraryInformation> = mutableListOf()
 
         val importDuration = measureTimeMillis {
@@ -100,31 +94,12 @@ object ImportUtil {
                 libraryInformation.add(json.decodeFromString<LegacyLibraryInformation>(it))
             }
 
-            transaction(database) {
-                if (debugDatabase) {
-                    addLogger(StdOutSqlLogger)
-                }
-
-                libraryInformation.sortedBy { it.id }.forEach {
-                    LibraryInformationEntry.new {
-                        libraryId = it.id
-                        name = ""
-                        details = it.details
-                        type = ""
-                        permissions = emptyList()
-                        url = ""
-                        modWarningId = it.modWarningId
-                        antiFeatures = it.antiFeatures.asList()
-                        license = it.license
-                        emphasize = it.emphasize
-                    }
-                }
-            }
+            libraryRepository.importInformationEntries(libraryInformation)
         }
         LOGGER.info("Took {} ms to import {} library information entries", importDuration, libraryInformation.size)
     }
 
-    private fun importLibraryDefinitions(json: Json, database: Database, contentLines: Set<String>, debugDatabase: Boolean) {
+    private suspend fun importLibraryDefinitions(json: Json, libraryRepository: LibraryRepository, contentLines: Set<String>) {
         val libraryDefinitions: MutableList<LegacyLibraryDefinition> = mutableListOf()
 
         val importDuration = measureTimeMillis {
@@ -132,35 +107,7 @@ object ImportUtil {
                 libraryDefinitions.add(json.decodeFromString<LegacyLibraryDefinition>(it))
             }
 
-            transaction(database) {
-                if (debugDatabase) {
-                    addLogger(StdOutSqlLogger)
-                }
-
-                libraryDefinitions
-                    .sortedBy { it.id }
-                    .forEach {
-                        LibraryInformationEntry
-                            .find { LibraryInformationTable.libraryId eq it.id }
-                            .forEach { foundDefinition ->
-                                val permissionSet = hashSetOf<String>()
-                                permissionSet.addAll(foundDefinition.permissions)
-                                permissionSet.addAll(it.perms)
-
-                                foundDefinition.apply {
-                                    name = it.name
-                                    type = it.type
-                                    permissions = permissionSet.sorted()
-                                    url = it.url
-                                }
-
-                                LibraryEntry.new {
-                                    path = it.path
-                                    libraryInformationEntry = foundDefinition
-                                }
-                            }
-                    }
-            }
+            libraryRepository.importDefinitionEntries(libraryDefinitions)
         }
         LOGGER.info("Took {} ms to import {} library definitions", importDuration, libraryDefinitions.size)
     }

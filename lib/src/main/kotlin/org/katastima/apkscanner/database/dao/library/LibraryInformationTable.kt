@@ -13,7 +13,7 @@ import org.katastima.apkscanner.models.library.LegacyLibraryInformation
 import org.katastima.apkscanner.models.library.LibraryInformation
 
 object LibraryInformationTable : IntIdTable("library_information") {
-    val libraryId = varchar("library_id", 255)
+    val libraryId = varchar("library_id", 255).uniqueIndex()
     val name = varchar("name", 255).default("")
     val details = text("details").default("")
     val type = varchar("type", 255).default("")

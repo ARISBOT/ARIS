@@ -50,12 +50,24 @@ class LibraryFileRepository(
         informationList
     }
 
+    /** Information Entries */
+
+    override suspend fun importInformationEntries(informationEntries: List<LegacyLibraryInformation>): Result<Long> = withContext(ioDispatcher) {
+        return@withContext Result.failure(RuntimeException("Not implemented yet"))
+    }
+
     override suspend fun getAllInformationEntries(offset: Int, count: Int): List<LegacyLibraryInformation> = withContext(ioDispatcher) {
         return@withContext legacyInformationList.paginate(offset, count)
     }
 
     override suspend fun countInformationEntries(): Long = withContext(ioDispatcher) {
         return@withContext legacyInformationList.size.toLong()
+    }
+
+    /** Definition Entries */
+
+    override suspend fun importDefinitionEntries(definitionEntries: List<LegacyLibraryDefinition>): Result<Long> = withContext(ioDispatcher) {
+        return@withContext Result.failure(RuntimeException("Not implemented yet"))
     }
 
     override suspend fun getAllDefinitionEntries(offset: Int, count: Int): List<LegacyLibraryDefinition> = withContext(ioDispatcher) {
@@ -65,6 +77,8 @@ class LibraryFileRepository(
     override suspend fun countDefinitionEntries(): Long = withContext(ioDispatcher) {
         return@withContext legacyDefinitionList.size.toLong()
     }
+
+    /** Helpers */
 
     override suspend fun getLibraryInformationForLibraryPath(libraryPath: String): List<LibraryInformation> = withContext(ioDispatcher) {
         val informationList: MutableList<LibraryInformation> = mutableListOf()

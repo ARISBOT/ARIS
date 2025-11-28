@@ -27,6 +27,34 @@ class LibraryDatabaseRepository(
     private val debugDatabase: Boolean = false,
 ) : LibraryRepository {
 
+    /** Information Entries */
+
+    override suspend fun importInformationEntries(informationEntries: List<LegacyLibraryInformation>): Result<Long> = dbQuery {
+        var counter = 0L
+
+        informationEntries
+            .sortedBy { it.id.lowercase() }
+            .forEach {
+                if (LibraryInformationEntry.find { LibraryInformationTable.libraryId eq it.id }.empty()) {
+                    LibraryInformationEntry.new {
+                        libraryId = it.id
+                        name = ""
+                        details = it.details
+                        type = ""
+                        permissions = emptyList()
+                        url = ""
+                        modWarningId = it.modWarningId
+                        antiFeatures = it.antiFeatures.asList()
+                        license = it.license
+                        emphasize = it.emphasize
+                    }
+                    counter++
+                }
+            }
+
+        return@dbQuery Result.success(counter)
+    }
+
     override suspend fun getAllInformationEntries(offset: Int, count: Int): List<LegacyLibraryInformation> = dbQuery {
         var informationEntries = LibraryInformationEntry
             .all()
@@ -49,6 +77,42 @@ class LibraryDatabaseRepository(
         return@dbQuery LibraryInformationEntry
             .all()
             .count()
+    }
+
+    /** Definition Entries */
+
+    override suspend fun importDefinitionEntries(definitionEntries: List<LegacyLibraryDefinition>): Result<Long> = dbQuery {
+        var counter = 0L
+
+        definitionEntries
+            .sortedBy { it.id.lowercase() }
+            .forEach {
+                LibraryInformationEntry
+                    .find { LibraryInformationTable.libraryId eq it.id }
+                    .forEach { foundDefinition ->
+                        val permissionSet = hashSetOf<String>()
+                        permissionSet.addAll(foundDefinition.permissions)
+                        permissionSet.addAll(it.perms)
+
+                        foundDefinition.apply {
+                            name = it.name
+                            type = it.type
+                            permissions = permissionSet.sorted()
+                            url = it.url
+                        }
+
+                        if (LibraryEntry.find { LibraryTable.path eq it.path }.empty()) {
+                            LibraryEntry.new {
+                                path = it.path
+                                libraryInformationEntry = foundDefinition
+                            }
+                        }
+
+                        counter++
+                    }
+            }
+
+        return@dbQuery Result.success(counter)
     }
 
     override suspend fun getAllDefinitionEntries(offset: Int, count: Int): List<LegacyLibraryDefinition> = dbQuery {
@@ -74,6 +138,8 @@ class LibraryDatabaseRepository(
             .all()
             .count()
     }
+
+    /** Helpers */
 
     override suspend fun getLibraryInformationForLibraryPath(libraryPath: String): List<LibraryInformation> = dbQuery {
         return@dbQuery LibraryEntry

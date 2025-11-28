@@ -13,7 +13,7 @@ import org.katastima.apkscanner.models.library.LegacyLibraryDefinition
 import org.katastima.apkscanner.models.library.Library
 
 object LibraryTable : IntIdTable("libraries") {
-    val path = varchar("path", 255)
+    val path = varchar("path", 255).uniqueIndex()
     val libraryInformationEntry = reference("library_definition", LibraryInformationTable)
 }
 
