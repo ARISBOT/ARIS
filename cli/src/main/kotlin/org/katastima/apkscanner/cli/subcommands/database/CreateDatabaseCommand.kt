@@ -18,6 +18,7 @@ import org.katastima.apkscanner.cli.ApkScannerCommand
 import org.katastima.apkscanner.config.DatabaseType
 import org.katastima.apkscanner.data.ImportUtil
 import org.katastima.apkscanner.database.DatabaseUtil
+import org.katastima.apkscanner.internal.RepositoryUtil
 import kotlin.system.measureTimeMillis
 
 class CreateDatabaseCommand : ApkScannerCommand("setup") {
@@ -65,8 +66,14 @@ class CreateDatabaseCommand : ApkScannerCommand("setup") {
             DatabaseUtil.dropTables(database, apkScannerConfig.databaseConfig.debug)
             DatabaseUtil.setupDatabase(database, apkScannerConfig.databaseConfig.debug)
 
+            val manifestRepository = RepositoryUtil.getManifestRepository(apkScannerConfig)
+
             // Import all the data.
-            ImportUtil.importAll(database, apkScannerConfig)
+            ImportUtil.importAll(
+                database = database,
+                manifestRepository = manifestRepository,
+                apkScannerConfig = apkScannerConfig,
+            )
         }
 
         silenceableEcho("Database set up in $setupTime ms")

@@ -32,6 +32,8 @@ class ManifestDatabaseRepository(
     private val debugDatabase: Boolean = false,
 ) : ManifestRepository {
 
+    /** General */
+
     override suspend fun getManifestConfig(): ManifestConfig = dbQuery {
         return@dbQuery ManifestConfig(
             dangerousFlags = ManifestFlagConfig(
@@ -44,6 +46,42 @@ class ManifestDatabaseRepository(
                 entries = getAllPermissionGroups().toSet(),
             ),
         )
+    }
+
+    override suspend fun importManifestConfig(manifestConfig: ManifestConfig): Result<Long> = dbQuery {
+        var counter = 0L
+
+        // Flags
+        manifestConfig.dangerousFlags.entries.sortedBy { it.name }.forEach {
+            ManifestFlagConfigEntity.new {
+                name = it.name
+                description = it.description
+                flags = it.flags.sorted()
+            }
+            counter++
+        }
+
+        // Filters
+        manifestConfig.dangerousFilters.entries.sortedBy { it.name }.forEach {
+            ManifestFilterConfigEntity.new {
+                name = it.name
+                description = it.description
+                filters = it.filters.sorted()
+            }
+            counter++
+        }
+
+        // Permissions
+        manifestConfig.dangerousPermissions.entries.sortedBy { it.name }.forEach {
+            ManifestPermissionConfigEntity.new {
+                name = it.name
+                description = it.description
+                permissions = it.permissions.sorted()
+            }
+            counter++
+        }
+
+        return@dbQuery Result.success(counter)
     }
 
     /** Flags */

@@ -36,8 +36,14 @@ class ManifestFileRepository(
         }
     }
 
+    /** General */
+
     override suspend fun getManifestConfig(): ManifestConfig = withContext(ioDispatcher) {
         return@withContext manifestConfig
+    }
+
+    override suspend fun importManifestConfig(manifestConfig: ManifestConfig): Result<Long> = withContext(ioDispatcher) {
+        return@withContext Result.failure(RuntimeException("Not implemented yet"))
     }
 
     /** Flags */

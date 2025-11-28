@@ -18,13 +18,11 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.katastima.apkscanner.config.ApkScannerConfig
+import org.katastima.apkscanner.data.manifest.ManifestRepository
 import org.katastima.apkscanner.database.dao.certificate.SigningCertificateDenylistEntity
 import org.katastima.apkscanner.database.dao.library.LibraryEntry
 import org.katastima.apkscanner.database.dao.library.LibraryInformationEntry
 import org.katastima.apkscanner.database.dao.library.LibraryInformationTable
-import org.katastima.apkscanner.database.dao.manifest.ManifestFilterConfigEntity
-import org.katastima.apkscanner.database.dao.manifest.ManifestFlagConfigEntity
-import org.katastima.apkscanner.database.dao.manifest.ManifestPermissionConfigEntity
 import org.katastima.apkscanner.models.library.LegacyLibraryDefinition
 import org.katastima.apkscanner.models.library.LegacyLibraryInformation
 import org.katastima.apkscanner.models.manifest.config.ManifestConfig
@@ -38,13 +36,14 @@ object ImportUtil {
 
     suspend fun importAll(
         database: Database,
+        manifestRepository: ManifestRepository,
         apkScannerConfig: ApkScannerConfig,
         ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
     ) = withContext(ioDispatcher) {
         listOf(
             async { importCertificateData(database, apkScannerConfig) },
             async { importLibraryData(database, apkScannerConfig) },
-            async { importManifestConfigData(database, apkScannerConfig) },
+            async { importManifestConfigData(manifestRepository, apkScannerConfig) },
         ).awaitAll()
     }
 
@@ -180,7 +179,7 @@ object ImportUtil {
         LOGGER.info("Took {} ms to import {} library definitions", importDuration, libraryDefinitions.size)
     }
 
-    fun importManifestConfigData(database: Database, apkScannerConfig: ApkScannerConfig): ManifestConfig {
+    suspend fun importManifestConfigData(manifestRepository: ManifestRepository, apkScannerConfig: ApkScannerConfig): ManifestConfig {
         val json = Json { ignoreUnknownKeys = true }
 
         val manifestConfigContent = DataUtil.getManifestConfigContent(apkScannerConfig.dataConfig)
@@ -195,38 +194,7 @@ object ImportUtil {
             val jsonElement = json.parseToJsonElement(manifestConfigContent)
             manifestConfig = json.decodeFromJsonElement(jsonElement)
 
-            transaction(database) {
-                if (apkScannerConfig.databaseConfig.debug) {
-                    addLogger(StdOutSqlLogger)
-                }
-
-                // Flags
-                manifestConfig.dangerousFlags.entries.sortedBy { it.name }.forEach {
-                    ManifestFlagConfigEntity.new {
-                        name = it.name
-                        description = it.description
-                        flags = it.flags.sorted()
-                    }
-                }
-
-                // Filters
-                manifestConfig.dangerousFilters.entries.sortedBy { it.name }.forEach {
-                    ManifestFilterConfigEntity.new {
-                        name = it.name
-                        description = it.description
-                        filters = it.filters.sorted()
-                    }
-                }
-
-                // Permissions
-                manifestConfig.dangerousPermissions.entries.sortedBy { it.name }.forEach {
-                    ManifestPermissionConfigEntity.new {
-                        name = it.name
-                        description = it.description
-                        permissions = it.permissions.sorted()
-                    }
-                }
-            }
+            manifestRepository.importManifestConfig(manifestConfig)
         }
         LOGGER.info("Took {} ms to import manifest config {}", importDuration, manifestConfig.getGroupAndCountString())
 

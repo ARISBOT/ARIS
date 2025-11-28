@@ -12,6 +12,7 @@ import org.katastima.apkscanner.models.manifest.config.ManifestPermissionConfigE
 
 interface ManifestRepository {
     suspend fun getManifestConfig(): ManifestConfig
+    suspend fun importManifestConfig(manifestConfig: ManifestConfig): Result<Long>
 
     suspend fun getAllFlagGroups(): List<ManifestFlagConfigEntry>
     suspend fun countAllFlagGroups(): Long
