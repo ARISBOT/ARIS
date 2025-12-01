@@ -36,6 +36,7 @@ import org.katastima.apkscanner.extensions.getApkFilePathForReport
 import org.katastima.apkscanner.extensions.nowAsLocalDate
 import org.katastima.apkscanner.internal.RepositoryUtil
 import org.katastima.apkscanner.models.ApkScanResult
+import org.katastima.apkscanner.models.manifest.Manifest
 import org.katastima.apkscanner.models.manifest.ManifestCheckResult
 import org.katastima.apkscanner.models.signing.ApkSigResult
 import org.katastima.apkscanner.models.signing.CertificateResult
@@ -192,8 +193,31 @@ class ScanAPKCommand : ApkScannerCommand() {
         ) {
             silenceableEcho("No offenders detected.".formatGreen(cliConfig.consoleOutputConfig))
         }
-
         silenceableEcho()
+
+        printPermissions(manifestCheckResult.manifest)
+    }
+
+    private fun printPermissions(manifest: Manifest) {
+        verboseEcho(EchoType.PERMISSIONS, "Permissions:")
+        verboseEcho(EchoType.PERMISSIONS, "------------")
+
+        if (manifest.permissions.isEmpty()) {
+            verboseEcho(EchoType.PERMISSIONS, "No permissions detected.")
+        } else {
+            manifest.permissions.forEach { permission ->
+                val sdkMessage = if (permission.minSdk > 0 || permission.maxSdk > 0) {
+                    "(min: ${permission.minSdk}, max: ${permission.maxSdk})"
+                } else {
+                    ""
+                }
+                verboseEcho(EchoType.PERMISSIONS, "* ${permission.name} $sdkMessage".trim())
+            }
+            verboseEcho(EchoType.PERMISSIONS)
+
+            verboseEcho(EchoType.PERMISSIONS, "Found ${manifest.permissions.size} permissions.")
+        }
+        verboseEcho(EchoType.PERMISSIONS)
     }
 
     private fun printLibraryResult(scanResult: ApkScanResult) {
@@ -463,6 +487,7 @@ class ScanAPKCommand : ApkScannerCommand() {
         GENERIC,
         APK_INFO,
         DETECTED_LIBRARIES,
+        PERMISSIONS,
         SIGNATURE_APKSIG,
         SIGNATURE_CERTIFICATE,
         SIGNING_BLOCK,
@@ -479,6 +504,7 @@ class ScanAPKCommand : ApkScannerCommand() {
             EchoType.GENERIC -> cliConfig.scanApkConfig.verboseGeneric
             EchoType.APK_INFO -> cliConfig.scanApkConfig.verboseApkInfo
             EchoType.DETECTED_LIBRARIES -> cliConfig.scanApkConfig.verboseDetectedLibraries
+            EchoType.PERMISSIONS -> cliConfig.scanApkConfig.verbosePermissions
             EchoType.SIGNATURE_APKSIG -> cliConfig.scanApkConfig.verboseSignatureApksig
             EchoType.SIGNATURE_CERTIFICATE -> cliConfig.scanApkConfig.verboseSignatureCertificate
             EchoType.SIGNING_BLOCK -> cliConfig.scanApkConfig.verboseSigningBlock
