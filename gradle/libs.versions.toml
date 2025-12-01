@@ -18,7 +18,7 @@ kotlinxSerializationJSON = "1.9.0"
 kotlinxCoroutines = "1.10.2"
 
 # see: https://mvnrepository.com/artifact/com.android.tools.build/apksig
-apksig-version = "8.13.0"
+apksig-version = "8.13.1"
 
 # see: https://github.com/iBotPeaches/Apktool/releases
 apktool = "2.12.1"
@@ -27,13 +27,13 @@ apktool = "2.12.1"
 clikt = "5.0.3"
 
 # see: https://github.com/JetBrains/Exposed/releases
-exposed = "1.0.0-rc-3"
+exposed = "1.0.0-rc-4"
 
 # see: https://github.com/h2database/h2database/releases
 h2 = "2.4.240"
 
 # see: https://github.com/charleskorn/kaml/releases
-kaml = "0.102.0"
+kaml = "0.104.0"
 
 # see: https://logback.qos.ch/download.html
 logback = "1.5.21"
