@@ -210,7 +210,7 @@ object AndroidManifestUtil {
     }
 
 
-    fun pullPermissions(file: File): List<Permission> {
+    fun pullPermissions(file: File): Set<Permission> {
         val usesPermissionNodes = pullNodes(file, "/manifest/uses-permission")
         val permissionNodes = pullNodes(file, "/manifest/permission")
         return (usesPermissionNodes + permissionNodes).map {
@@ -222,6 +222,6 @@ object AndroidManifestUtil {
             } catch (_: Exception) {
                 Permission("")
             }
-        }.filter { it.name != "" }
+        }.filter { it.name != "" }.toSet()
     }
 }
