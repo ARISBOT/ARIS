@@ -65,12 +65,13 @@ logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "lo
 logback-core = { module = "ch.qos.logback:logback-core", version.ref = "logback" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
+slf4j-jul = { module = "org.slf4j:jul-to-slf4j", version.ref = "slf4j" }
 
 # Libraries can be bundled together for easier import
 [bundles]
 kotlinxEcosystem = ["kotlinxDatetime", "kotlinxSerialization", "kotlinxCoroutines"]
 exposed = ["exposed-core", "exposed-dao", "exposed-jdbc", "h2"]
-logging = ["logback-classic", "logback-core", "slf4j-api"]
+logging = ["logback-classic", "logback-core", "slf4j-api", "slf4j-jul"]
 
 [plugins]
 kotlinPluginSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

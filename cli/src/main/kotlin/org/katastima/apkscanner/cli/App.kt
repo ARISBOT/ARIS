@@ -17,14 +17,12 @@ import org.katastima.apkscanner.cli.subcommands.database.ExportAllCommand
 import org.katastima.apkscanner.cli.subcommands.database.ExportLibraryDefinitionsCommand
 import org.katastima.apkscanner.cli.subcommands.database.ExportManifestConfigCommand
 import org.katastima.apkscanner.cli.subcommands.database.ExportSigningCertificateDataCommand
-import java.util.logging.Level
-import java.util.logging.Logger
+import org.slf4j.bridge.SLF4JBridgeHandler
 
 suspend fun main(args: Array<String>) {
-    // Disable logging for apktool.
-    Logger.getLogger("brut.androlib").apply {
-        level = Level.WARNING
-    }
+    // Use SLF4J based logging for dependencies using JUL based logging.
+    SLF4JBridgeHandler.removeHandlersForRootLogger()
+    SLF4JBridgeHandler.install()
 
     return ApkScanner()
         .completionOption()
