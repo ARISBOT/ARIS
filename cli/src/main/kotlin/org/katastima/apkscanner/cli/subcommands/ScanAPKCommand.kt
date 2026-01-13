@@ -433,18 +433,15 @@ class ScanAPKCommand : ApkScannerCommand() {
         if (unknownBlocks.isEmpty()) {
             verboseEcho(EchoType.SIGNING_BLOCK, "* Unknown blocks:")
             verboseEcho(EchoType.SIGNING_BLOCK, "  * No unknown blocks")
-            verboseEcho(EchoType.SIGNING_BLOCK)
         } else {
             silenceableEcho("* Unknown blocks:")
             unknownBlocks.forEach { silenceableEcho("  * $it".formatRed(cliConfig.consoleOutputConfig)) }
-            silenceableEcho()
         }
 
         if (signingBlockResult.badBlocks.isEmpty()) {
+            silenceableEcho()
             silenceableEcho("No offending blocks found.".formatGreen(cliConfig.consoleOutputConfig))
         }
-
-        silenceableEcho()
     }
 
     private fun printSigningBlock(blocks: Set<Int>, blockType: String, blockMap: Map<Int, String>, verbose: Boolean, critical: Boolean) {
