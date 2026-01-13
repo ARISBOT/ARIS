@@ -303,12 +303,13 @@ class ScanAPKCommand : ApkScannerCommand() {
             silenceableEcho("  * SHA-256: ${certificateResult.sha256}")
             verboseEcho(EchoType.SIGNATURE_CERTIFICATE, "  * SHA-1:   ${certificateResult.sha1}")
             verboseEcho(EchoType.SIGNATURE_CERTIFICATE, "  * MD5:     ${certificateResult.md5}")
+
+            val publicKeyResult = certificateResult.publicKeyResult
             silenceableEcho("  * Public Key")
-            silenceableEcho("    * Key Algorithm: ${certificateResult.publicKeyResult.keyAlgorithm}")
-            silenceableEcho("    * Key Size (bits): ${certificateResult.publicKeyResult.keySizeBits}")
-            verboseEcho(EchoType.SIGNATURE_CERTIFICATE, "    * SHA-256: ${certificateResult.publicKeyResult.sha256}")
-            verboseEcho(EchoType.SIGNATURE_CERTIFICATE, "    * SHA-1:   ${certificateResult.publicKeyResult.sha1}")
-            verboseEcho(EchoType.SIGNATURE_CERTIFICATE, "    * MD5:     ${certificateResult.publicKeyResult.md5}")
+            silenceableEcho("    * Algorithm/Size (bits): ${publicKeyResult.keyAlgorithm}/${publicKeyResult.keySizeBits}")
+            verboseEcho(EchoType.SIGNATURE_CERTIFICATE, "    * SHA-256: ${publicKeyResult.sha256}")
+            verboseEcho(EchoType.SIGNATURE_CERTIFICATE, "    * SHA-1:   ${publicKeyResult.sha1}")
+            verboseEcho(EchoType.SIGNATURE_CERTIFICATE, "    * MD5:     ${publicKeyResult.md5}")
             certificateCounter++
         }
 
