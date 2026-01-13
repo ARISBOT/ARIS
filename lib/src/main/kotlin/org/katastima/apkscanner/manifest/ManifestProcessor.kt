@@ -63,16 +63,19 @@ class ManifestProcessor(
     private fun checkForDangerousFlags(manifest: Manifest, manifestConfig: ManifestConfig): Set<String> {
         val dangerousFlags: MutableSet<String> = mutableSetOf()
 
-        val manifestFlags = manifest.flags.map { it.name }
-
         // Check each flag entry, which contains [name, description, flags].
         manifestConfig.dangerousFlags.entries.forEach { dangerousFlagEntry ->
             // Check each flag within the entry
             dangerousFlagEntry.flags.forEach { dangerousFlag ->
-                // If the manifest contains the dangerous flag, add it to the set.
-                if (manifestFlags.contains(dangerousFlag)) {
-                    dangerousFlags.add(dangerousFlag)
-                }
+                // If the manifest contains the dangerous flag, check it.
+                manifest.flags
+                    .find { it.name == dangerousFlag }
+                    ?.let { manifestFlag ->
+                        // TODO: allow specifying a specific value?
+                        if (manifestFlag.value.equals("true", ignoreCase = true)) {
+                            dangerousFlags.add(dangerousFlag)
+                        }
+                    }
             }
         }
 
