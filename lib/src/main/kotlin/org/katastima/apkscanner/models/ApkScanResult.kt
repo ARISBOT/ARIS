@@ -20,6 +20,6 @@ data class ApkScanResult(
     val apkFilePath: String = "",
     val apkFileSha256: String = "",
     @SerialName("signingCheckResult") val signingCheckResult: SigningCheckResult? = null,
-    @SerialName("manifestCheckResult") val manifestCheckResult: ManifestCheckResult = ManifestCheckResult(),
-    @SerialName("libraryCheckResult") val libraryCheckResult: LibraryCheckResult = LibraryCheckResult(),
+    @SerialName("manifestCheckResult") val manifestCheckResult: ManifestCheckResult? = null,
+    @SerialName("libraryCheckResult") val libraryCheckResult: LibraryCheckResult? = null,
 )

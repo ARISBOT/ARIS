@@ -44,7 +44,8 @@ class ApkProcessor(
         }
         LOGGER.debug("decodeApk(apkFile): {} ms", decodeTimeTaken.inWholeMilliseconds)
 
-        val (decodedApkDirectory, decodedApkInfo) = decodeApkPair
+        val (decodedApkDirectory, decodedApkInfo) = decodeApkPair.getOrDefault(Pair(null, null))
+
         val (apkFilePath, apkFilePathDuration) = measureTimedValue {
             apkFile.getApkFilePathForReport(apkScannerConfig)
         }
@@ -65,12 +66,20 @@ class ApkProcessor(
         LOGGER.debug("signingCheckResult: {} ms", signingCheckDuration.inWholeMilliseconds)
 
         val (manifestCheckResult, manifestCheckDuration) = measureTimedValue {
+            if (decodedApkInfo == null || decodedApkDirectory == null) {
+                return@measureTimedValue null
+            }
+
             val manifestProcessor = ManifestProcessor(manifestRepository)
             manifestProcessor.processManifest(decodedApkInfo, decodedApkDirectory)
         }
         LOGGER.debug("manifestCheckResult: {} ms", manifestCheckDuration.inWholeMilliseconds)
 
         val (libraryCheckResult, detectLibrariesDuration) = measureTimedValue {
+            if (decodedApkDirectory == null) {
+                return@measureTimedValue null
+            }
+
             val libraryProcessor = LibraryProcessor(libraryRepository, backgroundDispatcher, ioDispatcher)
             libraryProcessor.process(decodedApkDirectory)
         }
@@ -86,11 +95,11 @@ class ApkProcessor(
             )
         } finally {
             // Delete the directory (which contains the decoded apk output) recursively to clean up.
-            decodedApkDirectory.deleteRecursively()
+            decodedApkDirectory?.deleteRecursively()
         }
     }
 
-    private fun decodeApk(apkFile: File): Pair<File, ApkInfo> {
+    private fun decodeApk(apkFile: File): Result<Pair<File, ApkInfo>> {
         // Decode the APK file using apktool, as we need the smali output.
         val apkDecoderFile = ExtFile(apkFile)
         val apkDecoderConfig = Config().apply {
@@ -103,9 +112,15 @@ class ApkProcessor(
         // Generate a random string for the output directory, where the APK will be decoded into.
         val randomString = Randomizer.getRandomString()
         val outputDir = File("${workingDirectory.absolutePath}/${apkFile.name}_${randomString}/")
-        val apkInfo = apkDecoder.decode(outputDir)
 
-        return Pair(outputDir, apkInfo)
+        val apkInfo = try {
+            apkDecoder.decode(outputDir)
+        } catch (exc: Exception) {
+            LOGGER.debug("Failed to decode APK", exc)
+            return Result.failure(exc)
+        }
+
+        return Result.success(Pair(outputDir, apkInfo))
     }
 
     override fun close() {

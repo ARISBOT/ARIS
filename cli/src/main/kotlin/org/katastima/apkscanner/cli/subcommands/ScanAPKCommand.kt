@@ -138,10 +138,28 @@ class ScanAPKCommand : ApkScannerCommand() {
 
         storeScanResultAsJsonIfWanted(apkFile, scanResult)
 
+        printApkInformation(apkFile, scanResult)
+
+        printManifestResult(scanResult.manifestCheckResult)
+        printLibraryResult(scanResult)
+
+        printSignatureVerificationResult(scanResult.signingCheckResult)
+        printAndroidSigningBlockResult(scanResult.signingCheckResult?.signingBlockResult)
+    }
+
+    private fun printApkInformation(apkFile: File, scanResult: ApkScanResult) {
         silenceableEcho("Scanned APK:")
         silenceableEcho("------------")
 
-        val apkManifest = scanResult.manifestCheckResult.manifest
+        val manifestCheckResult = scanResult.manifestCheckResult
+        if (manifestCheckResult == null) {
+            silenceableEcho("Failed to parse APK information, please ensure the APK is valid!".formatRed(cliConfig.consoleOutputConfig))
+            silenceableEcho("- ${apkFile.absolutePath}".formatRed(cliConfig.consoleOutputConfig))
+            silenceableEcho()
+            return
+        }
+
+        val apkManifest = manifestCheckResult.manifest
         silenceableEcho("* Name:    ${apkManifest.label}")
         silenceableEcho("* Package: ${apkManifest.appId}")
         silenceableEcho("* Version: ${apkManifest.versionName} (${apkManifest.versionCode})")
@@ -161,17 +179,17 @@ class ScanAPKCommand : ApkScannerCommand() {
         verboseEcho(EchoType.APK_INFO, "* File:    ${scanResult.apkFilePath}")
         verboseEcho(EchoType.APK_INFO, "* SHA-256: ${scanResult.apkFileSha256}")
         silenceableEcho()
-
-        printManifestResult(scanResult.manifestCheckResult)
-        printLibraryResult(scanResult)
-
-        printSignatureVerificationResult(scanResult.signingCheckResult)
-        printAndroidSigningBlockResult(scanResult.signingCheckResult?.signingBlockResult)
     }
 
-    private fun printManifestResult(manifestCheckResult: ManifestCheckResult) {
+    private fun printManifestResult(manifestCheckResult: ManifestCheckResult?) {
         silenceableEcho("Manifest verification:")
         silenceableEcho("----------------------")
+
+        if (manifestCheckResult == null) {
+            silenceableEcho("Failed to parse APK manifest, please ensure the APK is valid!".formatRed(cliConfig.consoleOutputConfig))
+            silenceableEcho()
+            return
+        }
 
         if (manifestCheckResult.dangerousFilters.isNotEmpty()) {
             silenceableEcho("* Dangerous filters".formatYellow(cliConfig.consoleOutputConfig))
@@ -225,7 +243,15 @@ class ScanAPKCommand : ApkScannerCommand() {
     private fun printLibraryResult(scanResult: ApkScanResult) {
         silenceableEcho("Libraries detected:")
         silenceableEcho("-------------------")
-        val detectedLibraries = scanResult.libraryCheckResult.detectedLibraries
+
+        val libraryCheckResult = scanResult.libraryCheckResult
+        if (libraryCheckResult == null) {
+            silenceableEcho("Failed to check for user libraries, please ensure the APK is valid!".formatRed(cliConfig.consoleOutputConfig))
+            silenceableEcho()
+            return
+        }
+
+        val detectedLibraries = libraryCheckResult.detectedLibraries
         if (detectedLibraries.isEmpty()) {
             silenceableEcho("No libraries detected.")
         } else {
@@ -249,7 +275,7 @@ class ScanAPKCommand : ApkScannerCommand() {
 
         silenceableEcho("Offending libraries:")
         silenceableEcho("--------------------")
-        val offendingLibraries = scanResult.libraryCheckResult.offendingLibraries
+        val offendingLibraries = libraryCheckResult.offendingLibraries
         if (offendingLibraries.isEmpty()) {
             silenceableEcho("No offending libraries detected.".formatGreen(cliConfig.consoleOutputConfig))
         } else {
