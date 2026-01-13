@@ -9,7 +9,7 @@
 
 [versions]
 # see: https://kotlinlang.org/docs/releases.html
-kotlin = "2.2.21"
+kotlin = "2.3.0"
 # see: https://github.com/Kotlin/kotlinx-datetime/releases
 kotlinxDatetime = "0.7.1"
 # see: https://github.com/Kotlin/kotlinx.serialization/releases
