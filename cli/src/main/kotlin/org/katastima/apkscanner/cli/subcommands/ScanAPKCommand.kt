@@ -41,6 +41,7 @@ import org.katastima.apkscanner.models.manifest.ManifestCheckResult
 import org.katastima.apkscanner.models.signing.ApkSigResult
 import org.katastima.apkscanner.models.signing.CertificateResult
 import org.katastima.apkscanner.models.signing.SigningBlockResult
+import org.katastima.apkscanner.models.signing.SigningCheckResult
 import org.katastima.apkscanner.scanapk.ApkScanner
 import org.katastima.apkscanner.signing.AndroidSigningBlock
 import org.katastima.apkscanner.utils.AndroidApiLevels
@@ -163,8 +164,9 @@ class ScanAPKCommand : ApkScannerCommand() {
 
         printManifestResult(scanResult.manifestCheckResult)
         printLibraryResult(scanResult)
-        printSignatureVerificationResult(scanResult)
-        printAndroidSigningBlockResult(scanResult.signingCheckResult.signingBlockResult)
+
+        printSignatureVerificationResult(scanResult.signingCheckResult)
+        printAndroidSigningBlockResult(scanResult.signingCheckResult?.signingBlockResult)
     }
 
     private fun printManifestResult(manifestCheckResult: ManifestCheckResult) {
@@ -262,12 +264,11 @@ class ScanAPKCommand : ApkScannerCommand() {
         silenceableEcho()
     }
 
-    private fun printSignatureVerificationResult(scanResult: ApkScanResult) {
+    private fun printSignatureVerificationResult(signingCheckResult: SigningCheckResult?) {
         silenceableEcho("Signature verification:")
         silenceableEcho("-----------------------")
 
-        val signingCheckResult = scanResult.signingCheckResult
-        if (signingCheckResult.isInvalid()) {
+        if (signingCheckResult == null || signingCheckResult.isInvalid()) {
             silenceableEcho("Failed to verify signature, please ensure the APK is properly signed!".formatRed(cliConfig.consoleOutputConfig))
             silenceableEcho()
             return
@@ -368,9 +369,15 @@ class ScanAPKCommand : ApkScannerCommand() {
         }
     }
 
-    private fun printAndroidSigningBlockResult(signingBlockResult: SigningBlockResult) {
+    private fun printAndroidSigningBlockResult(signingBlockResult: SigningBlockResult?) {
         silenceableEcho("Android Signing Block verification:")
         silenceableEcho("-----------------------------------")
+
+        if (signingBlockResult == null) {
+            silenceableEcho("Failed to verify signature, please ensure the APK is properly signed!".formatRed(cliConfig.consoleOutputConfig))
+            silenceableEcho()
+            return
+        }
 
         mapOf(
             "OK" to AndroidSigningBlock.getOkBlocks(),

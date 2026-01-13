@@ -57,7 +57,10 @@ class ApkProcessor(
 
         val (signingCheckResult, signingCheckDuration) = measureTimedValue {
             val apkCert = SignatureProcessor(apkFile)
-            apkCert.processSignature(certificateRepository)
+            apkCert.processSignature(certificateRepository).getOrElse {
+                LOGGER.debug("Failed to process signature", it)
+                return@getOrElse null
+            }
         }
         LOGGER.debug("signingCheckResult: {} ms", signingCheckDuration.inWholeMilliseconds)
 

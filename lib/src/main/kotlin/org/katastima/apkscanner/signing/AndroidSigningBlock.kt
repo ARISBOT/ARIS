@@ -5,8 +5,8 @@
 
 package org.katastima.apkscanner.signing
 
-import org.slf4j.LoggerFactory
 import java.io.File
+import java.io.IOException
 import java.io.RandomAccessFile
 import java.nio.ByteBuffer
 
@@ -14,6 +14,7 @@ class AndroidSigningBlock(private val apkFile: File) {
 
     private val signingBlockValueIdMap: MutableMap<Int, ByteBuffer> = mutableMapOf()
 
+    @Throws(IOException::class, RuntimeException::class)
     private fun readAndroidSigningBlock() {
         if (signingBlockValueIdMap.isNotEmpty()) {
             return
@@ -21,26 +22,30 @@ class AndroidSigningBlock(private val apkFile: File) {
 
         RandomAccessFile(apkFile, "r").use { randomAccessFile ->
             randomAccessFile.channel.use { fileChannel ->
-                try {
-                    val androidSigningBlockPair = AndroidSigningBlockUtil.findApkSigningBlock(fileChannel)
-                    val idValueMap = AndroidSigningBlockUtil.getIdValuePairs(androidSigningBlockPair.first).toMap()
-                    signingBlockValueIdMap.putAll(idValueMap)
-                } catch (exc: Exception) {
-                    LOGGER.error("Could not read APK signing block", exc)
-                }
+                val androidSigningBlockPair = AndroidSigningBlockUtil.findApkSigningBlock(fileChannel)
+                val idValueMap = AndroidSigningBlockUtil.getIdValuePairs(androidSigningBlockPair.first).toMap()
+                signingBlockValueIdMap.putAll(idValueMap)
             }
         }
     }
 
-    fun getBlockById(blockId: Int): ByteBuffer? {
-        readAndroidSigningBlock()
-        return signingBlockValueIdMap[blockId]
+    fun getBlockById(blockId: Int): Result<ByteBuffer?> {
+        try {
+            readAndroidSigningBlock()
+        } catch (e: Exception) {
+            return Result.failure(e)
+        }
+        return Result.success(signingBlockValueIdMap[blockId])
     }
 
-    fun hasBlock(blockId: Int): Boolean = getBlockById(blockId) != null
+    fun hasBlock(blockId: Int): Boolean = getBlockById(blockId).isSuccess
 
-    fun getBlockSet(): Set<Int> {
-        readAndroidSigningBlock()
+    fun getBlockSet(): Result<Set<Int>> {
+        try {
+            readAndroidSigningBlock()
+        } catch (e: Exception) {
+            return Result.failure(e)
+        }
 
         val blockSet: MutableSet<Int> = mutableSetOf()
 
@@ -48,11 +53,15 @@ class AndroidSigningBlock(private val apkFile: File) {
             blockSet.add(entry.key)
         }
 
-        return blockSet
+        return Result.success(blockSet)
     }
 
-    fun getBadBlockSet(): Set<Int> {
-        readAndroidSigningBlock()
+    fun getBadBlockSet(): Result<Set<Int>> {
+        try {
+            readAndroidSigningBlock()
+        } catch (e: Exception) {
+            return Result.failure(e)
+        }
 
         val blockSet: MutableSet<Int> = mutableSetOf()
 
@@ -63,11 +72,15 @@ class AndroidSigningBlock(private val apkFile: File) {
             }
         }
 
-        return blockSet
+        return Result.success(blockSet)
     }
 
-    fun getUnknownBlockSet(): Set<Int> {
-        readAndroidSigningBlock()
+    fun getUnknownBlockSet(): Result<Set<Int>> {
+        try {
+            readAndroidSigningBlock()
+        } catch (e: Exception) {
+            return Result.failure(e)
+        }
 
         val unknownBlockSet: MutableSet<Int> = mutableSetOf()
 
@@ -78,12 +91,10 @@ class AndroidSigningBlock(private val apkFile: File) {
             }
         }
 
-        return unknownBlockSet
+        return Result.success(unknownBlockSet)
     }
 
     companion object {
-        private val LOGGER = LoggerFactory.getLogger(AndroidSigningBlock::class.java)
-
         fun getAllBlocks(): Map<Int, String> = getOkBlocks() + getGoogleBlocks() + getPayloadBlocks()
 
         fun getOkBlocks(): Map<Int, String> = AndroidSigningBlockIds.OK_BLOCKS

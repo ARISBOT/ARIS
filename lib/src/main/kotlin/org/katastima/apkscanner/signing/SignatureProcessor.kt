@@ -31,7 +31,7 @@ class SignatureProcessor(
     private val backgroundDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) {
 
-    suspend fun processSignature(certificateRepository: CertificateRepository): SigningCheckResult = withContext(backgroundDispatcher) {
+    suspend fun processSignature(certificateRepository: CertificateRepository): Result<SigningCheckResult> = withContext(backgroundDispatcher) {
         var signingCheckResult = SigningCheckResult()
 
         try {
@@ -53,7 +53,8 @@ class SignatureProcessor(
                 certificates = result.signerCertificates,
             )
         } catch (e: Exception) {
-            LOGGER.error("Could not verify APK (${apkFile})", e)
+            LOGGER.debug("Could not verify APK ({})", apkFile, e)
+            return@withContext Result.failure(e)
         }
 
         val certificateResults = mutableListOf<CertificateResult>()
@@ -91,9 +92,9 @@ class SignatureProcessor(
 
         val androidSigningBlock = AndroidSigningBlock(apkFile)
         val allBlocks = AndroidSigningBlock.getAllBlocks()
-        val blocks = androidSigningBlock.getBlockSet()
-        val badBlocks = androidSigningBlock.getBadBlockSet()
-        val unknownBlocks = androidSigningBlock.getUnknownBlockSet()
+        val blocks = androidSigningBlock.getBlockSet().getOrElse { return@withContext Result.failure(it) }
+        val badBlocks = androidSigningBlock.getBadBlockSet().getOrElse { return@withContext Result.failure(it) }
+        val unknownBlocks = androidSigningBlock.getUnknownBlockSet().getOrElse { return@withContext Result.failure(it) }
 
         val signingBlockResult = SigningBlockResult(
             blocks = blocks,
@@ -106,7 +107,7 @@ class SignatureProcessor(
             signingBlockResult = signingBlockResult,
         )
 
-        return@withContext signingCheckResult
+        return@withContext Result.success(signingCheckResult)
     }
 
     companion object {
