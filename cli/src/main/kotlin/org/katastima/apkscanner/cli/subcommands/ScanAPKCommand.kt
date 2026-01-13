@@ -322,8 +322,7 @@ class ScanAPKCommand : ApkScannerCommand() {
         // v3: https://source.android.com/docs/security/features/apksigning/v3
         // v3.1: https://source.android.com/docs/security/features/apksigning/v3-1
         // v4: https://source.android.com/docs/security/features/apksigning/v4
-        silenceableEcho("* apksig")
-        silenceableEcho("  * Verified by apksig: ${apkSigResult.verifiedByApkSig.formatVerifiedUnverified()}")
+        silenceableEcho("* Verified by apksig: ${apkSigResult.verifiedByApkSig.formatVerifiedUnverified()}")
         verboseEcho(EchoType.SIGNATURE_APKSIG, "  * Source Stamp: ${apkSigResult.sourceStampVerified.formatVerifiedUnverified()}")
         verboseEcho(EchoType.SIGNATURE_APKSIG, "  * v1: ${apkSigResult.v1.formatVerifiedUnverified()}")
         verboseEcho(EchoType.SIGNATURE_APKSIG, "  * v2: ${apkSigResult.v2.formatVerifiedUnverified()}")
