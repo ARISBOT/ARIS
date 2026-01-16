@@ -13,7 +13,12 @@ import okio.source
 import org.katastima.apkscanner.config.ApkReportedPathType
 import org.katastima.apkscanner.config.ApkScannerConfig
 import java.io.File
+import java.nio.file.Path
 import java.nio.file.Paths
+
+fun Path.toSha256(): String {
+    return source().buffer().toSha256()
+}
 
 fun File.toSha256(): String {
     return source().buffer().toSha256()
