@@ -1,0 +1,3 @@
+[submodule "sampledata"]
+	path = sampledata
+	url = ssh://git@codeberg.org/Katastima/apkscanner-data.git
