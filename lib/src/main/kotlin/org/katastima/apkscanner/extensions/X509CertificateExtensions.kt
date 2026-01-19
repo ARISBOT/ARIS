@@ -26,8 +26,24 @@ suspend fun X509Certificate.isDenyListed(
     val encodedSha1 = encoded.toSha1()
     val encodedMd5 = encoded.toMd5()
 
+    val dnSplitListMutable = mutableListOf<String>()
+
     // e.g.: [C=US, CN=Android Debug, O=Android]
-    val dnSplitList = subjectX500Principal.name.split(",").sorted()
+    subjectX500Principal.toString().split(",").forEach { splitEntry ->
+        // [ C=US] -> [C=US]
+        var entry = splitEntry.trim()
+
+        // [EMAILADDRESS=name@domain.tld] -> [emailAddress=name@domain.tld]
+        if (entry.uppercase().startsWith("EMAILADDRESS")) {
+            val emailFieldSplit = entry.split("=")
+            if (emailFieldSplit.size == 2) {
+                entry = "emailAddress=${emailFieldSplit[1]}"
+            }
+        }
+
+        dnSplitListMutable.add(entry)
+    }
+    val dnSplitList = dnSplitListMutable.sorted()
 
     certificateRepository.getAll()
         .filter { it.name != "TEMPLATE_ENTRY" }
@@ -45,7 +61,13 @@ suspend fun X509Certificate.isDenyListed(
             denylistEntry.dn.forEach { dnEntry ->
                 // e.g.: [C=US, CN=Android, L=Mountain View, O=Android, OU=Android, ST=California, emailAddress=android@android.com]
                 val entityDnSplitList = dnEntry.split("/").filter { it.isNotBlank() }.sorted()
-                if (entityDnSplitList == dnSplitList) {
+
+                /*
+                 * e.g.: [C=US, CN=Android Debug, O=Android]
+                 * contains all of ->
+                 * e.g.: [C=US, CN=Android, L=Mountain View, O=Android, OU=Android, ST=California, emailAddress=android@android.com]
+                 */
+                if (dnSplitList.containsAll(entityDnSplitList)) {
                     denylistMatches.add(denylistEntry)
                 }
             }
