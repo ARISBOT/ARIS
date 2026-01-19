@@ -12,7 +12,7 @@ APKSCANNER_CLI_FILE="cli/build/libs/cli-all.jar"
 JAVA_OPTS=""
 
 ## For example, use a custom logback logger config:
-#JAVA_OPTS="-Dlogback.configurationFile=sampledata/logback.xml"
+#JAVA_OPTS="-Dlogback.configurationFile=logback.xml"
 
 if [ -n "$JAVA_OPTS" ]; then
   java "${JAVA_OPTS}" -jar "${APKSCANNER_CLI_FILE}" "$@"
