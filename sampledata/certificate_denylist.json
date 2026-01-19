@@ -71,6 +71,17 @@
     "md5": []
   },
   {
+    "name": "Google Play App Signing",
+    "description": "Signed using Google Play App Signing, which means developer is not in control of the signing key.",
+    "sourceUrl": "https://support.google.com/googleplay/android-developer/answer/9842756?hl=en",
+    "dn": [
+      "/O=Google Inc."
+    ],
+    "sha256": [],
+    "sha1": [],
+    "md5": []
+  },
+  {
     "name": "Gooler Lawnchair Fork Key",
     "description": "published keystore (https://github.com/Goooler/LawnchairRelease/blob/trunk/demo.jks) together with credentials (https://github.com/Goooler/LawnchairRelease/blob/trunk/keystore.properties)",
     "sourceUrl": "https://github.com/Goooler/LawnchairRelease",
