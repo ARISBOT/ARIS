@@ -263,7 +263,7 @@ class ScanAPKCommand : ApkScannerCommand() {
                 )
 
                 if (library.antiFeatures.isNotEmpty()) {
-                    verboseEcho(EchoType.DETECTED_LIBRARIES, "; ${formatAntiFeatures(library.antiFeatures)}", trailingNewline = false)
+                    verboseEcho(EchoType.DETECTED_LIBRARIES, "; ${formatAntiFeatures(library.antiFeatures).formatYellow(cliConfig.consoleOutputConfig)}", trailingNewline = false)
                 }
                 verboseEcho(EchoType.DETECTED_LIBRARIES)
             }
@@ -280,7 +280,9 @@ class ScanAPKCommand : ApkScannerCommand() {
             silenceableEcho("No offending libraries detected.".formatGreen(cliConfig.consoleOutputConfig))
         } else {
             offendingLibraries.forEach { offendingLibrary ->
-                silenceableEcho("* ${offendingLibrary.name} (${offendingLibrary.libraryId}): ${formatAntiFeatures(offendingLibrary.antiFeatures)}")
+                silenceableEcho("* ${offendingLibrary.name} (${offendingLibrary.libraryId}): " +
+                        formatAntiFeatures(offendingLibrary.antiFeatures).formatYellow(cliConfig.consoleOutputConfig)
+                )
             }
             silenceableEcho()
 
