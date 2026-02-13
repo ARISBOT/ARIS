@@ -439,7 +439,7 @@ class ScanAPKCommand : ApkScannerCommand() {
         }
 
         if (signingBlockResult.badBlocks.isEmpty()) {
-            silenceableEcho()
+            verboseEcho()
             silenceableEcho("No offending blocks found.".formatGreen(cliConfig.consoleOutputConfig))
         }
     }
