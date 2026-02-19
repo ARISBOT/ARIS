@@ -22,7 +22,7 @@ plugins {
 }
 
 group = "org.katastima.apkscanner"
-version = "0.0.7"
+version = "0.0.8"
 
 java {
     withJavadocJar()
