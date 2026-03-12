@@ -14,6 +14,12 @@ JAVA_OPTS=""
 ## For example, use a custom logback logger config:
 #JAVA_OPTS="-Dlogback.configurationFile=logback.xml"
 
+## Or if you get the native access warnings:
+#JAVA_OPTS="--enable-native-access=ALL-UNNAMED"
+
+## Or you want to combine both:
+#JAVA_OPTS="--enable-native-access=ALL-UNNAMED -Dlogback.configurationFile=logback.xml"
+
 if [ -n "$JAVA_OPTS" ]; then
   java "${JAVA_OPTS}" -jar "${APKSCANNER_CLI_FILE}" "$@"
 else
