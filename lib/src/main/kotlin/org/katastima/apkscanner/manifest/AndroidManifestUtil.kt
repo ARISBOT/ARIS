@@ -69,15 +69,38 @@ object AndroidManifestUtil {
     }
 
     fun pullApplicationLabel(file: File): String? {
-        val applicationNodes = pullNodes(file, "/manifest/application")
-        val applicationNode = applicationNodes.firstOrNull() ?: return null
-
+        val applicationNode = getApplicationNode(file) ?: return null
         try {
             val label = applicationNode.attributes.getNamedItem("android:label").nodeValue
             return ResXmlUtils.pullValueFromStrings(file.parentFile, label)
         } catch (_: Exception) {
             return null
         }
+    }
+
+    fun pullApplicationLabelsPerLocale(file: File): Map<String, String> {
+        val applicationNode = getApplicationNode(file) ?: return emptyMap()
+        val label = applicationNode.attributes?.getNamedItem("android:label")?.nodeValue ?: return emptyMap()
+
+        return File(file.parentFile, "res")
+            // Get all `res/values-*`.
+            .listFiles { it.isDirectory && it.name.startsWith("values") }
+            // Get all `res/values-*/strings.xml`.
+            .map { File(it, "strings.xml") }
+            // Ensure the file exists before proceeding.
+            .filter { it.exists() }
+            // Use the locale as key and the label as value.
+            .associate {
+                val locale = it.parentFile.name
+                    // e.g.: values-pt-rPT -> pt-rPT.
+                    .replace("values-", "")
+                    // Replace default value with "en-US", which is considered the default locale.
+                    .replace("values", "en-US")
+                val label = pullValueFromXml(it, "string", label) ?: ""
+                Pair(locale, label)
+            }
+            // Filter out values without labels.
+            .filter { it.value.isNotEmpty() }
     }
 
     fun pullFeatures(file: File): List<Feature> {
@@ -94,8 +117,7 @@ object AndroidManifestUtil {
     }
 
     fun pullApplicationFlags(file: File): List<Flag> {
-        val applicationNodes = pullNodes(file, "/manifest/application")
-        val applicationNode = applicationNodes.firstOrNull() ?: return emptyList()
+        val applicationNode = getApplicationNode(file) ?: return emptyList()
         val applicationAttributes = applicationNode.attributes ?: return emptyList()
         if (applicationAttributes.length <= 0) return emptyList()
 
@@ -112,8 +134,7 @@ object AndroidManifestUtil {
     }
 
     fun pullIntentFilters(file: File): List<IntentFilter> {
-        val applicationNodes = pullNodes(file, "/manifest/application")
-        val applicationNode = applicationNodes.firstOrNull() ?: return emptyList()
+        val applicationNode = getApplicationNode(file) ?: return emptyList()
         val applicationChildNodes = applicationNode.childNodes ?: return emptyList()
         if (applicationChildNodes.length <= 0) return emptyList()
 
@@ -176,6 +197,11 @@ object AndroidManifestUtil {
         return intentFilters
     }
 
+    private fun getApplicationNode(file: File): Node? {
+        val applicationNodes = pullNodes(file, "/manifest/application")
+        return applicationNodes.firstOrNull()
+    }
+
     private fun pullAction(node: Node): Action? {
         val actionAttributes = node.attributes ?: return null
         val nameItem = actionAttributes.getNamedItem("android:name") ?: return null
@@ -223,5 +249,22 @@ object AndroidManifestUtil {
 
     fun pullPermissionsSdk23(file: File): Set<Permission> {
         return pullPermissions(file, listOf("/manifest/uses-permission-sdk-23"))
+    }
+
+    private fun pullValueFromXml(file: File, type: String?, key: String?): String? {
+        var key = key
+        if (!file.isFile() || key == null || !key.contains("@")) {
+            return null
+        }
+
+        key = key.replace("@$type/", "")
+        try {
+            val doc = XmlUtils.loadDocument(file)
+            val expression = String.format("/resources/%s[@name='%s']/text()", type, key)
+
+            return XmlUtils.evaluateXPath(doc, expression, String::class.java)
+        } catch (ignored: Exception) {
+            return null
+        }
     }
 }
