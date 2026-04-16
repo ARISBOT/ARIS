@@ -7,13 +7,7 @@ package org.katastima.apkscanner.manifest
 
 import brut.androlib.res.xml.ResXmlUtils
 import brut.xml.XmlUtils
-import org.katastima.apkscanner.models.manifest.Action
-import org.katastima.apkscanner.models.manifest.Category
-import org.katastima.apkscanner.models.manifest.Data
-import org.katastima.apkscanner.models.manifest.Feature
-import org.katastima.apkscanner.models.manifest.Flag
-import org.katastima.apkscanner.models.manifest.IntentFilter
-import org.katastima.apkscanner.models.manifest.Permission
+import org.katastima.apkscanner.models.manifest.*
 import org.w3c.dom.Node
 import org.w3c.dom.NodeList
 import org.xml.sax.SAXException
@@ -209,11 +203,10 @@ object AndroidManifestUtil {
         )
     }
 
-
-    fun pullPermissions(file: File): Set<Permission> {
-        val usesPermissionNodes = pullNodes(file, "/manifest/uses-permission")
-        val permissionNodes = pullNodes(file, "/manifest/permission")
-        return (usesPermissionNodes + permissionNodes).map {
+    private fun pullPermissions(file: File, nodesExpressionList: List<String>): Set<Permission> = nodesExpressionList
+        .flatMap { nodeExpression ->
+            pullNodes(file, nodeExpression)
+        }.map {
             try {
                 val name = it.attributes.getNamedItem("android:name").nodeValue
                 val minSdkVersion = it.attributes.getNamedItem("android:minSdkVersion")?.nodeValue?.toIntOrNull() ?: -1
@@ -223,5 +216,12 @@ object AndroidManifestUtil {
                 Permission("")
             }
         }.filter { it.name != "" }.toSet()
+
+    fun pullPermissions(file: File): Set<Permission> {
+        return pullPermissions(file, listOf("/manifest/uses-permission", "/manifest/permission"))
+    }
+
+    fun pullPermissionsSdk23(file: File): Set<Permission> {
+        return pullPermissions(file, listOf("/manifest/uses-permission-sdk-23"))
     }
 }
