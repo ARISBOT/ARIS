@@ -2,6 +2,7 @@
   <dictionary name="project">
     <words>
       <w>apksig</w>
+      <w>smali</w>
     </words>
   </dictionary>
 </component>

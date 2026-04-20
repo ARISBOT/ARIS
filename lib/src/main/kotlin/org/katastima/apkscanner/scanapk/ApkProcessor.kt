@@ -102,10 +102,10 @@ class ApkProcessor(
     private fun decodeApk(apkFile: File): Result<Pair<File, ApkInfo>> {
         // Decode the APK file using apktool, as we need the smali output.
         val apkDecoderFile = ExtFile(apkFile)
-        val apkDecoderConfig = Config().apply {
-            decodeAssets = Config.DecodeAssets.NONE
-            decodeResources = Config.DecodeResources.FULL
-            decodeSources = Config.DecodeSources.FULL
+        val apkDecoderConfig = Config("3.0.2").apply {
+            setDecodeAssets(Config.DecodeAssets.NONE)
+            setDecodeResources(Config.DecodeResources.FULL)
+            setDecodeSources(Config.DecodeSources.FULL)
         }
         val apkDecoder = ApkDecoder(apkDecoderFile, apkDecoderConfig)
 
@@ -115,6 +115,7 @@ class ApkProcessor(
 
         val apkInfo = try {
             apkDecoder.decode(outputDir)
+            apkDecoder.apkInfo
         } catch (exc: Exception) {
             LOGGER.debug("Failed to decode APK", exc)
             return Result.failure(exc)

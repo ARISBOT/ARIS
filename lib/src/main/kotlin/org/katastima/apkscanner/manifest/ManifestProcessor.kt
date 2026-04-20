@@ -39,7 +39,7 @@ class ManifestProcessor(
 
         val manifest = Manifest(
             appId = packageName,
-            versionCode = decodedApkInfo.versionInfo.versionCode.toInt(),
+            versionCode = decodedApkInfo.versionInfo.versionCode,
             versionName = decodedApkInfo.versionInfo.versionName,
             minSdk = decodedApkInfo.sdkInfo.minSdkVersion.toInt(),
             targetSdk = decodedApkInfo.sdkInfo.targetSdkVersion.toInt(),

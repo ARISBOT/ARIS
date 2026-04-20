@@ -21,7 +21,7 @@ kotlinxCoroutines = "1.10.2"
 apksig-version = "9.1.1"
 
 # see: https://github.com/iBotPeaches/Apktool/releases
-apktool = "2.12.1"
+apktool = "3.0.2"
 
 # see: https://github.com/ajalt/clikt/releases
 clikt = "5.1.0"
