@@ -61,7 +61,7 @@ class ManifestProcessor(
     }
 
     private fun checkForDangerousFlags(manifest: Manifest, manifestConfig: ManifestConfig): Set<String> {
-        val dangerousFlags: MutableSet<String> = mutableSetOf()
+        val dangerousFlags: MutableSet<String> = sortedSetOf()
 
         // Check each flag entry, which contains [name, description, flags].
         manifestConfig.dangerousFlags.entries.forEach { dangerousFlagEntry ->
@@ -83,7 +83,7 @@ class ManifestProcessor(
     }
 
     private fun checkForDangerousFilters(manifest: Manifest, manifestConfig: ManifestConfig): Set<String> {
-        val dangerousFilters: MutableSet<String> = mutableSetOf()
+        val dangerousFilters: MutableSet<String> = sortedSetOf()
 
         // Each intent filter can have multiple actions, so we need to flatten it first and then map its name to get a set of strings.
         // Use a set, because only unique actions need to be checked as it does not matter if a dangerous intent filter is used multiple times.
@@ -104,7 +104,7 @@ class ManifestProcessor(
     }
 
     private fun checkForDangerousPermissions(manifest: Manifest, manifestConfig: ManifestConfig): Set<String> {
-        val dangerousPermissions: MutableSet<String> = mutableSetOf()
+        val dangerousPermissions: MutableSet<String> = sortedSetOf()
 
         val manifestPermissions = manifest.permissions.map { it.name }
 
