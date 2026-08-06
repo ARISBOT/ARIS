@@ -11,6 +11,7 @@ import com.github.ajalt.clikt.output.MordantHelpFormatter
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.help
 import com.github.ajalt.clikt.parameters.arguments.multiple
+import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.help
 import com.github.ajalt.clikt.parameters.options.nullableFlag
 import com.github.ajalt.clikt.parameters.options.option
@@ -24,7 +25,7 @@ import kotlinx.datetime.format.DateTimeFormat
 import kotlinx.datetime.format.char
 import kotlinx.serialization.json.Json
 import org.katastima.apkscanner.cli.ApkScannerCommand
-import org.katastima.apkscanner.cli.configs.OutputStoreType
+import org.katastima.apkscanner.cli.configs.JsonOutputType
 import org.katastima.apkscanner.cli.extensions.formatBold
 import org.katastima.apkscanner.cli.extensions.formatGreen
 import org.katastima.apkscanner.cli.extensions.formatRed
@@ -42,6 +43,7 @@ import org.katastima.apkscanner.models.signing.ApkSigResult
 import org.katastima.apkscanner.models.signing.CertificateResult
 import org.katastima.apkscanner.models.signing.SigningBlockResult
 import org.katastima.apkscanner.models.signing.SigningCheckResult
+import org.katastima.apkscanner.scanapk.ApkScanCallback
 import org.katastima.apkscanner.scanapk.ApkScanner
 import org.katastima.apkscanner.signing.AndroidSigningBlock
 import org.katastima.apkscanner.utils.AndroidApiLevels
@@ -55,8 +57,14 @@ class ScanAPKCommand : ApkScannerCommand() {
         .help("A single or multiple APK files which should get scanned")
         .multiple(true)
 
-    private val storeAsJson: OutputStoreType? by option("--json", "-j")
-        .choice(Pair("no", OutputStoreType.NO), Pair("yes", OutputStoreType.YES), Pair("pretty", OutputStoreType.PRETTY))
+    private val outputAsJson: JsonOutputType? by option("--json", "-j")
+        .choice(Pair("no", JsonOutputType.NO), Pair("yes", JsonOutputType.YES), Pair("pretty", JsonOutputType.PRETTY))
+        .default(JsonOutputType.NO)
+        .help("Output the scan result as json")
+
+    private val storeAsJson: JsonOutputType? by option("--store-json")
+        .choice(Pair("no", JsonOutputType.NO), Pair("yes", JsonOutputType.YES), Pair("pretty", JsonOutputType.PRETTY))
+        .default(JsonOutputType.NO)
         .help("Store the scan result as json file")
 
     private val jsonExcludeDefaults: Boolean? by option("--json-exclude-defaults")
@@ -112,14 +120,21 @@ class ScanAPKCommand : ApkScannerCommand() {
             backgroundDispatcher = Dispatchers.Default,
             ioDispatcher = Dispatchers.IO,
         ).use {
-            val forcePrintApkScanList = apkFiles.size > 1
-            verboseEcho(EchoType.GENERIC, "Scanning ${apkFiles.size} APK(s):", forcePrint = forcePrintApkScanList)
-            apkFiles.forEach { apkFile ->
-                verboseEcho(EchoType.GENERIC, "* ${apkFile.getApkFilePathForReport(apkScannerConfig)}", forcePrint = forcePrintApkScanList)
-            }
-            verboseEcho(EchoType.GENERIC, forcePrint = forcePrintApkScanList)
+            val scanCallback: ApkScanCallback
+            if (outputAsJson != JsonOutputType.NO) {
+                scanCallback = this::jsonScanCallback
+            } else {
+                val forcePrintApkScanList = apkFiles.size > 1
+                verboseEcho(EchoType.GENERIC, "Scanning ${apkFiles.size} APK(s):", forcePrint = forcePrintApkScanList)
+                apkFiles.forEach { apkFile ->
+                    verboseEcho(EchoType.GENERIC, "* ${apkFile.getApkFilePathForReport(apkScannerConfig)}", forcePrint = forcePrintApkScanList)
+                }
+                verboseEcho(EchoType.GENERIC, forcePrint = forcePrintApkScanList)
 
-            it.scanMulti(apkFiles, this::printScanResult)
+                scanCallback = this::printScanResult
+            }
+
+            it.scanMulti(apkFiles, scanCallback)
         }
     }
 
@@ -145,6 +160,28 @@ class ScanAPKCommand : ApkScannerCommand() {
 
         printSignatureVerificationResult(scanResult.signingCheckResult)
         printAndroidSigningBlockResult(scanResult.signingCheckResult?.signingBlockResult)
+    }
+
+    private fun jsonScanCallback(apkFile: File, scanResult: ApkScanResult) {
+        storeScanResultAsJsonIfWanted(apkFile, scanResult)
+
+        val scanResultJsonString = when (outputAsJson) {
+            JsonOutputType.YES -> {
+                @Suppress("JSON_FORMAT_REDUNDANT")
+                Json { encodeDefaults = true }.encodeToString(scanResult)
+            }
+
+            JsonOutputType.PRETTY -> {
+                @Suppress("JSON_FORMAT_REDUNDANT")
+                Json { encodeDefaults = true; prettyPrint = true }.encodeToString(scanResult)
+            }
+
+            else -> {
+                // Do nothing
+                ""
+            }
+        }
+        echo(scanResultJsonString)
     }
 
     private fun printApkInformation(apkFile: File, scanResult: ApkScanResult) {
@@ -280,8 +317,9 @@ class ScanAPKCommand : ApkScannerCommand() {
             silenceableEcho("No offending libraries detected.".formatGreen(cliConfig.consoleOutputConfig))
         } else {
             offendingLibraries.forEach { offendingLibrary ->
-                silenceableEcho("* ${offendingLibrary.name} (${offendingLibrary.libraryId}): " +
-                        formatAntiFeatures(offendingLibrary.antiFeatures).formatYellow(cliConfig.consoleOutputConfig)
+                silenceableEcho(
+                    "* ${offendingLibrary.name} (${offendingLibrary.libraryId}): " +
+                            formatAntiFeatures(offendingLibrary.antiFeatures).formatYellow(cliConfig.consoleOutputConfig)
                 )
             }
             silenceableEcho()
@@ -483,12 +521,12 @@ class ScanAPKCommand : ApkScannerCommand() {
         val excludeDefaults = jsonExcludeDefaults ?: cliConfig.scanApkConfig.jsonExcludeDefaults
 
         val scanResultJsonString = when (storeAsJson ?: cliConfig.scanApkConfig.storeAsJson) {
-            OutputStoreType.YES -> {
+            JsonOutputType.YES -> {
                 @Suppress("JSON_FORMAT_REDUNDANT")
                 Json { encodeDefaults = excludeDefaults.not() }.encodeToString(scanResult)
             }
 
-            OutputStoreType.PRETTY -> {
+            JsonOutputType.PRETTY -> {
                 @Suppress("JSON_FORMAT_REDUNDANT")
                 Json { encodeDefaults = excludeDefaults.not(); prettyPrint = true }.encodeToString(scanResult)
             }

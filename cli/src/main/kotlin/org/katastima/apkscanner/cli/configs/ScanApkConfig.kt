@@ -18,7 +18,7 @@ data class ScanApkConfig(
     @SerialName("verbose_signature_apksig") var verboseSignatureApksig: Boolean = false,
     @SerialName("verbose_signature_certificate") var verboseSignatureCertificate: Boolean = false,
     @SerialName("verbose_signing_block") var verboseSigningBlock: Boolean = false,
-    @SerialName("store_as_json") var storeAsJson: OutputStoreType = OutputStoreType.NO,
+    @SerialName("store_as_json") var storeAsJson: JsonOutputType = JsonOutputType.NO,
     @SerialName("json_exclude_defaults") var jsonExcludeDefaults: Boolean = false,
     @SerialName("json_output_directory") var jsonOutputDirectory: String = "",
     @SerialName("json_output_subdirectory") var jsonOutputSubdirectory: Boolean = false,
@@ -26,7 +26,7 @@ data class ScanApkConfig(
 )
 
 @Serializable
-enum class OutputStoreType {
+enum class JsonOutputType {
     @SerialName("no")
     NO,
 

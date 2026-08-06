@@ -19,6 +19,8 @@ import kotlin.math.max
 import kotlin.system.measureTimeMillis
 import kotlin.time.measureTimedValue
 
+typealias ApkScanCallback = (apkFile: File, scanResult: ApkScanResult) -> Unit
+
 class ApkScanner(
     apkScannerConfig: ApkScannerConfig,
     certificateRepository: CertificateRepository,
@@ -51,7 +53,7 @@ class ApkScanner(
         )
     }
 
-    suspend fun scanMulti(apkFiles: List<File>, scanCallback: ((apkFile: File, scanResult: ApkScanResult) -> Unit)? = null): Map<File, ApkScanResult> {
+    suspend fun scanMulti(apkFiles: List<File>, scanCallback: ApkScanCallback? = null): Map<File, ApkScanResult> {
         val apkScanResultMap: MutableMap<File, ApkScanResult> = mutableMapOf()
 
         var totalScanDuration = 0L
