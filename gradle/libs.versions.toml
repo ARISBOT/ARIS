@@ -11,44 +11,44 @@
 # see: https://kotlinlang.org/docs/releases.html
 kotlin = "2.3.20"
 # see: https://github.com/Kotlin/kotlinx-datetime/releases
-kotlinxDatetime = "0.7.1"
+kotlinxDatetime = "0.8.0"
 # see: https://github.com/Kotlin/kotlinx.serialization/releases
 kotlinxSerializationJSON = "1.11.0"
 # see: https://github.com/Kotlin/kotlinx.coroutines/releases
-kotlinxCoroutines = "1.10.2"
+kotlinxCoroutines = "1.11.0"
 
 # see: https://mvnrepository.com/artifact/com.android.tools.build/apksig
-apksig-version = "9.1.1"
+apksig-version = "9.3.1"
 
 # see: https://github.com/iBotPeaches/Apktool/releases
-apktool = "3.0.2"
+apktool = "3.0.3"
 
 # see: https://github.com/ajalt/clikt/releases
 clikt = "5.1.0"
 
 # see: https://github.com/JetBrains/Exposed/releases
-exposed = "1.2.0"
+exposed = "1.4.0"
 
 # see: https://github.com/h2database/h2database/releases
 h2 = "2.4.240"
 
 # see: https://jreleaser.org/guide/latest/release-history.html
-jreleaser = "1.23.0"
+jreleaser = "1.25.0"
 
 # see: https://github.com/charleskorn/kaml/releases
 kaml = "0.104.0"
 
 # see: https://github.com/qos-ch/logback/releases
-logback = "1.5.32"
+logback = "1.6.1"
 
 # see: https://square.github.io/okio/changelog/
-okio = "3.16.2"
+okio = "3.18.1"
 
 # see: https://github.com/qos-ch/slf4j/releases
-slf4j = "2.0.17"
+slf4j = "2.0.18"
 
 # see: https://github.com/GradleUp/shadow/releases
-shadow-gradle = "9.4.1"
+shadow-gradle = "9.6.1"
 
 [libraries]
 kotlinGradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
