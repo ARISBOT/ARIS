@@ -53,10 +53,19 @@ object AndroidSigningBlockIds {
     /**
      * https://gitlab.com/IzzyOnDroid/repo/-/issues/475#note_1729235542
      * https://apt.izzysoft.de/fdroid/index/info#signingblock
+     * https://intl.cloud.tencent.com/document/product/1145/58005
      */
     const val APK_CHANNEL_BLOCK_ID: Int = 0x71777777
 
+    /**
+     * "VasDolly is a fast multi-channel packaging tool that supports multi-channel packaging based on V1 and V2, V3 signatures."
+     * - [https://github.com/tencent/vasdolly](https://github.com/tencent/vasdolly)
+     * - [https://intl.cloud.tencent.com/document/product/1145/58005](https://intl.cloud.tencent.com/document/product/1145/58005)
+     */
+    const val TENCENT_VASDOLLY_BLOCK: Int = 0x881155FF.toInt()
+
     val PAYLOAD_BLOCKS: Map<Int, String> = mapOf(
-        APK_CHANNEL_BLOCK_ID to "APK Channel",
+        APK_CHANNEL_BLOCK_ID to "APK Channel / Tencent Walle",
+        TENCENT_VASDOLLY_BLOCK to "Tencent VasDolly",
     )
 }
