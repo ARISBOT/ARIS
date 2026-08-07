@@ -44,6 +44,7 @@ object AndroidApiLevels {
         34 to Triple("Android 14", "U", "Upside Down Cake"),
         35 to Triple("Android 15", "V", "Vanilla Ice Cream"),
         36 to Triple("Android 16", "B", "Baklava"),
+        37 to Triple("Android 17", "C", "Cinnamon Bun"),
     )
 
     fun getAndroidVersionForApiLevel(apiLevel: Int): String = API_LEVEL_MAP[apiLevel]?.first ?: "Unknown"
