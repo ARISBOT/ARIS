@@ -6,7 +6,7 @@
 tasks.withType<Wrapper> {
     // https://docs.gradle.org/current/release-notes.html
     // https://github.com/gradle/gradle/releases
-    gradleVersion = "9.6.1"
+    gradleVersion = "9.7.0"
     distributionType = Wrapper.DistributionType.BIN
     validateDistributionUrl = true
 }
