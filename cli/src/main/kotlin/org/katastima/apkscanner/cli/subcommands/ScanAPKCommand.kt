@@ -345,7 +345,7 @@ class ScanAPKCommand : ApkScannerCommand() {
         silenceableEcho("* Number of certificates: ${signingCheckResult.certificates.size}")
         var certificateCounter = 1
         signingCheckResult.certificateResults.forEach { certificateResult ->
-            silenceableEcho("* Certificate #${certificateCounter}")
+            silenceableEcho("* Certificate `#${certificateCounter}`")
 
             if (certificateResult.denylistMatches.isNotEmpty()) {
                 silenceableEcho("  * [!] Certificate found in deny list".formatRed(cliConfig.consoleOutputConfig))
