@@ -41,7 +41,7 @@ kaml = "0.104.0"
 # see: https://github.com/qos-ch/logback/releases
 logback = "1.6.1"
 
-# see: https://square.github.io/okio/changelog/
+# see: https://lysine.dev/okio/changelog/
 okio = "3.18.1"
 
 # see: https://github.com/qos-ch/slf4j/releases
