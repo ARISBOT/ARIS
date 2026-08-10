@@ -12,6 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          submodules: recursive
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
@@ -28,5 +30,5 @@ jobs:
       - uses: actions/upload-artifact@v3 # v3 is deprecated, but v4+ does not work ¯\_ (ツ)_/¯
         with:
           archive: false
-          name: apk-scanner.jar
+          name: apk-scanner
           path: ./cli/build/libs/cli-all.jar
