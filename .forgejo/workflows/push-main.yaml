@@ -23,3 +23,10 @@ jobs:
         run: ./gradlew assemble
       - name: Check using Gradle
         run: ./gradlew check
+      - name: Build shadow jar using Gradle
+        run: ./gradlew clean shadowJar
+      - uses: actions/upload-artifact@v3 # v3 is deprecated, but v4+ does not work ¯\_ (ツ)_/¯
+        with:
+          archive: false
+          name: apk-scanner.jar
+          path: ./cli/build/libs/cli-all.jar
