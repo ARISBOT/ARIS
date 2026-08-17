@@ -39,16 +39,16 @@ jreleaser = "1.25.0"
 kaml = "0.104.0"
 
 # see: https://github.com/qos-ch/logback/releases
-logback = "1.6.1"
+logback = "1.6.3"
 
 # see: https://lysine.dev/okio/changelog/
 okio = "3.18.1"
 
-# see: https://github.com/qos-ch/slf4j/releases
-slf4j = "2.0.18"
-
 # see: https://github.com/GradleUp/shadow/releases
 shadow-gradle = "9.6.1"
+
+# see: https://github.com/qos-ch/slf4j/releases
+slf4j = "2.0.18"
 
 [libraries]
 kotlinGradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
