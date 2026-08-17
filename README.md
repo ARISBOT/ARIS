@@ -14,6 +14,16 @@ SPDX-License-Identifier: EUPL-1.2
 
 Documentation for the APK Scanner is available [here](https://katastima.org/en/apkscanner/overview).
 
+## Releasing
+
+```
+# Build including shadowJars, publish will deploy to a local staging repository.
+./gradlew clean assemble shadowJar publish
+
+# Release, uploading to MavenCentral and create releases on various forges.
+./gradlew jreleaserRelease
+```
+
 ## Contributing
 
 The following tools are required to ensure the project stays [REUSE](https://reuse.software/) compliant.
