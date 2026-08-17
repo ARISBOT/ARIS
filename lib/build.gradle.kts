@@ -21,9 +21,6 @@ plugins {
     `maven-publish`
 }
 
-group = "org.katastima.apkscanner"
-version = "0.0.9"
-
 java {
     withJavadocJar()
     withSourcesJar()
