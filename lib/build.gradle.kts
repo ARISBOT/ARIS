@@ -3,18 +3,10 @@
  * SPDX-License-Identifier: EUPL-1.2
  */
 
-import org.jreleaser.model.Active
-import org.jreleaser.model.Signing.Mode
-
 plugins {
-    // Apply the shared build logic from a convention plugin.
-    // The shared code is located in `buildSrc/src/main/kotlin/kotlin-jvm.gradle.kts`.
     id("buildsrc.convention.kotlin-jvm")
 
-    // Apply Kotlin Serialization plugin from `gradle/libs.versions.toml`.
     alias(libs.plugins.kotlinPluginSerialization)
-
-    alias(libs.plugins.jreleaser)
     alias(libs.plugins.shadowGradlePlugin)
 
     `maven-publish`
@@ -95,43 +87,6 @@ publishing {
     repositories {
         maven {
             url = layout.buildDirectory.dir("staging-deploy").get().asFile.toURI()
-        }
-    }
-}
-
-jreleaser {
-    gitRootSearch = true
-
-    project {
-        name = "APK Scanner"
-        description = "Scan an APK file to check its internals"
-    }
-
-    signing {
-        active = Active.ALWAYS
-        pgp {
-            active = Active.ALWAYS
-            armored = true
-            mode = Mode.COMMAND
-            command {
-                keyName = findProperty("signing.keyId") as? String
-            }
-        }
-    }
-
-    deploy {
-        maven {
-            mavenCentral {
-                register("sonatype") {
-                    active = Active.ALWAYS
-                    url = "https://central.sonatype.com/api/v1/publisher"
-                    stagingRepository(layout.buildDirectory.dir("staging-deploy").get())
-
-                    artifactOverride {
-                        artifactId = "apkscanner"
-                    }
-                }
-            }
         }
     }
 }
