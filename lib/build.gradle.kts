@@ -4,7 +4,6 @@
  */
 
 import org.jreleaser.model.Active
-import org.jreleaser.model.Http
 import org.jreleaser.model.Signing.Mode
 
 plugins {
@@ -122,23 +121,6 @@ jreleaser {
 
     deploy {
         maven {
-            forgejo {
-                register("codeberg") {
-                    active = Active.ALWAYS
-                    url = "https://codeberg.org/api/packages/Katastima/maven"
-                    stagingRepository(layout.buildDirectory.dir("staging-deploy").get())
-
-                    artifactOverride {
-                        artifactId = "apkscanner"
-                    }
-
-                    applyMavenCentralRules = true
-
-                    authorization = Http.Authorization.BEARER
-                    password = findProperty("codeberg_access_token") as? String
-                }
-            }
-
             mavenCentral {
                 register("sonatype") {
                     active = Active.ALWAYS
