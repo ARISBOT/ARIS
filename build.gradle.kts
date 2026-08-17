@@ -26,6 +26,53 @@ jreleaser {
         description = "Scan an APK file to check its internals"
     }
 
+    files {
+        artifact {
+            path = project(":cli").layout.buildDirectory.dir("libs").get().file("cli-all.jar")
+            transform = "apk-scanner_v$version.jar"
+        }
+    }
+
+    release {
+        codeberg {
+            enabled = false
+        }
+
+        forgejo {
+            enabled = true
+
+            host = "codeberg.org"
+            apiEndpoint = "https://codeberg.org"
+
+            username = findProperty("forgejo.username") as? String
+            token = findProperty("forgejo.token") as? String
+
+            sign = true
+            skipTag = false
+            skipRelease = false
+
+            prerelease {
+                enabled = true
+            }
+
+            commitAuthor {
+                name = findProperty("forgejo.commitAuthor.name") as? String
+                email = findProperty("forgejo.commitAuthor.email") as? String
+            }
+
+            changelog {
+                links = true
+
+                formatted = Active.ALWAYS
+                preset = "conventional-commits"
+
+                contributors {
+                    enabled = false
+                }
+            }
+        }
+    }
+
     signing {
         active = Active.ALWAYS
         pgp {

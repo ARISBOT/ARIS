@@ -23,3 +23,7 @@ dependencies {
 application {
     mainClass = "org.katastima.apkscanner.cli.AppKt"
 }
+
+tasks.shadowJar {
+    archiveVersion = ""
+}
