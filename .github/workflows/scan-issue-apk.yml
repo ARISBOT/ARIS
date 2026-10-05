@@ -1,0 +1,148 @@
+name: Automatic APK Scanner on Issue
+
+on:
+  issues:
+    types: [opened, edited]
+  issue_comment:
+    types: [created]
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  scan-apk:
+    # Only run if an APK link or attachment is present in the issue or comment body
+    if: contains(github.event.issue.body, '.apk') || (github.event.comment != null && contains(github.event.comment.body, '.apk'))
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Extract APK URL
+        id: extract_url
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+        run: |
+          python3 -c "
+          import re, os
+
+          text = os.environ.get('COMMENT_BODY') or os.environ.get('ISSUE_BODY') or ''
+          # Match URLs ending in .apk or github file upload URLs containing .apk
+          urls = re.findall(r'https?://[^\s\)]+?\.apk(?:\?[^\s\)]*)?', text, re.IGNORECASE)
+          if not urls:
+              # Fallback search for github asset uploads
+              urls = re.findall(r'https?://[^\s\)]+?/files/[^\s\)]+', text)
+
+          if urls:
+              print(f'Found APK URL: {urls[0]}')
+              with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+                  f.write(f'apk_url={urls[0]}\n')
+          else:
+              print('No valid APK URL found in issue/comment body.')
+              exit(1)
+          "
+
+      - name: Download APK File
+        run: |
+          echo "Downloading APK from: ${{ steps.extract_url.outputs.apk_url }}"
+          curl -L -o target_app.apk "${{ steps.extract_url.outputs.apk_url }}"
+          if [ ! -s target_app.apk ]; then
+            echo "Failed to download valid APK file."
+            exit 1
+          fi
+
+      - name: Scan APK with Katastima APK Scanner
+        run: |
+          mkdir -p scan_results
+          ./gradlew :cli:run --args="scan-apk target_app.apk --json pretty -o scan_results"
+
+      - name: Generate Markdown Scan Report
+        id: generate_report
+        run: |
+          python3 -c "
+          import json, glob, os
+
+          json_files = glob.glob('scan_results/*.json')
+          if not json_files:
+              print('No scan result JSON found')
+              exit(1)
+
+          with open(json_files[0], 'r') as f:
+              data = json.load(f)
+
+          sha256 = data.get('apkFileSha256', 'N/A')
+          duration = data.get('scanDurationMs', 0)
+
+          manifest_res = data.get('manifestCheckResult', {}) or {}
+          manifest = manifest_res.get('manifest', {}) or {}
+
+          app_id = manifest.get('appId', 'Unknown')
+          version_name = manifest.get('versionName', 'N/A')
+          version_code = manifest.get('versionCode', 'N/A')
+          min_sdk = manifest.get('minSdk', 'N/A')
+          target_sdk = manifest.get('targetSdk', 'N/A')
+
+          dangerous_perms = manifest_res.get('dangerousPermissions', [])
+          dangerous_flags = manifest_res.get('dangerousFlags', [])
+          dangerous_filters = manifest_res.get('dangerousFilters', [])
+
+          signing_res = data.get('signingCheckResult', {}) or {}
+          apk_sig = signing_res.get('apkSigResult', {}) or {}
+          verified = apk_sig.get('verifiedByApkSig', False)
+
+          lib_res = data.get('libraryCheckResult', {}) or {}
+          detected_libs = [lib.get('name', '') for lib in lib_res.get('detectedLibraries', [])]
+          anti_features = lib_res.get('antiFeatures', [])
+
+          report = f'''## 🔍 Katastima APK Scan Results
+
+          ### 📱 App Information
+          - **App ID (Package):** \`{app_id}\`
+          - **Version:** {version_name} (Code: {version_code})
+          - **Target SDK:** {target_sdk} | **Min SDK:** {min_sdk}
+          - **File SHA-256:** \`{sha256}\`
+          - **Scan Duration:** {duration} ms
+
+          ---
+
+          ### 🔒 Signature & Integrity
+          - **Verified by ApkSig:** {'✅ Yes' if verified else '❌ No / Unverified'}
+          - **V1 Scheme:** {'✅' if apk_sig.get('v1') else '❌'} | **V2 Scheme:** {'✅' if apk_sig.get('v2') else '❌'} | **V3 Scheme:** {'✅' if apk_sig.get('v3') else '❌'} | **V4 Scheme:** {'✅' if apk_sig.get('v4') else '❌'}
+
+          ---
+
+          ### ⚠️ Security & Risk Flags
+          - **Dangerous Permissions ({len(dangerous_perms)}):** {', '.join([f'\`{p}\`' for p in dangerous_perms]) if dangerous_perms else 'None detected'}
+          - **Dangerous Flags ({len(dangerous_flags)}):** {', '.join([f'\`{f}\`' for f in dangerous_flags]) if dangerous_flags else 'None detected'}
+          - **Dangerous Intent Filters ({len(dangerous_filters)}):** {', '.join([f'\`{i}\`' for i in dangerous_filters]) if dangerous_filters else 'None detected'}
+
+          ---
+
+          ### 📦 Libraries & Anti-Features
+          - **Detected Anti-Features:** {', '.join([f'⚠️ \`{a}\`' for a in anti_features]) if anti_features else 'None detected'}
+          - **Detected Third-Party Libraries ({len(detected_libs)}):** {', '.join(detected_libs) if detected_libs else 'None detected'}
+
+          ---
+          *Automated scan generated by [Katastima APK Scanner](https://github.com/ankanrajghosh509-svg/apkscanner)*
+          '''
+
+          with open('comment_report.md', 'w') as f:
+              f.write(report)
+          "
+
+      - name: Post Comment on Issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh issue comment "$ISSUE_NUMBER" --body-file comment_report.md
