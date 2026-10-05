@@ -24,6 +24,10 @@ application {
     mainClass = "org.katastima.apkscanner.cli.AppKt"
 }
 
+tasks.named<JavaExec>("run") {
+    workingDir = rootDir
+}
+
 tasks.shadowJar {
     archiveVersion = ""
 }

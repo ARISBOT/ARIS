@@ -544,13 +544,12 @@ class ScanAPKCommand : ApkScannerCommand() {
             } else {
                 val jsonOutputDirectory = jsonResultOutputDirectory ?: File(cliConfig.scanApkConfig.jsonOutputDirectory).absoluteFile
                 if (jsonOutputSubdirectory ?: cliConfig.scanApkConfig.jsonOutputSubdirectory) {
-                    val resultOutputDirectory = File(jsonOutputDirectory, scanStartedAt.format(localDateTimeFormatter))
-                    resultOutputDirectory.mkdirs()
-                    resultOutputDirectory
+                    File(jsonOutputDirectory, scanStartedAt.format(localDateTimeFormatter))
                 } else {
                     jsonOutputDirectory
                 }
             }
+            resultOutputDirectory.mkdirs()
 
             val resultOutputFile = File(resultOutputDirectory, resultOutputName)
 

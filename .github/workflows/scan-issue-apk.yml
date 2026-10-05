@@ -21,7 +21,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: '21'
           distribution: 'temurin'
@@ -162,7 +162,7 @@ jobs:
           if [ "${{ runner.debug }}" = "1" ]; then
             GRADLE_ARGS="--info --stacktrace"
           fi
-          ./gradlew $GRADLE_ARGS :cli:run --args="scan-apk target_app.apk --store-json pretty --json pretty -o scan_results"
+          ./gradlew $GRADLE_ARGS :cli:run --args="scan-apk $PWD/target_app.apk --store-json pretty --json pretty -o $PWD/scan_results"
 
       - name: Debug Raw Scan Output
         if: ${{ runner.debug == '1' }}
