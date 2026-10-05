@@ -127,20 +127,20 @@ jobs:
               with open(output_file, 'a') as f:
                   f.write(f'found=true\n')
                   f.write(f'apk_url={apk_url}\n')
+                  f.flush()
           else:
               print('No valid APK URL found in issue/comment body.')
               with open(output_file, 'a') as f:
                   f.write(f'found=false\n')
+                  f.flush()
           "
 
       - name: Download APK File
-        if: steps.extract_url.outputs.found == 'true'
+        if: success() && steps.extract_url.outputs.found == 'true'
         env:
           APK_URL: ${{ steps.extract_url.outputs.apk_url }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Downloading APK from: $APK_URL"
-          curl -f -L -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" -H "Authorization: Bearer $GH_TOKEN" -o target_app.apk "$APK_URL" || \
           curl -f -L -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" -o target_app.apk "$APK_URL"
 
           python3 -c "
@@ -155,7 +155,7 @@ jobs:
           "
 
       - name: Scan APK with Katastima APK Scanner
-        if: steps.extract_url.outputs.found == 'true'
+        if: success() && steps.extract_url.outputs.found == 'true'
         run: |
           mkdir -p scan_results
           GRADLE_ARGS=""
@@ -172,7 +172,7 @@ jobs:
           echo "::endgroup::"
 
       - name: Generate Markdown Scan Report
-        if: steps.extract_url.outputs.found == 'true'
+        if: success() && steps.extract_url.outputs.found == 'true'
         id: generate_report
         run: |
           python3 -c "
@@ -251,7 +251,7 @@ jobs:
           "
 
       - name: Post Comment on Issue
-        if: steps.extract_url.outputs.found == 'true'
+        if: success() && steps.extract_url.outputs.found == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
