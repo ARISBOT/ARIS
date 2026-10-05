@@ -29,7 +29,7 @@ object RepositoryUtil {
         DatabaseType.NONE -> CertificateFileRepository(apkScannerConfig.dataConfig)
         else -> {
             val database = DatabaseUtil.getDatabase(apkScannerConfig.databaseConfig)
-            DatabaseUtil.setupDatabase(database, apkScannerConfig.databaseConfig.debug)
+            DatabaseUtil.setupDatabase(database, apkScannerConfig, apkScannerConfig.databaseConfig.debug)
 
             CertificateDatabaseRepository(database, backgroundDispatcher, apkScannerConfig.databaseConfig.debug)
         }
@@ -42,7 +42,7 @@ object RepositoryUtil {
         DatabaseType.NONE -> LibraryFileRepository(apkScannerConfig.dataConfig)
         else -> {
             val database = DatabaseUtil.getDatabase(apkScannerConfig.databaseConfig)
-            DatabaseUtil.setupDatabase(database, apkScannerConfig.databaseConfig.debug)
+            DatabaseUtil.setupDatabase(database, apkScannerConfig, apkScannerConfig.databaseConfig.debug)
 
             LibraryDatabaseRepository(database, backgroundDispatcher, apkScannerConfig.databaseConfig.debug)
         }
@@ -55,7 +55,7 @@ object RepositoryUtil {
         DatabaseType.NONE -> ManifestFileRepository(apkScannerConfig.dataConfig)
         else -> {
             val database = DatabaseUtil.getDatabase(apkScannerConfig.databaseConfig)
-            DatabaseUtil.setupDatabase(database, apkScannerConfig.databaseConfig.debug)
+            DatabaseUtil.setupDatabase(database, apkScannerConfig, apkScannerConfig.databaseConfig.debug)
 
             ManifestDatabaseRepository(database, backgroundDispatcher, apkScannerConfig.databaseConfig.debug)
         }

@@ -64,7 +64,7 @@ class CreateDatabaseCommand : ApkScannerCommand("setup") {
 
         val setupTime = measureTimeMillis {
             DatabaseUtil.dropTables(database, apkScannerConfig.databaseConfig.debug)
-            DatabaseUtil.setupDatabase(database, apkScannerConfig.databaseConfig.debug)
+            DatabaseUtil.setupDatabase(database, apkScannerConfig, apkScannerConfig.databaseConfig.debug)
 
             val certificateRepository = RepositoryUtil.getCertificateRepository(apkScannerConfig)
             val libraryRepository = RepositoryUtil.getLibraryRepository(apkScannerConfig)

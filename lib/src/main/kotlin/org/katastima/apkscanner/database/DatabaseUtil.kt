@@ -5,18 +5,28 @@
 
 package org.katastima.apkscanner.database
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.v1.core.StdOutSqlLogger
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import org.katastima.apkscanner.config.ApkScannerConfig
 import org.katastima.apkscanner.config.DatabaseConfig
 import org.katastima.apkscanner.config.DatabaseMode
 import org.katastima.apkscanner.config.DatabaseType
+import org.katastima.apkscanner.data.ImportUtil
+import org.katastima.apkscanner.data.certificate.CertificateDatabaseRepository
+import org.katastima.apkscanner.data.library.LibraryDatabaseRepository
+import org.katastima.apkscanner.data.manifest.ManifestDatabaseRepository
+import org.katastima.apkscanner.database.dao.certificate.SigningCertificateDenylistEntity
 import org.katastima.apkscanner.database.dao.certificate.SigningCertificateDenylistTable
+import org.katastima.apkscanner.database.dao.library.LibraryInformationEntry
 import org.katastima.apkscanner.database.dao.library.LibraryInformationTable
 import org.katastima.apkscanner.database.dao.library.LibraryTable
 import org.katastima.apkscanner.database.dao.manifest.ManifestFilterConfigTable
 import org.katastima.apkscanner.database.dao.manifest.ManifestFlagConfigTable
+import org.katastima.apkscanner.database.dao.manifest.ManifestPermissionConfigEntity
 import org.katastima.apkscanner.database.dao.manifest.ManifestPermissionConfigTable
 import org.slf4j.LoggerFactory
 import java.io.File
@@ -61,8 +71,12 @@ object DatabaseUtil {
         }
     }
 
-    fun setupDatabase(database: Database, debugDatabase: Boolean = false) {
-        transaction(database) {
+    fun setupDatabase(
+        database: Database,
+        apkScannerConfig: ApkScannerConfig? = null,
+        debugDatabase: Boolean = false,
+    ) {
+        val isEmpty = transaction(database) {
             if (debugDatabase) {
                 addLogger(StdOutSqlLogger)
             }
@@ -75,6 +89,26 @@ object DatabaseUtil {
             SchemaUtils.create(ManifestPermissionConfigTable)
 
             SchemaUtils.create(SigningCertificateDenylistTable)
+
+            LibraryInformationEntry.all().empty() &&
+                    ManifestPermissionConfigEntity.all().empty() &&
+                    SigningCertificateDenylistEntity.all().empty()
+        }
+
+        if (isEmpty && apkScannerConfig != null && apkScannerConfig.dataConfig.useDefaultData) {
+            LOGGER.info("Database is empty, auto-populating with default data")
+            runBlocking {
+                val certificateRepository = CertificateDatabaseRepository(database, Dispatchers.Default, debugDatabase)
+                val libraryRepository = LibraryDatabaseRepository(database, Dispatchers.Default, debugDatabase)
+                val manifestRepository = ManifestDatabaseRepository(database, Dispatchers.Default, debugDatabase)
+
+                ImportUtil.importAll(
+                    certificateRepository = certificateRepository,
+                    libraryRepository = libraryRepository,
+                    manifestRepository = manifestRepository,
+                    apkScannerConfig = apkScannerConfig,
+                )
+            }
         }
     }
 
