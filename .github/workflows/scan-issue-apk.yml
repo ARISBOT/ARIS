@@ -12,8 +12,8 @@ permissions:
 
 jobs:
   scan-apk:
-    # Only run if an APK link or attachment is present in the issue or comment body
-    if: contains(github.event.issue.body, '.apk') || (github.event.comment != null && contains(github.event.comment.body, '.apk'))
+    # Trigger if URL, github link, or .apk is mentioned in issue or comment
+    if: contains(github.event.issue.body, 'http') || contains(github.event.issue.body, '.apk') || (github.event.comment != null && (contains(github.event.comment.body, 'http') || contains(github.event.comment.body, '.apk')))
     runs-on: ubuntu-latest
 
     steps:
@@ -39,45 +39,109 @@ jobs:
       - name: Extract APK URL
         id: extract_url
         env:
+          EVENT_NAME: ${{ github.event_name }}
           ISSUE_BODY: ${{ github.event.issue.body }}
           COMMENT_BODY: ${{ github.event.comment.body }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           python3 -c "
-          import re, os
+          import re, os, urllib.request, json
 
-          text = os.environ.get('COMMENT_BODY') or os.environ.get('ISSUE_BODY') or ''
-          # Match URLs ending in .apk or github file upload URLs containing .apk
-          urls = re.findall(r'https?://[^\s\)]+?\.apk(?:\?[^\s\)]*)?', text, re.IGNORECASE)
-          if not urls:
-              # Fallback search for github asset uploads
-              urls = re.findall(r'https?://[^\s\)]+?/files/[^\s\)]+', text)
+          def extract_apk_url(text):
+              if not text:
+                  return None
 
-          if urls:
-              print(f'Found APK URL: {urls[0]}')
-              with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
-                  f.write(f'apk_url={urls[0]}\n')
+              # 1. Look for direct .apk URLs
+              apk_urls = re.findall(r'https?://[^\s\)]+?\.apk(?:\?[^\s\)]*)?', text, re.IGNORECASE)
+              if apk_urls:
+                  return apk_urls[0].rstrip(')]>\"\'.,;')
+
+              # 2. Look for GitHub release URLs (e.g. /releases/tag/v1.0 or /releases#release-v1.0 or /releases/latest)
+              release_match = re.search(r'https?://github\.com/([^/\s]+)/([^/\s#]+)/releases(?:/(?:tag/|download/)?([^/\s#]+)|#release-([^\s\)]+))?', text, re.IGNORECASE)
+              if release_match:
+                  owner, repo, tag1, tag2 = release_match.groups()
+                  tag = tag1 or tag2
+                  if tag and tag.lower() != 'latest':
+                      api_url = f'https://api.github.com/repos/{owner}/{repo}/releases/tags/{tag}'
+                  else:
+                      api_url = f'https://api.github.com/repos/{owner}/{repo}/releases/latest'
+
+                  try:
+                      headers = {'User-Agent': 'Mozilla/5.0'}
+                      token = os.environ.get('GH_TOKEN')
+                      if token:
+                          headers['Authorization'] = f'token {token}'
+                      req = urllib.request.Request(api_url, headers=headers)
+                      with urllib.request.urlopen(req) as resp:
+                          data = json.loads(resp.read().decode())
+                          for asset in data.get('assets', []):
+                              asset_url = asset.get('browser_download_url', '')
+                              if asset_url.lower().endswith('.apk') or '.apk' in asset_url.lower():
+                                  return asset_url
+                  except Exception as e:
+                      print(f'GitHub API release fetch info: {e}')
+
+              # 3. Look for GitHub file/asset attachment URLs
+              asset_urls = re.findall(r'https?://github\.com/[^\s\)]+?/(?:files|assets|user-attachments/assets)/[^\s\)]+', text, re.IGNORECASE)
+              if asset_urls:
+                  return asset_urls[0].rstrip(')]>\"\'.,;')
+
+              return None
+
+          event_name = os.environ.get('EVENT_NAME', '')
+          comment_body = os.environ.get('COMMENT_BODY', '')
+          issue_body = os.environ.get('ISSUE_BODY', '')
+
+          apk_url = None
+          if event_name == 'issue_comment':
+              apk_url = extract_apk_url(comment_body)
+              if not apk_url:
+                  apk_url = extract_apk_url(issue_body)
+          else:
+              apk_url = extract_apk_url(issue_body)
+
+          output_file = os.environ['GITHUB_OUTPUT']
+          if apk_url:
+              print(f'Found APK URL: {apk_url}')
+              with open(output_file, 'a') as f:
+                  f.write(f'found=true\n')
+                  f.write(f'apk_url={apk_url}\n')
           else:
               print('No valid APK URL found in issue/comment body.')
-              exit(1)
+              with open(output_file, 'a') as f:
+                  f.write(f'found=false\n')
           "
 
       - name: Download APK File
+        if: steps.extract_url.outputs.found == 'true'
+        env:
+          APK_URL: ${{ steps.extract_url.outputs.apk_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "Downloading APK from: ${{ steps.extract_url.outputs.apk_url }}"
-          curl -L -o target_app.apk "${{ steps.extract_url.outputs.apk_url }}"
-          if [ ! -s target_app.apk ]; then
-            echo "Failed to download valid APK file."
-            exit 1
-          fi
+          echo "Downloading APK from: $APK_URL"
+          curl -f -L -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" -H "Authorization: Bearer $GH_TOKEN" -o target_app.apk "$APK_URL" || \
+          curl -f -L -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" -o target_app.apk "$APK_URL"
+
+          python3 -c "
+          import zipfile, sys, os
+          if not os.path.exists('target_app.apk') or os.path.getsize('target_app.apk') == 0:
+              print('Downloaded file is empty or missing.')
+              sys.exit(1)
+          if not zipfile.is_zipfile('target_app.apk'):
+              print('Downloaded file is not a valid zip/APK archive.')
+              sys.exit(1)
+          print('Successfully downloaded valid APK archive.')
+          "
 
       - name: Scan APK with Katastima APK Scanner
+        if: steps.extract_url.outputs.found == 'true'
         run: |
           mkdir -p scan_results
           GRADLE_ARGS=""
           if [ "${{ runner.debug }}" = "1" ]; then
             GRADLE_ARGS="--info --stacktrace"
           fi
-          ./gradlew $GRADLE_ARGS :cli:run --args="scan-apk target_app.apk --json pretty -o scan_results"
+          ./gradlew $GRADLE_ARGS :cli:run --args="scan-apk target_app.apk --store-json pretty --json pretty -o scan_results"
 
       - name: Debug Raw Scan Output
         if: ${{ runner.debug == '1' }}
@@ -87,15 +151,16 @@ jobs:
           echo "::endgroup::"
 
       - name: Generate Markdown Scan Report
+        if: steps.extract_url.outputs.found == 'true'
         id: generate_report
         run: |
           python3 -c "
-          import json, glob, os
+          import json, glob, os, sys
 
           json_files = glob.glob('scan_results/*.json')
           if not json_files:
               print('No scan result JSON found')
-              exit(1)
+              sys.exit(1)
 
           with open(json_files[0], 'r') as f:
               data = json.load(f)
@@ -106,6 +171,7 @@ jobs:
           manifest_res = data.get('manifestCheckResult', {}) or {}
           manifest = manifest_res.get('manifest', {}) or {}
 
+          app_label = manifest.get('label', '')
           app_id = manifest.get('appId', 'Unknown')
           version_name = manifest.get('versionName', 'N/A')
           version_code = manifest.get('versionCode', 'N/A')
@@ -117,16 +183,18 @@ jobs:
           dangerous_filters = manifest_res.get('dangerousFilters', [])
 
           signing_res = data.get('signingCheckResult', {}) or {}
-          apk_sig = signing_res.get('apkSigResult', {}) or {}
+          apk_sig = signing_res.get('signingSchemas', {}) or signing_res.get('apkSigResult', {}) or {}
           verified = apk_sig.get('verifiedByApkSig', False)
 
           lib_res = data.get('libraryCheckResult', {}) or {}
-          detected_libs = [lib.get('name', '') for lib in lib_res.get('detectedLibraries', [])]
+          detected_libs = [f\"{lib.get('name', 'Unknown')} ({lib.get('type', 'lib')})\" for lib in lib_res.get('detectedLibraries', []) if lib.get('name')]
+          offending_libs = [lib.get('name', '') for lib in lib_res.get('offendingLibraries', []) if lib.get('name')]
           anti_features = lib_res.get('antiFeatures', [])
 
           report = f'''## 🔍 Katastima APK Scan Results
 
           ### 📱 App Information
+          - **App Name:** {app_label if app_label else 'N/A'}
           - **App ID (Package):** \`{app_id}\`
           - **Version:** {version_name} (Code: {version_code})
           - **Target SDK:** {target_sdk} | **Min SDK:** {min_sdk}
@@ -149,6 +217,7 @@ jobs:
           ---
 
           ### 📦 Libraries & Anti-Features
+          - **Offending Libraries ({len(offending_libs)}):** {', '.join([f'🚨 \`{o}\`' for o in offending_libs]) if offending_libs else 'None detected'}
           - **Detected Anti-Features:** {', '.join([f'⚠️ \`{a}\`' for a in anti_features]) if anti_features else 'None detected'}
           - **Detected Third-Party Libraries ({len(detected_libs)}):** {', '.join(detected_libs) if detected_libs else 'None detected'}
 
@@ -161,6 +230,7 @@ jobs:
           "
 
       - name: Post Comment on Issue
+        if: steps.extract_url.outputs.found == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
