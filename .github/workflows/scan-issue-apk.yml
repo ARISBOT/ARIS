@@ -81,7 +81,28 @@ jobs:
                   except Exception as e:
                       print(f'GitHub API release fetch info: {e}')
 
-              # 3. Look for GitHub file/asset attachment URLs
+              # 3. Look for GitHub repository main page URL (e.g. https://github.com/owner/repo) -> fetch latest release
+              repo_match = re.search(r'https?://github\.com/([^/\s]+)/([^/\s#?]+)', text, re.IGNORECASE)
+              if repo_match:
+                  owner, repo = repo_match.groups()
+                  if owner.lower() not in ['settings', 'features', 'marketplace', 'orgs', 'users', 'topics', 'notifications']:
+                      api_url = f'https://api.github.com/repos/{owner}/{repo}/releases/latest'
+                      try:
+                          headers = {'User-Agent': 'Mozilla/5.0'}
+                          token = os.environ.get('GH_TOKEN')
+                          if token:
+                              headers['Authorization'] = f'token {token}'
+                          req = urllib.request.Request(api_url, headers=headers)
+                          with urllib.request.urlopen(req) as resp:
+                              data = json.loads(resp.read().decode())
+                              for asset in data.get('assets', []):
+                                  asset_url = asset.get('browser_download_url', '')
+                                  if asset_url.lower().endswith('.apk') or '.apk' in asset_url.lower():
+                                      return asset_url
+                      except Exception as e:
+                          print(f'GitHub Repo API fetch info: {e}')
+
+              # 4. Look for GitHub file/asset attachment URLs
               asset_urls = re.findall(r'https?://github\.com/[^\s\)]+?/(?:files|assets|user-attachments/assets)/[^\s\)]+', text, re.IGNORECASE)
               if asset_urls:
                   return asset_urls[0].rstrip(')]>\"\'.,;')
