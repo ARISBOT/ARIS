@@ -256,8 +256,8 @@ class ScanAPKCommand : ApkScannerCommand() {
     }
 
     private fun printPermissions(manifest: Manifest) {
-        verboseEcho(EchoType.PERMISSIONS, "Permissions:")
-        verboseEcho(EchoType.PERMISSIONS, "------------")
+        verboseEcho(EchoType.PERMISSIONS, "Requested Permissions:")
+        verboseEcho(EchoType.PERMISSIONS, "----------------------")
 
         if (manifest.permissions.isEmpty()) {
             verboseEcho(EchoType.PERMISSIONS, "No permissions detected.")
@@ -342,7 +342,8 @@ class ScanAPKCommand : ApkScannerCommand() {
 
         printSignatureApksig(signingCheckResult.apkSigResult)
 
-        silenceableEcho("* Number of certificates: ${signingCheckResult.certificates.size}")
+        val certificateCount = signingCheckResult.certificates.size.takeIf { it > 0 } ?: signingCheckResult.certificateResults.size
+        silenceableEcho("* Number of certificates: $certificateCount")
         var certificateCounter = 1
         signingCheckResult.certificateResults.forEach { certificateResult ->
             silenceableEcho("* Certificate `#${certificateCounter}`")

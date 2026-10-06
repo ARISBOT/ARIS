@@ -213,10 +213,30 @@ jobs:
           dangerous_perms = manifest_res.get('dangerousPermissions', [])
           dangerous_flags = manifest_res.get('dangerousFlags', [])
           dangerous_filters = manifest_res.get('dangerousFilters', [])
+          requested_perms = [p.get('name', '') for p in manifest.get('permissions', []) if p.get('name')]
 
           signing_res = data.get('signingCheckResult', {}) or {}
           apk_sig = signing_res.get('signingSchemas', {}) or signing_res.get('apkSigResult', {}) or {}
           verified = apk_sig.get('verifiedByApkSig', False)
+          certs = signing_res.get('signingCertificates', []) or signing_res.get('certificateResults', []) or []
+
+          cert_lines = []
+          for idx, cert in enumerate(certs, 1):
+              pub = cert.get('publicKeyResult', {}) or {}
+              algo_size = f\"{pub.get('keyAlgorithm', 'N/A')}/{pub.get('keySizeBits', 'N/A')}\" if pub.get('keyAlgorithm') else 'N/A'
+              cert_lines.append(
+                  f\"  - **Certificate #{idx}**\n\"
+                  f\"    - **Key Algorithm Name:** {cert.get('sigAlgorithmName', 'N/A')}\n\"
+                  f\"    - **Subject:**\n\"
+                  f\"      {cert.get('subjectPrincipal', 'N/A')}\n\"
+                  f\"    - **Not Before:** {cert.get('notBefore', 'N/A')}\n\"
+                  f\"    - **Not After:** {cert.get('notAfter', 'N/A')}\n\"
+                  f\"    - **SHA-256:** \`{cert.get('sha256', 'N/A')}\`\n\"
+                  f\"    - **Public Key**\n\"
+                  f\"      - **Algorithm/Size (bits):** {algo_size}\"
+              )
+
+          certs_formatted = (\"\\n\" + \"\\n\".join(cert_lines)) if cert_lines else \"\"
 
           lib_res = data.get('libraryCheckResult', {}) or {}
           detected_libs = [f\"{lib.get('name', 'Unknown')} ({lib.get('type', 'lib')})\" for lib in lib_res.get('detectedLibraries', []) if lib.get('name')]
@@ -236,8 +256,9 @@ jobs:
           ---
 
           ### 🔒 Signature & Integrity
-          - **Verified by ApkSig:** {'✅ Yes' if verified else '❌ No / Unverified'}
-          - **V1 Scheme:** {'✅' if apk_sig.get('v1') else '❌'} | **V2 Scheme:** {'✅' if apk_sig.get('v2') else '❌'} | **V3 Scheme:** {'✅' if apk_sig.get('v3') else '❌'} | **V4 Scheme:** {'✅' if apk_sig.get('v4') else '❌'}
+          - **Verified by apksig:** {'Verified' if verified else 'Unverified'}
+          - **Number of certificates:** {len(certs)}
+          - **V1 Scheme:** {'✅' if apk_sig.get('v1') else '❌'} | **V2 Scheme:** {'✅' if apk_sig.get('v2') else '❌'} | **V3 Scheme:** {'✅' if apk_sig.get('v3') else '❌'} | **V4 Scheme:** {'✅' if apk_sig.get('v4') else '❌'}{certs_formatted}
 
           ---
 
@@ -245,6 +266,11 @@ jobs:
           - **Dangerous Permissions ({len(dangerous_perms)}):** {', '.join([f'\`{p}\`' for p in dangerous_perms]) if dangerous_perms else 'None detected'}
           - **Dangerous Flags ({len(dangerous_flags)}):** {', '.join([f'\`{f}\`' for f in dangerous_flags]) if dangerous_flags else 'None detected'}
           - **Dangerous Intent Filters ({len(dangerous_filters)}):** {', '.join([f'\`{i}\`' for i in dangerous_filters]) if dangerous_filters else 'None detected'}
+
+          ---
+
+          ### 📋 Requested Permissions ({len(requested_perms)})
+          {', '.join([f'\`{p}\`' for p in requested_perms]) if requested_perms else 'None detected'}
 
           ---
 
