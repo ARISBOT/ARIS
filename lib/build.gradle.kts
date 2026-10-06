@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: EUPL-1.2
  */
 
+import java.net.URI
+
 plugins {
     id("buildsrc.convention.kotlin-jvm")
 
@@ -33,7 +35,41 @@ dependencies {
 }
 
 tasks {
+    val downloadSampleData = register("downloadSampleData") {
+        doLast {
+            val sampleDataDir = file("../sampledata")
+            val libInfoFile = file("../sampledata/libinfo.jsonl")
+            if (!libInfoFile.exists() || libInfoFile.length() == 0L) {
+                logger.lifecycle("sampledata directory is empty. Downloading default scanner dataset from Codeberg...")
+                sampleDataDir.mkdirs()
+                val dataZipUrl = "https://codeberg.org/Katastima/apkscanner-data/archive/main.zip"
+                val tempZip = file("${layout.buildDirectory.get().asFile}/tmp/sampledata.zip")
+                tempZip.parentFile.mkdirs()
+
+                try {
+                    URI.create(dataZipUrl).toURL().openStream().use { input ->
+                        tempZip.outputStream().use { output ->
+                            input.copyTo(output)
+                        }
+                    }
+                    copy {
+                        from(zipTree(tempZip)) {
+                            eachFile {
+                                path = path.substringAfter("/")
+                            }
+                        }
+                        into(sampleDataDir)
+                    }
+                    logger.lifecycle("Successfully downloaded and unpacked sampledata.")
+                } catch (e: Exception) {
+                    logger.warn("Could not automatically download sampledata: ${e.message}")
+                }
+            }
+        }
+    }
+
     processResources {
+        dependsOn(downloadSampleData)
         from("../sampledata") {
             include("*.json")
             include("*.jsonl")
