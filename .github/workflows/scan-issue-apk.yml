@@ -19,8 +19,17 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-        with:
-          submodules: recursive
+
+      - name: Checkout Submodules
+        run: git submodule update --init --recursive
+
+      - name: Verify Submodule Data
+        run: |
+          if [ ! -s "sampledata/libinfo.jsonl" ]; then
+            echo "::error::Submodule sampledata/libinfo.jsonl is missing or empty!"
+            exit 1
+          fi
+          echo "Submodule sampledata data files verified."
 
       - name: Set up JDK 21
         uses: actions/setup-java@v5
