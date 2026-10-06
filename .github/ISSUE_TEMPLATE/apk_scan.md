@@ -17,4 +17,4 @@ assignees: ''
 - **Developer / Source**: 
 
 ---
-> 🤖 **Automated Scanner**: Once you create this issue with a valid `.apk` file or download link, the **Katastima APK Scanner** GitHub Action will automatically process the file and comment back with the full scan report!
+> 🤖 **Automated Scanner**: Once you create this issue with a valid `.apk` file or download link, the **ARIS** GitHub Action will automatically process the file and comment back with the full scan report!

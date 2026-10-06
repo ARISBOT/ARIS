@@ -22,7 +22,7 @@ tasks.withType<Wrapper> {
 
 jreleaser {
     project {
-        name = "APK Scanner"
+        name = "ARIS"
         description = "Scan an APK file to check its internals"
     }
 

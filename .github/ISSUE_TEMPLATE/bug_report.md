@@ -1,6 +1,6 @@
 ---
 name: 🐛 Bug Report
-about: Create a report to help us improve Katastima APK Scanner
+about: Create a report to help us improve ARIS
 title: '[BUG]: '
 labels: ['bug']
 assignees: ''

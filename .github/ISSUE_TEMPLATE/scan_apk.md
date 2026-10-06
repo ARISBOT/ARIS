@@ -1,6 +1,6 @@
 ---
 name: 🔍 APK Security Scan Request
-about: Submit an APK file or URL to automatically trigger a Katastima security & library scan
+about: Submit an APK file or URL to automatically trigger an ARIS security & library scan
 title: '[SCAN]: '
 labels: ['apk-scan']
 assignees: ''

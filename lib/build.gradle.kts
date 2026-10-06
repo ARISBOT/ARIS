@@ -95,7 +95,7 @@ publishing {
             }
 
             pom {
-                name = "APK Scanner"
+                name = "ARIS"
                 description = "Scan an APK file to check its internals"
                 url = "https://katastima.org/apkscanner/overview"
                 licenses {
